@@ -6,11 +6,10 @@ My personal Mac setup. Clone and run `install.sh` to go from zero to a fully con
 
 - **Zsh** with Oh My Zsh, Starship prompt, autosuggestions, syntax highlighting, atuin history
 - **Homebrew** packages and casks via `Brewfile`
-- **Aliases** split by context (git, misc) — work aliases stay local, not committed
-- **Git** with delta for syntax-highlighted diffs, gh-dash for PR reviews
+- **Aliases** split by context — work aliases stay local, not committed
+- **Git** with delta for diffs, gh-dash for PR reviews
 - **mise** for managing Node, Python, and Java versions
-- **CLI tools** — fd, curlie, yazi, mole, tldr, zoxide, fzf, ripgrep, bat, mprocs and more
-- **helix** — terminal editor for code search and browsing (`hx .`)
+- **helix** for terminal code search and browsing
 - **macOS defaults** for Dock, Finder, keyboard
 
 ## Bootstrap a new Mac
@@ -112,6 +111,52 @@ These steps require human interaction and can't be automated:
 |---|---|
 | `cursor` | Open Cursor in a new window |
 | `run-help` | man (show manual) |
+
+## CLI Tools
+
+| Tool | Description |
+|---|---|
+| `atuin` | Shell history with search and optional sync |
+| `bat` | `cat` with syntax highlighting |
+| `cloudflared` | Cloudflare tunnel client |
+| `curlie` | Friendlier `curl` |
+| `deno` | JavaScript/TypeScript runtime |
+| `fd` | Faster `find` |
+| `ffmpeg` | Audio/video processing |
+| `flyctl` | Fly.io CLI |
+| `fzf` | Fuzzy finder (used by proj, atuin, zsh history) |
+| `gh` | GitHub CLI |
+| `git-delta` | Syntax-highlighted git diffs |
+| `helix` | Terminal editor for code search and browsing |
+| `imagemagick` | Image processing |
+| `jq` | JSON processor |
+| `just` | Task runner (used in dotCMS project) |
+| `mise` | Version manager for Node, Python, Java |
+| `mkcert` | Local SSL certificates |
+| `mole` | SSH tunnel manager |
+| `mprocs` | Run multiple processes in split panes |
+| `ripgrep` | Fast grep replacement |
+| `rtk` | Token-optimized CLI proxy for Claude Code |
+| `starship` | Cross-shell prompt |
+| `tlrc` | `tldr` client — simplified man pages |
+| `tree` | Directory tree viewer |
+| `wget` | File downloader |
+| `yazi` | Terminal file manager with preview |
+| `zoxide` | Smart `cd` replacement |
+
+### Apps (Casks)
+
+| App | Description |
+|---|---|
+| `1password-cli` | 1Password CLI |
+| `chromium` + `chromedriver` | Headless browser for Puppeteer |
+| `cmux` | Claude Code agent teams |
+| `codex` | OpenAI Codex CLI |
+| `cursor` | AI code editor |
+| `ghostty` | Terminal emulator |
+| `ollama` | Run local LLMs |
+| `orbstack` | Lightweight Docker alternative |
+| `raycast` | Command launcher |
 
 ## Helix
 
