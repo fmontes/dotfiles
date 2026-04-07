@@ -10,6 +10,7 @@ My personal Mac setup. Clone and run `install.sh` to go from zero to a fully con
 - **Git** with delta for syntax-highlighted diffs, gh-dash for PR reviews
 - **mise** for managing Node, Python, and Java versions
 - **CLI tools** — fd, curlie, yazi, mole, tldr, zoxide, fzf, ripgrep, bat, mprocs and more
+- **helix** — terminal editor for code search and browsing (`hx .`)
 - **macOS defaults** for Dock, Finder, keyboard
 
 ## Bootstrap a new Mac
@@ -112,6 +113,24 @@ These steps require human interaction and can't be automated:
 | `cursor` | Open Cursor in a new window |
 | `run-help` | man (show manual) |
 
+## Helix
+
+Terminal editor used for code search and browsing. Launch with `hx .` from any project.
+
+| Key | Action |
+|---|---|
+| `Space+/` | Live grep across all files |
+| `Space+f` | Fuzzy file finder |
+| `Space+s` | Symbol picker (current file) |
+| `Space+S` | Workspace symbol picker |
+| `Ctrl+o` | Copy current file path to clipboard |
+| `gd` | Go to definition |
+| `gr` | Go to references |
+| `K` | Hover docs |
+| `:q` | Quit |
+
+TypeScript LSP: `npm install -g typescript-language-server typescript`
+
 ## Structure
 
 ```
@@ -123,8 +142,11 @@ dotfiles/
     ├── .zshrc
     ├── .gitconfig
     └── .config/
-        └── zsh/
-            └── aliases.zsh   # Git + misc aliases
+        ├── zsh/
+        │   └── aliases.zsh   # Git + misc aliases
+        ├── helix/
+        │   └── config.toml   # Helix editor config
+        └── starship.toml     # Starship prompt config
 ```
 
 ## Keeping Brewfile up to date
