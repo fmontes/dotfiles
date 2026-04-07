@@ -16,7 +16,7 @@ prompt pure
 export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 export PUPPETEER_EXECUTABLE_PATH=$(which chromium)
 
-export PNPM_HOME="/Users/fmontes/Library/pnpm"
+export PNPM_HOME="$HOME/Library/pnpm"
 export SDKMAN_DIR="$HOME/.sdkman"
 export BUN_INSTALL="$HOME/.bun"
 export DOCKER_HOST=unix:///var/run/docker.sock
@@ -28,8 +28,8 @@ case ":$PATH:" in
   *) export PATH="$PNPM_HOME:$PATH" ;;
 esac
 export PATH="$BUN_INSTALL/bin:$PATH"
-export PATH="/Users/fmontes/.antigravity/antigravity/bin:$PATH"
-export PATH="$PATH:/Users/fmontes/.cache/lm-studio/bin"
+export PATH="$HOME/.antigravity/antigravity/bin:$PATH"
+export PATH="$PATH:$HOME/.cache/lm-studio/bin"
 export PATH="~/.console-ninja/.bin:$PATH"
 
 # ─── Tool Loaders ───────────────────────────────────────────────────────────
@@ -38,7 +38,7 @@ export PATH="~/.console-ninja/.bin:$PATH"
 . "$HOME/.local/bin/env"
 
 # Docker
-source /Users/fmontes/.docker/init-zsh.sh 2>/dev/null || true
+source "$HOME/.docker/init-zsh.sh" 2>/dev/null || true
 
 # NVM
 export NVM_DIR="$HOME/.nvm"

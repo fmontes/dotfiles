@@ -34,7 +34,8 @@ The script will:
 
 - Install **1Password** and sign in first
 - Copy `home/.npmrc.template` → `~/.npmrc` and fill in tokens from 1Password
-- Generate SSH key: `ssh-keygen -t ed25519 -C "freddymontes@gmail.com"` and add to GitHub
+- Update `~/.gitconfig` with your name and email
+- Generate SSH key: `ssh-keygen -t ed25519 -C "your@email.com"` and add to GitHub
 - Run `gh auth login`
 - Run `nvm install --lts && nvm use --lts`
 - Run `npm install -g @anthropic-ai/claude-code @angular/cli @fmontes/md2clip dev-browser yarn`

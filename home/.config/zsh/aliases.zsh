@@ -10,7 +10,7 @@ alias gp="git push"
 # ─── Tools ──────────────────────────────────────────────────────────────────
 alias cat="bat"
 alias curl="curlie"
-alias find="fd"
+alias f="fd"
 
 # ─── Node ───────────────────────────────────────────────────────────────────
 alias node-update="nvm install --lts && nvm alias default lts/*"
@@ -35,5 +35,3 @@ alias ct-continue="cmux claude-teams --continue"
 # ─── Misc ───────────────────────────────────────────────────────────────────
 alias run-help=man
 alias cursor="cursor --new-window"
-alias toto="open vnc://toto@toto"
-alias totossh="ssh toto@toto"
