@@ -26,21 +26,18 @@ The script will:
 2. Install Homebrew and all packages from `Brewfile`
 3. Symlink all dotfiles to `~/`
 4. Install Oh My Zsh
-5. Install mise
+5. Set up mise and install Node and Python
 6. Apply macOS defaults
-7. Set up cmux CLI symlink
-8. Print a checklist of manual steps
+7. Install gh-dash, global npm packages, fix permissions, set up cmux
 
 ## After running install.sh
 
+These steps require human interaction and can't be automated:
+
 - Install **1Password** and sign in first
-- Update `~/.gitconfig` with your name and email
 - Generate SSH key: `ssh-keygen -t ed25519 -C "your@email.com"` and add to GitHub
+- Update `~/.gitconfig` with your name and email
 - Run `gh auth login`
-- Run `gh extension install dlvhdr/gh-dash`
-- Run `mise use --global node@lts`
-- Run `npm install -g @anthropic-ai/claude-code @angular/cli @fmontes/md2clip dev-browser yarn`
-- Run `mise use --global python@latest`
 - Run `atuin login` (optional, for cross-machine history sync)
 - Sign in to Raycast to restore extensions
 

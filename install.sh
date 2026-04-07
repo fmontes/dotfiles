@@ -20,7 +20,7 @@ run_script 01-xcode.sh
 run_script 02-homebrew.sh
 run_script 03-symlinks.sh
 run_script 04-omz.sh
-run_script 05-nvm.sh
+run_script 05-mise.sh
 run_script 06-macos.sh
 run_script 07-post-install.sh
 

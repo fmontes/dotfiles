@@ -66,6 +66,9 @@ alias claude-teams="cmux claude-teams"
 alias ct="cmux claude-teams"
 alias ct-continue="cmux claude-teams --continue"
 
+# ─── Help ───────────────────────────────────────────────────────────────────
+aliases() { bat ~/.config/zsh/aliases.zsh }
+
 # ─── Misc ───────────────────────────────────────────────────────────────────
 alias run-help=man
 alias cursor="cursor --new-window"
