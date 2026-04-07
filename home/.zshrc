@@ -36,6 +36,7 @@ export PATH="~/.console-ninja/.bin:$PATH"
 source "$HOME/.docker/init-zsh.sh" 2>/dev/null || true
 
 # mise (replaces nvm, pyenv, sdkman)
+export MISE_TRUSTED_CONFIG_PATHS="$HOME/Developer"
 eval "$(mise activate zsh)"
 
 # OrbStack

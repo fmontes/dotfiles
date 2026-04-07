@@ -1,0 +1,28 @@
+[gcloud]
+disabled = true
+
+[nodejs]
+disabled = true
+
+[python]
+disabled = true
+
+[java]
+disabled = true
+
+[rust]
+disabled = true
+
+[dotnet]
+disabled = true
+
+[package]
+disabled = true
+
+[cmd_duration]
+min_time = 5_000
+format = "took [$duration]($style) "
+
+[character]
+success_symbol = "[❯](green)"
+error_symbol = "[❯](red)"
