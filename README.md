@@ -100,12 +100,6 @@ The script will:
 | `dotfiles` | Open dotfiles repo in Cursor |
 | `zreload` | Reload zsh config |
 
-### Node
-
-| Alias | Command |
-|---|---|
-| `node-update` | Update global Node to latest LTS via mise |
-
 ### Claude / cmux
 
 | Alias | Command |

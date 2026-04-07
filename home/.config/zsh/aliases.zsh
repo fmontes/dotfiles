@@ -21,9 +21,6 @@ alias cat="bat"
 alias curl="curlie"
 alias f="fd"
 
-# ─── Node ───────────────────────────────────────────────────────────────────
-alias node-update="mise use --global node@lts"
-
 # ─── Ports ──────────────────────────────────────────────────────────────────
 port() {
   local process
