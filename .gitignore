@@ -1,5 +1,6 @@
 # Secrets
 home/.npmrc
+home/.npmrc.template
 home/.netrc
 
 # Auth tokens

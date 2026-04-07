@@ -33,7 +33,6 @@ The script will:
 ## After running install.sh
 
 - Install **1Password** and sign in first
-- Copy `home/.npmrc.template` → `~/.npmrc` and fill in tokens from 1Password
 - Update `~/.gitconfig` with your name and email
 - Generate SSH key: `ssh-keygen -t ed25519 -C "your@email.com"` and add to GitHub
 - Run `gh auth login`
