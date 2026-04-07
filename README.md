@@ -44,30 +44,82 @@ The script will:
 - Run `atuin login` (optional, for cross-machine history sync)
 - Sign in to Raycast to restore extensions
 
-## Handy aliases
+## Aliases
+
+### Git
+
+| Alias | Command |
+|---|---|
+| `g` | git |
+| `gs` | git status |
+| `ga` | git add |
+| `gaa` | git add . |
+| `gcm` | git commit -m |
+| `gp` | git push |
+| `gco` | git checkout |
+| `gcb` | git checkout -b |
+| `gbd` | git branch -d |
+| `gl` | Git log graph (last 20) |
+| `gll` | Git log graph (all branches) |
+| `gcleanbranches` | Delete local branches whose remote is gone |
+
+### CLI Replacements
+
+| Alias | Replaces |
+|---|---|
+| `cat` | bat (syntax highlighted) |
+| `curl` | curlie (friendlier interface) |
+| `f` | fd (faster find) |
+
+### Ports
+
+| Alias | Command |
+|---|---|
+| `port 3000` | Show process listening on a port |
+| `killport 3000` | Kill process on a port |
+| `ports` | List all running node/bun/deno processes |
+| `devports` | List processes on common dev ports |
+| `killdev` | Kill all common dev ports at once |
+
+### Projects
+
+| Alias | Command |
+|---|---|
+| `proj` | Fuzzy-jump to a project and open in Cursor |
+
+### GitHub
 
 | Alias | Command |
 |---|---|
 | `prs` | Open gh-dash PR dashboard |
-| `port 3000` | See what's running on a port |
-| `killport 3000` | Kill process on a port |
-| `ports` | List all running node/bun/deno processes |
-| `devports` | List all common dev ports |
-| `killdev` | Kill all common dev ports |
-| `node-update` | Update Node to latest LTS via mise |
-| `proj` | Fuzzy-jump to a project and open in Cursor |
-| `dotfiles` | Open dotfiles in Cursor |
+
+### Dotfiles
+
+| Alias | Command |
+|---|---|
+| `dotfiles` | Open dotfiles repo in Cursor |
 | `zreload` | Reload zsh config |
-| `gl` | Git log (graph, last 20) |
-| `gll` | Git log (graph, all branches) |
-| `gcb` | git checkout -b |
-| `gcleanbranches` | Delete merged/gone remote branches |
-| `z <dir>` | Jump to directory with zoxide |
-| `cat` | bat (syntax highlighted) |
-| `curl` | curlie (friendlier curl) |
-| `f` | fd (faster find) |
-| `ct` | Launch Claude Code with agent teams (cmux) |
-| `ct-continue` | Resume last Claude Code teams session |
+
+### Node
+
+| Alias | Command |
+|---|---|
+| `node-update` | Update global Node to latest LTS via mise |
+
+### Claude / cmux
+
+| Alias | Command |
+|---|---|
+| `ct` | Launch Claude Code agent teams |
+| `ct-continue` | Resume last agent teams session |
+| `claude-teams` | Same as `ct` (full name) |
+
+### Misc
+
+| Alias | Command |
+|---|---|
+| `cursor` | Open Cursor in a new window |
+| `run-help` | man (show manual) |
 
 ## Structure
 
