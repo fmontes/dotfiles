@@ -1,0 +1,3 @@
+shell-integration = none
+tab-inherit-working-directory = true
+split-inherit-working-directory = true
