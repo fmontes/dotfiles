@@ -27,6 +27,11 @@ ports() { lsof -i -P | grep LISTEN | grep -E 'node|bun|deno' }
 # ─── GitHub ─────────────────────────────────────────────────────────────────
 alias prs="gh dash"
 
+# ─── Claude Code ────────────────────────────────────────────────────────────
+alias claude-teams="cmux claude-teams"
+alias ct="cmux claude-teams"
+alias ct-continue="cmux claude-teams --continue"
+
 # ─── Misc ───────────────────────────────────────────────────────────────────
 alias run-help=man
 alias cursor="cursor --new-window"

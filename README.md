@@ -53,6 +53,8 @@ The script will:
 | `cat` | bat (syntax highlighted) |
 | `curl` | curlie (friendlier curl) |
 | `find` | fd (faster find) |
+| `ct` | Launch Claude Code with agent teams (cmux) |
+| `ct-continue` | Resume last Claude Code teams session |
 
 ## Structure
 
