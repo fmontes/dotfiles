@@ -19,6 +19,12 @@ render = true
 [keys.normal]
 "C-o" = ":sh echo %{buffer_name} | pbcopy"
 "y" = ["yank_to_clipboard"]
+"S-left" = ["extend_char_left"]
+"S-right" = ["extend_char_right"]
+"S-up" = ["extend_line_up"]
+"S-down" = ["extend_line_down"]
+"S-A-left" = ["extend_prev_word_start"]
+"S-A-right" = ["extend_next_word_end"]
 
 [keys.select]
 "y" = ["yank_to_clipboard"]
