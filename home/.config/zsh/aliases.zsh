@@ -39,8 +39,16 @@ killport() {
   echo "$pid" | xargs kill -9
 }
 
-ports() { lsof -i -P | grep LISTEN | grep -E 'node|bun|deno' }
-alias devports='lsof -i :3000,3001,4200,5173,8080,8443 | grep LISTEN'
+ports() {
+  echo "── Host processes ──"
+  lsof -i -P | grep LISTEN | grep -E 'node|bun|deno|java|ruby'
+  echo "── Docker containers ──"
+  docker ps --format "{{.Names}}\t{{.Ports}}" 2>/dev/null | while IFS=$'\t' read -r name ports; do
+    local mapped=$(echo "$ports" | grep -oE '0\.0\.0\.0:[0-9]+->[0-9]+/tcp' | sed 's/0.0.0.0://' | sed 's|->| -> |')
+    [[ -n "$mapped" ]] && echo "$name: $mapped"
+  done
+}
+alias devports='lsof -i :3000,3001,4200,5173,8080,8090,8443 | grep LISTEN'
 
 killdev() {
   lsof -ti:3000,3001,4200,5173,8080,8443 | xargs kill -9 2>/dev/null

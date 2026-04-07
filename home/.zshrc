@@ -8,6 +8,10 @@ plugins=()
 fpath+=("/opt/homebrew/share/zsh/site-functions")
 source $ZSH/oh-my-zsh.sh
 
+# ─── Editor ─────────────────────────────────────────────────────────────────
+export EDITOR="nano"
+export VISUAL="nano"
+
 # ─── Environment ────────────────────────────────────────────────────────────
 export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 export PUPPETEER_EXECUTABLE_PATH=$(which chromium)

@@ -1,0 +1,2 @@
+[keys.normal]
+"C-o" = ":sh echo %{buffer_name} | pbcopy"

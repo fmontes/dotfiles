@@ -26,4 +26,9 @@ while IFS= read -r -d '' file; do
   create_symlink "$file" "$dest"
 done < <(find "$DOTFILES_HOME" -type f -print0)
 
+# Directory symlinks (whole directories, not individual files)
+rm -rf "$HOME/.config/helix"
+ln -sf "$DOTFILES_HOME/.config/helix" "$HOME/.config/helix"
+echo "  [linked]  ~/.config/helix"
+
 echo "Symlinks created."
