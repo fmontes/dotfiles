@@ -1,0 +1,21 @@
+# Secrets
+home/.npmrc
+home/.netrc
+
+# Auth tokens
+home/.config/gh/hosts.yml
+home/.config/raycast/
+
+# Client-specific aliases
+home/.config/zsh/aliases.clients.zsh
+
+# Work-specific aliases
+home/.config/zsh/aliases.dotcms.zsh
+
+# SSH & GPG
+home/.ssh/
+home/.gnupg/
+
+# macOS
+.DS_Store
+**/.DS_Store
