@@ -7,10 +7,6 @@
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
 	required = true
-[alias]
-	gco = checkout
-	co = checkout
-	st = status
 [core]
 	pager = delta
 [interactive]
@@ -24,5 +20,9 @@
 	conflictstyle = diff3
 [diff]
 	colorMoved = default
+[pull]
+	rebase = true
+[rebase]
+	autoStash = true
 [credential]
 	helper = store

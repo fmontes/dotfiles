@@ -1,33 +1,70 @@
 # ─── Git ────────────────────────────────────────────────────────────────────
 alias g="git"
-alias gco="git checkout"
 alias gs="git status"
 alias ga="git add"
 alias gaa="git add ."
 alias gcm="git commit -m"
 alias gp="git push"
+alias gco="git checkout"
+alias gcb="git checkout -b"
+alias gbd="git branch -d"
+alias gl="git log --oneline --graph --decorate -20"
+alias gll="git log --oneline --graph --decorate --all"
 
-# ─── Tools ──────────────────────────────────────────────────────────────────
+gcleanbranches() {
+  git fetch -p
+  git branch -vv | grep ': gone]' | awk '{print $1}' | xargs git branch -d
+}
+
+# ─── CLI Replacements ───────────────────────────────────────────────────────
 alias cat="bat"
 alias curl="curlie"
 alias f="fd"
 
 # ─── Node ───────────────────────────────────────────────────────────────────
-alias node-update="nvm install --lts && nvm alias default lts/*"
+alias node-update="mise use --global node@lts"
 
-# Show what's running on a port: port 3000
-port() { lsof -i ":$1" | grep LISTEN }
+# ─── Ports ──────────────────────────────────────────────────────────────────
+port() {
+  local process
+  process=$(lsof -i ":$1" | grep LISTEN)
+  echo "$process"
+}
 
-# Kill whatever is running on a port: killport 3000
-killport() { lsof -ti ":$1" | xargs kill -9 }
+killport() {
+  local pid
+  pid=$(lsof -ti ":$1")
+  if [[ -z "$pid" ]]; then
+    echo "Nothing listening on port $1"
+    return
+  fi
+  echo "Killing PID $pid on port $1"
+  echo "$pid" | xargs kill -9
+}
 
-# List all active node/js ports
 ports() { lsof -i -P | grep LISTEN | grep -E 'node|bun|deno' }
+alias devports='lsof -i :3000,3001,4200,5173,8080,8443 | grep LISTEN'
+
+killdev() {
+  lsof -ti:3000,3001,4200,5173,8080,8443 | xargs kill -9 2>/dev/null
+  echo "Killed common dev ports"
+}
+
+# ─── Projects ───────────────────────────────────────────────────────────────
+proj() {
+  local dir
+  dir=$(zoxide query -l | fzf --preview 'ls {}')
+  [[ -n "$dir" ]] && cd "$dir" && cursor --new-window .
+}
 
 # ─── GitHub ─────────────────────────────────────────────────────────────────
 alias prs="gh dash"
 
-# ─── Claude Code ────────────────────────────────────────────────────────────
+# ─── Dotfiles ───────────────────────────────────────────────────────────────
+dotfiles() { cursor --new-window ~/Developer/dotfiles }
+alias zreload="source ~/.zshrc && echo 'Reloaded'"
+
+# ─── Claude / cmux ──────────────────────────────────────────────────────────
 alias claude-teams="cmux claude-teams"
 alias ct="cmux claude-teams"
 alias ct-continue="cmux claude-teams --continue"

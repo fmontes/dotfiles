@@ -4,20 +4,15 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
 # ─── Oh My Zsh ──────────────────────────────────────────────────────────────
 export ZSH="$HOME/.oh-my-zsh"
 ZSH_THEME=""
-plugins=(git)
+plugins=()
 fpath+=("/opt/homebrew/share/zsh/site-functions")
 source $ZSH/oh-my-zsh.sh
-
-# Pure prompt
-autoload -U promptinit; promptinit
-prompt pure
 
 # ─── Environment ────────────────────────────────────────────────────────────
 export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 export PUPPETEER_EXECUTABLE_PATH=$(which chromium)
 
 export PNPM_HOME="$HOME/Library/pnpm"
-export SDKMAN_DIR="$HOME/.sdkman"
 export BUN_INSTALL="$HOME/.bun"
 export DOCKER_HOST=unix:///var/run/docker.sock
 
@@ -40,18 +35,8 @@ export PATH="~/.console-ninja/.bin:$PATH"
 # Docker
 source "$HOME/.docker/init-zsh.sh" 2>/dev/null || true
 
-# NVM
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-[ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"
-
-# pyenv
-export PYENV_ROOT="$HOME/.pyenv"
-export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init -)"
-
-# SDKMAN
-[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
+# mise (replaces nvm, pyenv, sdkman)
+eval "$(mise activate zsh)"
 
 # OrbStack
 source ~/.orbstack/shell/init.zsh 2>/dev/null || true
@@ -71,8 +56,14 @@ eval "$(fzf --zsh)"
 # zoxide (replaces cd)
 eval "$(zoxide init zsh)"
 
+# atuin (shell history)
+eval "$(atuin init zsh)"
+
 # zsh-autosuggestions
 source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 
-# zsh-syntax-highlighting (must be last)
+# zsh-syntax-highlighting (must be last before starship)
 source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
+# Starship prompt (must be last)
+eval "$(starship init zsh)"
