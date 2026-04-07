@@ -2,9 +2,6 @@
 [user]
 	name = Freddy Montes
 	email = freddymontes@gmail.com
-# Please adapt and uncomment the following lines:
-#	name = Freddy Montes
-#	email = freddymontes@gmail.com
 [filter "lfs"]
 	clean = git-lfs clean -- %f
 	smudge = git-lfs smudge -- %f
@@ -14,5 +11,18 @@
 	gco = checkout
 	co = checkout
 	st = status
+[core]
+	pager = delta
+[interactive]
+	diffFilter = delta --color-only
+[delta]
+	navigate = true
+	dark = true
+	line-numbers = true
+	side-by-side = false
+[merge]
+	conflictstyle = diff3
+[diff]
+	colorMoved = default
 [credential]
 	helper = store
