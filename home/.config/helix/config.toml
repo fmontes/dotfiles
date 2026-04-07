@@ -1,2 +1,24 @@
+[editor]
+clipboard-provider = "pasteboard"
+line-number = "relative"
+cursorline = true
+auto-pairs = true
+color-modes = true
+
+[editor.lsp]
+display-inlay-hints = true
+display-messages = true
+
+[editor.statusline]
+left = ["mode", "spinner", "file-name", "file-modification-indicator"]
+right = ["diagnostics", "position", "file-type"]
+
+[editor.indent-guides]
+render = true
+
 [keys.normal]
 "C-o" = ":sh echo %{buffer_name} | pbcopy"
+"y" = ["yank_to_clipboard"]
+
+[keys.select]
+"y" = ["yank_to_clipboard"]
