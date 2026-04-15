@@ -23,8 +23,12 @@ fi
 # ─── cmux CLI symlink ────────────────────────────────────────────────────────
 if [[ -f "/Applications/cmux.app/Contents/Resources/bin/cmux" ]]; then
   echo "Setting up cmux CLI symlink..."
-  sudo ln -sf "/Applications/cmux.app/Contents/Resources/bin/cmux" /usr/local/bin/cmux
-  echo "cmux CLI ready."
+  sudo mkdir -p /usr/local/bin
+  if sudo ln -sf "/Applications/cmux.app/Contents/Resources/bin/cmux" /usr/local/bin/cmux; then
+    echo "cmux CLI ready."
+  else
+    echo "cmux CLI symlink failed."
+  fi
 fi
 
 # ─── Manual steps ────────────────────────────────────────────────────────────
