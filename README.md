@@ -23,7 +23,7 @@ This clones the repo to `~/.dotfiles` and runs the installer.
 ```bash
 git clone https://github.com/fmontes/dotfiles ~/.dotfiles
 cd ~/.dotfiles
-zsh install.sh
+./install.sh
 ```
 
 The script will:
