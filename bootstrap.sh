@@ -27,4 +27,4 @@ fi
 
 info "Running installer..."
 cd "$DEST"
-exec ./install.sh
+exec ./install.sh </dev/tty

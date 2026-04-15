@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 if ! command -v brew &>/dev/null; then
   echo "Installing Homebrew..."
-  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" </dev/tty
   eval "$(/opt/homebrew/bin/brew shellenv)"
 else
   echo "Homebrew already installed."
