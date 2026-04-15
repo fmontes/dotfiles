@@ -1,6 +1,12 @@
 # dotfiles
 
-My personal Mac setup. Clone and run `install.sh` to go from zero to a fully configured machine.
+My personal Mac setup. One command to go from zero to a fully configured machine.
+
+```bash
+curl -fsSL https://fmontes.com/install.sh | bash
+```
+
+This clones the repo to `~/.dotfiles` and runs the installer.
 
 ## What's included
 
@@ -12,11 +18,11 @@ My personal Mac setup. Clone and run `install.sh` to go from zero to a fully con
 - **helix** for terminal code search and browsing
 - **macOS defaults** for Dock, Finder, keyboard
 
-## Bootstrap a new Mac
+## Manual install
 
 ```bash
-git clone https://github.com/fmontes/dotfiles ~/Developer/dotfiles
-cd ~/Developer/dotfiles
+git clone https://github.com/fmontes/dotfiles ~/.dotfiles
+cd ~/.dotfiles
 zsh install.sh
 ```
 
@@ -181,7 +187,8 @@ TypeScript LSP: `npm install -g typescript-language-server typescript`
 ```
 dotfiles/
 ├── Brewfile                  # Homebrew packages and casks
-├── install.sh                # Bootstrap entry point
+├── bootstrap.sh              # Remote entry point (curl | bash)
+├── install.sh                # Local installer
 ├── scripts/                  # Individual setup steps
 └── home/                     # Dotfiles (mirrored to ~/)
     ├── .zshrc
@@ -197,7 +204,7 @@ dotfiles/
 ## Keeping Brewfile up to date
 
 ```bash
-brew bundle dump --brews --casks --force --file=~/Developer/dotfiles/Brewfile
+brew bundle dump --brews --casks --force --file=~/.dotfiles/Brewfile
 ```
 
 Run this before committing whenever you install new tools.
