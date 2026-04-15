@@ -2,11 +2,22 @@
 if ! command -v brew &>/dev/null; then
   echo "Installing Homebrew..."
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" </dev/tty
-  eval "$(/opt/homebrew/bin/brew shellenv)"
 else
   echo "Homebrew already installed."
-  eval "$(/opt/homebrew/bin/brew shellenv)"
+fi
+
+BREW_BIN="/opt/homebrew/bin/brew"
+[[ -x "$BREW_BIN" ]] || BREW_BIN="/usr/local/bin/brew"
+eval "$("$BREW_BIN" shellenv)"
+
+ZPROFILE="$HOME/.zprofile"
+if ! grep -q 'brew shellenv' "$ZPROFILE" 2>/dev/null; then
+  echo "Adding brew shellenv to $ZPROFILE..."
+  {
+    echo ''
+    echo "eval \"\$($BREW_BIN shellenv)\""
+  } >> "$ZPROFILE"
 fi
 
 echo "Installing packages from Brewfile..."
-brew bundle --file="$DOTFILES_DIR/Brewfile" --no-lock
+brew bundle --file="$DOTFILES_DIR/Brewfile"
