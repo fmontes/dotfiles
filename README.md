@@ -163,6 +163,7 @@ These steps require human interaction and can't be automated:
 | `ollama` | Run local LLMs |
 | `orbstack` | Lightweight Docker alternative |
 | `raycast` | Command launcher |
+| `warp` | AI-powered terminal |
 
 ## Helix
 
