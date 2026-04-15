@@ -11,7 +11,9 @@ eval "$(mise activate zsh)"
 
 mise use --global node@lts
 mise use --global python@latest
+mise use --global java@lts
 
 echo "mise runtimes ready."
 echo "  node: $(mise exec node -- node --version)"
 echo "  python: $(mise exec python -- python --version)"
+echo "  java: $(mise exec java -- java --version | head -1)"
