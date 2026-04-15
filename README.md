@@ -1,5 +1,7 @@
 # dotfiles
 
+> From factory reset to coding in five minutes.
+
 My personal Mac setup. One command to go from zero to a fully configured machine.
 
 ```bash
