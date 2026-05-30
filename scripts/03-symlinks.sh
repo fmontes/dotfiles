@@ -28,6 +28,16 @@ while IFS= read -r -d '' file; do
   create_symlink "$file" "$dest"
 done < <(find "$DOTFILES_HOME" -type f -print0)
 
+# Stable repo anchor so configs can reference ~/.dotfiles regardless of clone location
+if [[ -L "$HOME/.dotfiles" ]]; then
+  echo "  [skip]    ~/.dotfiles"
+elif [[ -e "$HOME/.dotfiles" ]]; then
+  echo "  [warn]    ~/.dotfiles exists and is not a symlink, leaving as-is"
+else
+  ln -sf "$DOTFILES_DIR" "$HOME/.dotfiles"
+  echo "  [linked]  ~/.dotfiles -> $DOTFILES_DIR"
+fi
+
 # Directory symlinks (whole directories, not individual files)
 if [[ -L "$HOME/.config/helix" ]]; then
   echo "  [skip]    ~/.config/helix"

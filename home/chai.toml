@@ -1,0 +1,32 @@
+# chai — keep AI coding agent configs in sync.
+# https://github.com/charliesbot/chai
+#
+# This file is symlinked to ~/chai.toml by scripts/03-symlinks.sh.
+# Run `chai update` then `chai sync` to distribute config to all platforms.
+
+# Which platforms to sync to. Only these get touched.
+platforms = ["claude", "codex", "droid", "opencode", "antigravity"]
+
+# Shared instructions, copied to platforms with a global instructions file.
+instructions = "~/.dotfiles/ai/instructions/AGENTS.md"
+
+[deps]
+# External git repos cloned to ~/.chai/deps/ by `chai update`.
+# Reference as @name in skill/subagent paths below.
+impeccable = "https://github.com/pbakaus/impeccable"
+frontend-slides = "https://github.com/zarazhangrui/frontend-slides"
+dev-browser = "https://github.com/sawyerhood/dev-browser"
+
+[skills]
+# Directories copied to each platform's skills folder.
+# Local skills plus specific skills pulled from external deps.
+paths = [
+  "~/.dotfiles/ai/skills/skills/*",
+  "@impeccable/plugin/skills/impeccable",
+  "@frontend-slides/plugins/frontend-slides/skills/frontend-slides",
+  "@dev-browser/skills/dev-browser",
+]
+
+[subagents]
+# Files copied to each platform's agents folder.
+paths = ["~/.dotfiles/ai/subagents/*"]

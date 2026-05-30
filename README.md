@@ -18,6 +18,7 @@ This clones the repo to `~/.dotfiles` and runs the installer.
 - **Git** with delta for diffs, gh-dash for PR reviews
 - **mise** for managing Node, Python, and Java versions
 - **helix** for terminal code search and browsing
+- **[AI](ai/)** skills, instructions, and subagents for agentic coding harnesses
 - **macOS defaults** for Dock, Finder, keyboard
 
 ## Manual install
@@ -37,6 +38,7 @@ The script will:
 5. Set up mise and install Node and Python
 6. Apply macOS defaults
 7. Install gh-dash, global npm packages, fix permissions, set up cmux
+8. Sync AI agent config to every platform with `chai`
 
 ## After running install.sh
 
@@ -144,7 +146,6 @@ These steps require human interaction and can't be automated:
 | `mole` | SSH tunnel manager |
 | `mprocs` | Run multiple processes in split panes |
 | `ripgrep` | Fast grep replacement |
-| `rtk` | Token-optimized CLI proxy for Claude Code |
 | `starship` | Cross-shell prompt |
 | `tlrc` | `tldr` client — simplified man pages |
 | `tree` | Directory tree viewer |
@@ -157,6 +158,7 @@ These steps require human interaction and can't be automated:
 | App | Description |
 |---|---|
 | `1password-cli` | 1Password CLI |
+| `chai` | Sync AI agent config across platforms |
 | `chromium` + `chromedriver` | Headless browser for Puppeteer |
 | `cmux` | Claude Code agent teams |
 | `codex` | OpenAI Codex CLI |
@@ -185,6 +187,43 @@ Terminal editor used for code search and browsing. Launch with `hx .` from any p
 
 TypeScript LSP: `npm install -g typescript-language-server typescript`
 
+## AI
+
+All AI agent config lives in [`ai/`](ai/) as a single source of truth:
+
+- [`ai/instructions/`](ai/instructions/) — shared instructions (`AGENTS.md`)
+- [`ai/skills/`](ai/skills/) — [agent skills](https://docs.claude.com/en/docs/claude-code/skills) (one folder per skill)
+- [`ai/subagents/`](ai/subagents/) — custom subagent definitions
+
+### Syncing with chai
+
+I author the config once and let [**chai**](https://github.com/charliesbot/chai) distribute it to every agent platform — Claude, Codex, Droid, OpenCode, and Antigravity — instead of hand-maintaining each one's config files. The manifest lives in [`home/chai.toml`](home/chai.toml) (symlinked to `~/chai.toml`).
+
+`install.sh` runs `chai update && chai sync` for you, so a fresh machine is ready with no extra steps. Afterwards, the loop for changes is:
+
+```bash
+# 1. Edit the source of truth
+$EDITOR ai/instructions/AGENTS.md      # or add a skill/subagent under ai/
+
+# 2. Distribute to every platform listed in chai.toml
+chai update   # clone/pull any external deps first (skills from other repos, etc.)
+chai sync     # copy instructions, skills, and subagents into each platform's config dir
+```
+
+`chai sync` uses hash-based dirty detection: if an agent edited its copy, it prompts before overwriting. Add `--dry-run` to preview changes or `--force` to skip the dirty check. Because `ai/` is the only place you edit, every machine and every agent stays in sync from one commit.
+
+Skills can also come from other people's repos. Declare them under `[deps]` in `chai.toml` — `chai update` clones each to `~/.chai/deps/`, and `[skills]` paths reference them with `@name`. Current external skills: [impeccable](https://github.com/pbakaus/impeccable), [frontend-slides](https://github.com/zarazhangrui/frontend-slides), and [dev-browser](https://github.com/sawyerhood/dev-browser).
+
+### Installing a single skill elsewhere
+
+The skills are also installable standalone in any project, without chai:
+
+```bash
+npx skills add https://github.com/fmontes/dotfiles/tree/main/ai --skill <skill-name>
+```
+
+See the [skills README](ai/skills/README.md) for the full list.
+
 ## Structure
 
 ```
@@ -193,9 +232,14 @@ dotfiles/
 ├── bootstrap.sh              # Remote entry point (curl | bash)
 ├── install.sh                # Local installer
 ├── scripts/                  # Individual setup steps
+├── ai/                       # AI tooling
+│   ├── skills/               # Agent skills (any agentic harness)
+│   ├── instructions/         # Reusable prompt instructions
+│   └── subagents/            # Custom subagent definitions
 └── home/                     # Dotfiles (mirrored to ~/)
     ├── .zshrc
     ├── .gitconfig
+    ├── chai.toml             # AI config sync manifest (~/chai.toml)
     └── .config/
         ├── zsh/
         │   └── aliases.zsh   # Git + misc aliases

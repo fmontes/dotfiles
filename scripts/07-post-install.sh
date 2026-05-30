@@ -14,6 +14,17 @@ else
   echo "npm not available yet — skipping global packages. Run manually after mise sets up Node."
 fi
 
+# ─── chai: sync AI agent config to all platforms ─────────────────────────────
+# Distributes ai/instructions, ai/skills, and ai/subagents (plus external deps
+# declared in chai.toml) to every configured agent platform.
+if command -v chai &>/dev/null; then
+  echo "Syncing AI agent config with chai..."
+  chai update || echo "chai update failed — run 'chai update' manually."
+  chai sync   || echo "chai sync failed — run 'chai sync' manually."
+else
+  echo "chai not available yet — run 'chai update && chai sync' after Homebrew finishes."
+fi
+
 # ─── Fix .netrc permissions ──────────────────────────────────────────────────
 if [[ -f "$HOME/.netrc" ]]; then
   chmod 600 "$HOME/.netrc"

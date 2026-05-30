@@ -1,4 +1,5 @@
 tap "manaflow-ai/cmux"
+tap "charliesbot/tap"
 
 # ─── Formulae ───────────────────────────────────────────────────────────────
 brew "atuin"
@@ -34,6 +35,7 @@ brew "zsh-syntax-highlighting"
 
 # ─── Casks ──────────────────────────────────────────────────────────────────
 cask "1password-cli"
+cask "chai"
 cask "chromedriver"
 cask "chromium"
 cask "cmux"
