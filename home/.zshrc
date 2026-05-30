@@ -40,7 +40,7 @@ export PATH="~/.console-ninja/.bin:$PATH"
 source "$HOME/.docker/init-zsh.sh" 2>/dev/null || true
 
 # mise (replaces nvm, pyenv, sdkman)
-export MISE_TRUSTED_CONFIG_PATHS="$HOME/Developer"
+export MISE_TRUSTED_CONFIG_PATHS="$HOME/Developer:$HOME/orca"
 eval "$(mise activate zsh)"
 
 # OrbStack
@@ -72,3 +72,10 @@ source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 # Starship prompt (must be last)
 eval "$(starship init zsh)"
+
+# try-cli (tobi/try) — ephemeral workspace manager
+export PATH="/opt/homebrew/lib/ruby/gems/3.4.0/bin:$PATH"
+eval "$(command try init ~/src/tries)"
+
+# direnv hook
+eval "$(direnv hook zsh)"

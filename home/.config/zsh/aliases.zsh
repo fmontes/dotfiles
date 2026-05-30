@@ -75,7 +75,7 @@ alias ct="cmux claude-teams"
 alias ct-continue="cmux claude-teams --continue"
 
 # ─── Help ───────────────────────────────────────────────────────────────────
-aliases() { bat ~/.config/zsh/aliases.zsh }
+aliases() { bat --language=sh ~/.config/zsh/*.zsh }
 
 # ─── Misc ───────────────────────────────────────────────────────────────────
 alias run-help=man
