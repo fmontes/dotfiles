@@ -5,7 +5,7 @@
 # Run `chai update` then `chai sync` to distribute config to all platforms.
 
 # Which platforms to sync to. Only these get touched.
-platforms = ["claude", "codex", "droid", "opencode", "antigravity"]
+platforms = ["claude", "codex", "opencode", "antigravity"]
 
 # Shared instructions, copied to platforms with a global instructions file.
 instructions = "~/.dotfiles/ai/instructions/AGENTS.md"
@@ -21,7 +21,7 @@ dev-browser = "https://github.com/sawyerhood/dev-browser"
 # Directories copied to each platform's skills folder.
 # Local skills plus specific skills pulled from external deps.
 paths = [
-  "~/.dotfiles/ai/skills/skills/*",
+  "~/.dotfiles/ai/skills/*",
   "@impeccable/plugin/skills/impeccable",
   "@frontend-slides/plugins/frontend-slides/skills/frontend-slides",
   "@dev-browser/skills/dev-browser",
