@@ -18,7 +18,6 @@ gcleanbranches() {
 
 # ─── CLI Replacements ───────────────────────────────────────────────────────
 alias cat="bat"
-alias curl="curlie"
 alias f="fd"
 
 # ─── Ports ──────────────────────────────────────────────────────────────────

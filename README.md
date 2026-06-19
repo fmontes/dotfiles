@@ -75,7 +75,6 @@ These steps require human interaction and can't be automated:
 | Alias | Replaces |
 |---|---|
 | `cat` | bat (syntax highlighted) |
-| `curl` | curlie (friendlier interface) |
 | `f` | fd (faster find) |
 
 ### Ports
@@ -129,7 +128,6 @@ These steps require human interaction and can't be automated:
 | `atuin` | Shell history with search and optional sync |
 | `bat` | `cat` with syntax highlighting |
 | `cloudflared` | Cloudflare tunnel client |
-| `curlie` | Friendlier `curl` |
 | `deno` | JavaScript/TypeScript runtime |
 | `fd` | Faster `find` |
 | `ffmpeg` | Audio/video processing |
