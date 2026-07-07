@@ -1,4 +1,3 @@
-tap "manaflow-ai/cmux"
 tap "charliesbot/tap"
 
 # ─── Formulae ───────────────────────────────────────────────────────────────
@@ -37,10 +36,7 @@ cask "1password-cli"
 cask "chai"
 cask "chromedriver"
 cask "chromium"
-cask "cmux"
 cask "codex"
-cask "ghostty"
-cask "ollama-app"
 cask "orbstack"
 cask "raycast"
 cask "visual-studio-code"

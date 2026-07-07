@@ -46,11 +46,6 @@ eval "$(mise activate zsh)"
 # OrbStack
 source ~/.orbstack/shell/init.zsh 2>/dev/null || true
 
-# cmux (Ghostty shell integration)
-if [[ -n "$TERM_PROGRAM" && "$TERM_PROGRAM" == "ghostty" ]]; then
-  source /Applications/cmux.app/Contents/Resources/shell-integration/cmux-zsh-integration.zsh 2>/dev/null || true
-fi
-
 # ─── Aliases ────────────────────────────────────────────────────────────────
 for f in ~/.config/zsh/*.zsh; do source "$f"; done
 

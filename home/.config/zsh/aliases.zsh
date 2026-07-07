@@ -68,11 +68,6 @@ alias prs="gh dash"
 dotfiles() { code --new-window ~/Developer/dotfiles }
 alias zreload="source ~/.zshrc && echo 'Reloaded'"
 
-# ─── Claude / cmux ──────────────────────────────────────────────────────────
-alias claude-teams="cmux claude-teams"
-alias ct="cmux claude-teams"
-alias ct-continue="cmux claude-teams --continue"
-
 # ─── Help ───────────────────────────────────────────────────────────────────
 aliases() { bat --language=sh ~/.config/zsh/*.zsh }
 

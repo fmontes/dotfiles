@@ -37,7 +37,7 @@ The script will:
 4. Install Oh My Zsh
 5. Set up mise and install Node and Python
 6. Apply macOS defaults
-7. Install gh-dash, global npm packages, fix permissions, set up cmux
+7. Install gh-dash, global npm packages, fix permissions, set up the VS Code CLI
 8. Sync AI agent config to every platform with `chai`
 
 ## After running install.sh
@@ -106,14 +106,6 @@ These steps require human interaction and can't be automated:
 | `dotfiles` | Open dotfiles repo in VS Code |
 | `zreload` | Reload zsh config |
 
-### Claude / cmux
-
-| Alias | Command |
-|---|---|
-| `ct` | Launch Claude Code agent teams |
-| `ct-continue` | Resume last agent teams session |
-| `claude-teams` | Same as `ct` (full name) |
-
 ### Misc
 
 | Alias | Command |
@@ -158,10 +150,7 @@ These steps require human interaction and can't be automated:
 | `1password-cli` | 1Password CLI |
 | `chai` | Sync AI agent config across platforms |
 | `chromium` + `chromedriver` | Headless browser for Puppeteer |
-| `cmux` | Claude Code agent teams |
 | `codex` | OpenAI Codex CLI |
-| `ghostty` | Terminal emulator |
-| `ollama` | Run local LLMs |
 | `orbstack` | Lightweight Docker alternative |
 | `raycast` | Command launcher |
 | `visual-studio-code` | Code editor |

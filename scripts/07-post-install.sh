@@ -31,17 +31,6 @@ if [[ -f "$HOME/.netrc" ]]; then
   echo ".netrc permissions fixed."
 fi
 
-# ─── cmux CLI symlink ────────────────────────────────────────────────────────
-if [[ -f "/Applications/cmux.app/Contents/Resources/bin/cmux" ]]; then
-  echo "Setting up cmux CLI symlink..."
-  sudo mkdir -p /usr/local/bin
-  if sudo ln -sf "/Applications/cmux.app/Contents/Resources/bin/cmux" /usr/local/bin/cmux; then
-    echo "cmux CLI ready."
-  else
-    echo "cmux CLI symlink failed."
-  fi
-fi
-
 # ─── VS Code CLI symlink ─────────────────────────────────────────────────────
 code_bin="/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"
 if [[ -f "$code_bin" ]]; then
