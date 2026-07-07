@@ -58,14 +58,14 @@ killdev() {
 proj() {
   local dir
   dir=$(zoxide query -l | fzf --preview 'ls {}')
-  [[ -n "$dir" ]] && cd "$dir" && cursor --new-window .
+  [[ -n "$dir" ]] && cd "$dir" && code --new-window .
 }
 
 # ─── GitHub ─────────────────────────────────────────────────────────────────
 alias prs="gh dash"
 
 # ─── Dotfiles ───────────────────────────────────────────────────────────────
-dotfiles() { cursor --new-window ~/Developer/dotfiles }
+dotfiles() { code --new-window ~/Developer/dotfiles }
 alias zreload="source ~/.zshrc && echo 'Reloaded'"
 
 # ─── Claude / cmux ──────────────────────────────────────────────────────────
@@ -78,4 +78,4 @@ aliases() { bat --language=sh ~/.config/zsh/*.zsh }
 
 # ─── Misc ───────────────────────────────────────────────────────────────────
 alias run-help=man
-alias cursor="cursor --new-window"
+alias code="code --new-window"

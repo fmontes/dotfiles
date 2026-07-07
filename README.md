@@ -91,7 +91,7 @@ These steps require human interaction and can't be automated:
 
 | Alias | Command |
 |---|---|
-| `proj` | Fuzzy-jump to a project and open in Cursor |
+| `proj` | Fuzzy-jump to a project and open in VS Code |
 
 ### GitHub
 
@@ -103,7 +103,7 @@ These steps require human interaction and can't be automated:
 
 | Alias | Command |
 |---|---|
-| `dotfiles` | Open dotfiles repo in Cursor |
+| `dotfiles` | Open dotfiles repo in VS Code |
 | `zreload` | Reload zsh config |
 
 ### Claude / cmux
@@ -118,7 +118,7 @@ These steps require human interaction and can't be automated:
 
 | Alias | Command |
 |---|---|
-| `cursor` | Open Cursor in a new window |
+| `code` | Open VS Code in a new window |
 | `run-help` | man (show manual) |
 
 ## CLI Tools
@@ -160,11 +160,11 @@ These steps require human interaction and can't be automated:
 | `chromium` + `chromedriver` | Headless browser for Puppeteer |
 | `cmux` | Claude Code agent teams |
 | `codex` | OpenAI Codex CLI |
-| `cursor` | AI code editor |
 | `ghostty` | Terminal emulator |
 | `ollama` | Run local LLMs |
 | `orbstack` | Lightweight Docker alternative |
 | `raycast` | Command launcher |
+| `visual-studio-code` | Code editor |
 | `warp` | AI-powered terminal |
 
 ## Fresh

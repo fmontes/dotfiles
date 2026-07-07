@@ -42,6 +42,18 @@ if [[ -f "/Applications/cmux.app/Contents/Resources/bin/cmux" ]]; then
   fi
 fi
 
+# ─── VS Code CLI symlink ─────────────────────────────────────────────────────
+code_bin="/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"
+if [[ -f "$code_bin" ]]; then
+  echo "Setting up VS Code CLI symlink..."
+  sudo mkdir -p /usr/local/bin
+  if sudo ln -sf "$code_bin" /usr/local/bin/code; then
+    echo "VS Code CLI ready."
+  else
+    echo "VS Code CLI symlink failed."
+  fi
+fi
+
 # ─── Manual steps ────────────────────────────────────────────────────────────
 echo ""
 echo "======================================"
