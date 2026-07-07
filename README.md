@@ -17,7 +17,7 @@ This clones the repo to `~/.dotfiles` and runs the installer.
 - **Aliases** split by context — work aliases stay local, not committed
 - **Git** with delta for diffs, gh-dash for PR reviews
 - **mise** for managing Node, Python, and Java versions
-- **helix** for terminal code search and browsing
+- **[Fresh](https://getfresh.dev/)** for terminal code editing and browsing
 - **[AI](ai/)** skills, instructions, and subagents for agentic coding harnesses
 - **macOS defaults** for Dock, Finder, keyboard
 
@@ -132,10 +132,10 @@ These steps require human interaction and can't be automated:
 | `fd` | Faster `find` |
 | `ffmpeg` | Audio/video processing |
 | `flyctl` | Fly.io CLI |
+| `fresh-editor` | [Fresh](https://getfresh.dev/) — terminal editor for code editing and browsing |
 | `fzf` | Fuzzy finder (used by proj, atuin, zsh history) |
 | `gh` | GitHub CLI |
 | `git-delta` | Syntax-highlighted git diffs |
-| `helix` | Terminal editor for code search and browsing |
 | `imagemagick` | Image processing |
 | `jq` | JSON processor |
 | `just` | Task runner (used in dotCMS project) |
@@ -167,23 +167,9 @@ These steps require human interaction and can't be automated:
 | `raycast` | Command launcher |
 | `warp` | AI-powered terminal |
 
-## Helix
+## Fresh
 
-Terminal editor used for code search and browsing. Launch with `hx .` from any project.
-
-| Key | Action |
-|---|---|
-| `Space+/` | Live grep across all files |
-| `Space+f` | Fuzzy file finder |
-| `Space+s` | Symbol picker (current file) |
-| `Space+S` | Workspace symbol picker |
-| `Ctrl+o` | Copy current file path to clipboard |
-| `gd` | Go to definition |
-| `gr` | Go to references |
-| `K` | Hover docs |
-| `:q` | Quit |
-
-TypeScript LSP: `npm install -g typescript-language-server typescript`
+[Fresh](https://getfresh.dev/) is the terminal editor used for code editing and browsing. Launch with `fresh .` from any project. No config file fiddling required.
 
 ## AI
 
@@ -241,8 +227,6 @@ dotfiles/
     └── .config/
         ├── zsh/
         │   └── aliases.zsh   # Git + misc aliases
-        ├── helix/
-        │   └── config.toml   # Helix editor config
         └── starship.toml     # Starship prompt config
 ```
 
