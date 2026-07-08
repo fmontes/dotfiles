@@ -21,6 +21,7 @@ export BUN_INSTALL="$HOME/.bun"
 export DOCKER_HOST=unix:///var/run/docker.sock
 
 # ─── PATH ───────────────────────────────────────────────────────────────────
+export PATH="$HOME/.local/bin:$PATH"   # claude and other native-installer bins
 export PATH="/opt/homebrew/opt/ruby/bin:$PATH"
 case ":$PATH:" in
   *":$PNPM_HOME:"*) ;;
