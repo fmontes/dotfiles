@@ -6,10 +6,23 @@ if command -v gh &>/dev/null; then
   gh extension install dlvhdr/gh-dash 2>/dev/null || echo "gh-dash already installed or gh not authenticated yet"
 fi
 
+# ─── Claude Code (native installer) ──────────────────────────────────────────
+# Use the official native installer rather than the npm package — the npm
+# global install can skip the platform-native binary (--ignore-scripts /
+# --omit=optional), leaving a `claude` on PATH that exists but won't run.
+# Test that it actually runs, not just that it's present, so a broken npm
+# install gets replaced.
+if claude --version &>/dev/null; then
+  echo "Claude Code already installed."
+else
+  echo "Installing Claude Code..."
+  curl -fsSL https://claude.ai/install.sh | bash || echo "Claude Code install failed — run 'curl -fsSL https://claude.ai/install.sh | bash' manually."
+fi
+
 # ─── Global npm packages ─────────────────────────────────────────────────────
 if command -v npm &>/dev/null; then
   echo "Installing global npm packages..."
-  npm install -g @anthropic-ai/claude-code @angular/cli @fmontes/md2clip dev-browser yarn
+  npm install -g @angular/cli @fmontes/md2clip dev-browser yarn
 else
   echo "npm not available yet — skipping global packages. Run manually after mise sets up Node."
 fi
@@ -31,14 +44,15 @@ if [[ -f "$HOME/.netrc" ]]; then
   echo ".netrc permissions fixed."
 fi
 
-# ─── cmux CLI symlink ────────────────────────────────────────────────────────
-if [[ -f "/Applications/cmux.app/Contents/Resources/bin/cmux" ]]; then
-  echo "Setting up cmux CLI symlink..."
+# ─── VS Code CLI symlink ─────────────────────────────────────────────────────
+code_bin="/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"
+if [[ -f "$code_bin" ]]; then
+  echo "Setting up VS Code CLI symlink..."
   sudo mkdir -p /usr/local/bin
-  if sudo ln -sf "/Applications/cmux.app/Contents/Resources/bin/cmux" /usr/local/bin/cmux; then
-    echo "cmux CLI ready."
+  if sudo ln -sf "$code_bin" /usr/local/bin/code; then
+    echo "VS Code CLI ready."
   else
-    echo "cmux CLI symlink failed."
+    echo "VS Code CLI symlink failed."
   fi
 fi
 
