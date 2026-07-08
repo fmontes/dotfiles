@@ -6,6 +6,19 @@ defaults write com.apple.dock autohide -bool true
 defaults write com.apple.dock tilesize -int 48
 defaults write com.apple.dock show-recents -bool false
 
+# Dock apps — reset to just the ones I keep pinned
+dock_app() {
+  local app="$1"
+  printf '<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>%s</string><key>_CFURLStringType</key><integer>15</integer></dict></dict></dict>' "$app"
+}
+defaults delete com.apple.dock persistent-apps 2>/dev/null
+defaults delete com.apple.dock persistent-others 2>/dev/null
+for app in \
+  "file:///System/Applications/Apps.app/" \
+  "file:///System/Applications/iPhone Mirroring.app/"; do
+  defaults write com.apple.dock persistent-apps -array-add "$(dock_app "$app")"
+done
+
 # Finder
 defaults write com.apple.finder ShowPathbar -bool true
 defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
