@@ -9,8 +9,10 @@ fi
 # ─── Claude Code (native installer) ──────────────────────────────────────────
 # Use the official native installer rather than the npm package — the npm
 # global install can skip the platform-native binary (--ignore-scripts /
-# --omit=optional), leaving `claude` unable to run.
-if command -v claude &>/dev/null; then
+# --omit=optional), leaving a `claude` on PATH that exists but won't run.
+# Test that it actually runs, not just that it's present, so a broken npm
+# install gets replaced.
+if claude --version &>/dev/null; then
   echo "Claude Code already installed."
 else
   echo "Installing Claude Code..."
