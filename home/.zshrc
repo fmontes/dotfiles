@@ -69,8 +69,7 @@ source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 eval "$(starship init zsh)"
 
 # try-cli (tobi/try) — ephemeral workspace manager
-export PATH="/opt/homebrew/lib/ruby/gems/3.4.0/bin:$PATH"
-eval "$(command try init ~/src/tries)"
+command -v try &>/dev/null && eval "$(try init ~/src/tries)"
 
 # direnv hook
-eval "$(direnv hook zsh)"
+command -v direnv &>/dev/null && eval "$(direnv hook zsh)"
