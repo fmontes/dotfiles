@@ -7,14 +7,14 @@ DEST="$HOME/.dotfiles"
 info()  { printf "\033[0;32m==>\033[0m %s\n" "$1"; }
 error() { printf "\033[0;31m==>\033[0m %s\n" "$1"; exit 1; }
 
-if ! xcode-select -p >/dev/null 2>&1; then
-  info "Xcode Command Line Tools not found. Installing..."
-  xcode-select --install || true
-  error "Finish the Xcode CLT install in the popup, then re-run: curl -fsSL https://fmontes.com/install.sh | bash"
-fi
-
-if ! command -v git >/dev/null 2>&1; then
-  error "git not found. Install Xcode Command Line Tools and re-run."
+if ! xcode-select -p >/dev/null 2>&1 || ! command -v git >/dev/null 2>&1; then
+  info "Xcode Command Line Tools (provides git) not found. Installing..."
+  xcode-select --install >/dev/null 2>&1 || true
+  info "Accept the popup. Waiting for the install to finish..."
+  until xcode-select -p >/dev/null 2>&1 && command -v git >/dev/null 2>&1; do
+    sleep 5
+  done
+  info "Command Line Tools ready."
 fi
 
 if [[ -d "$DEST" ]]; then

@@ -10,6 +10,9 @@ fi
 # Use the official native installer rather than the npm package — the npm
 # global install can skip the platform-native binary (--ignore-scripts /
 # --omit=optional), leaving a `claude` on PATH that exists but won't run.
+# The installer drops the binary in ~/.local/bin, which this script's PATH
+# may not include yet — add it so the run-check and verification work here.
+export PATH="$HOME/.local/bin:$PATH"
 # Test that it actually runs, not just that it's present, so a broken npm
 # install gets replaced.
 if claude --version &>/dev/null; then
@@ -17,6 +20,11 @@ if claude --version &>/dev/null; then
 else
   echo "Installing Claude Code..."
   curl -fsSL https://claude.ai/install.sh | bash || echo "Claude Code install failed — run 'curl -fsSL https://claude.ai/install.sh | bash' manually."
+  if claude --version &>/dev/null; then
+    echo "Claude Code ready."
+  else
+    echo "Claude Code still not runnable — check ~/.local/bin/claude manually."
+  fi
 fi
 
 # ─── Global npm packages ─────────────────────────────────────────────────────
