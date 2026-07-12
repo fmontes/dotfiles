@@ -76,6 +76,9 @@ These steps require human interaction and can't be automated:
 |---|---|
 | `cat` | bat (syntax highlighted) |
 | `f` | fd (faster find) |
+| `ls` | eza (icons, dirs first) |
+| `ll` | eza long view with git status |
+| `lt` | eza tree view (2 levels) |
 
 ### Ports
 
@@ -119,8 +122,11 @@ These steps require human interaction and can't be automated:
 |---|---|
 | `atuin` | Shell history with search and optional sync |
 | `bat` | `cat` with syntax highlighting |
+| `btop` | Resource monitor (CPU, memory, processes) |
 | `cloudflared` | Cloudflare tunnel client |
 | `deno` | JavaScript/TypeScript runtime |
+| `dust` | Visual `du` — disk usage by directory |
+| `eza` | Modern `ls` with icons and git status |
 | `fd` | Faster `find` |
 | `ffmpeg` | Audio/video processing |
 | `flyctl` | Fly.io CLI |
@@ -131,6 +137,7 @@ These steps require human interaction and can't be automated:
 | `imagemagick` | Image processing |
 | `jq` | JSON processor |
 | `just` | Task runner (used in dotCMS project) |
+| `lazydocker` | Terminal UI for Docker containers |
 | `mise` | Version manager for Node, Python, Java |
 | `mkcert` | Local SSL certificates |
 | `mole` | SSH tunnel manager |
