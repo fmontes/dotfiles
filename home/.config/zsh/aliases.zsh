@@ -19,6 +19,9 @@ gcleanbranches() {
 # ─── CLI Replacements ───────────────────────────────────────────────────────
 alias cat="bat"
 alias f="fd"
+alias ls="eza --icons --group-directories-first"
+alias ll="eza -l --icons --group-directories-first --git"
+alias lt="eza --tree --level=2 --icons"
 
 # ─── Ports ──────────────────────────────────────────────────────────────────
 port() {
@@ -57,7 +60,7 @@ killdev() {
 # ─── Projects ───────────────────────────────────────────────────────────────
 proj() {
   local dir
-  dir=$(zoxide query -l | fzf --preview 'ls {}')
+  dir=$(zoxide query -l | fzf --preview 'eza --tree --level=1 --icons {}')
   [[ -n "$dir" ]] && cd "$dir" && code --new-window .
 }
 
