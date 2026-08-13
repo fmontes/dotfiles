@@ -165,18 +165,23 @@ PATH = '${HOME}/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:${PATH}'
 ctrl-a = 'exec-and-forget "$HOME/.local/bin/aerospace-track" left'
 ctrl-d = 'exec-and-forget "$HOME/.local/bin/aerospace-track" right'
 
-# Jump straight to a slot.
-alt-1 = 'workspace 1'
-alt-2 = 'workspace 2'
-alt-3 = 'workspace 3'
-alt-4 = 'workspace 4'
-alt-5 = 'workspace 5'
-alt-6 = 'workspace 6'
-alt-7 = 'workspace 7'
-alt-0 = 'workspace 0'
+# Jump straight to a slot. --auto-back-and-forth makes each key a toggle:
+# pressing the key for the slot you are already on returns you to the previous
+# one, so alt-3 bounces in and out of Slack without a second binding.
+alt-1 = 'workspace --auto-back-and-forth 1'
+alt-2 = 'workspace --auto-back-and-forth 2'
+alt-3 = 'workspace --auto-back-and-forth 3'
+alt-4 = 'workspace --auto-back-and-forth 4'
+alt-5 = 'workspace --auto-back-and-forth 5'
+alt-6 = 'workspace --auto-back-and-forth 6'
+alt-7 = 'workspace --auto-back-and-forth 7'
+alt-0 = 'workspace --auto-back-and-forth 0'
 
-# Toggle between the last two slots.
-alt-tab = 'workspace-back-and-forth'
+# Toggle between the last two windows, falling back to the last two slots.
+# focus-back-and-forth exits non-zero when the previous window is gone (it
+# remembers only one), which is why the fallback is chained rather than run
+# alongside. Window-level matters when a slot holds two, like Slack mid-huddle.
+alt-tab = 'exec-and-forget aerospace focus-back-and-forth || aerospace workspace-back-and-forth'
 
 # Manual override: park the focused window in another slot. Routing rules above
 # still apply the next time that window is created.
@@ -197,6 +202,16 @@ alt-k = 'focus dfs-next --boundaries workspace --boundaries-action wrap-around-t
 # on — everywhere else stays stacked. Useful for the occasional two-window
 # comparison without turning the whole desktop into a tiling workflow.
 alt-slash = 'layout tiles accordion'
+
+# Escape hatch. Disabling stops AeroSpace intercepting keys and brings hidden
+# workspaces back on screen — for screen sharing, or to hand ctrl-a / ctrl-d
+# back to the terminal.
+#
+# One-way: while disabled the server rejects every command except
+# `aerospace enable on`, and no binding fires, so this key cannot undo itself.
+# Re-enable from the menu bar icon or that command. Windows do return to their
+# original slots afterwards.
+alt-shift-e = 'enable toggle'
 
 alt-shift-semicolon = 'mode service'
 

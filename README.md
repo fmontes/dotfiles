@@ -202,12 +202,23 @@ top of whatever is in front instead of being assigned anywhere.
 | Keys | Action |
 |---|---|
 | `ctrl-a` / `ctrl-d` | Previous / next occupied slot, looping around the ends |
-| `alt-1`…`alt-7`, `alt-0` | Jump straight to a slot |
+| `alt-1`…`alt-7`, `alt-0` | Jump straight to a slot; press again to bounce back |
 | `alt-shift-1`…`alt-shift-0` | Move the focused window to a slot |
-| `alt-tab` | Toggle between the last two slots |
+| `alt-tab` | Toggle between the last two windows, falling back to the last two slots |
 | `alt-j` / `alt-k` | Cycle windows within a slot |
 | `alt-/` | Split the current slot side by side, and back |
 | `alt-shift-;` then `esc` | Service mode, then reload config |
+| `alt-shift-e` | Disable AeroSpace entirely (see below) |
+
+### Turning it off
+
+`alt-shift-e` disables AeroSpace: hidden workspaces come back on screen and key events stop being
+intercepted, which hands `ctrl-a` and `ctrl-d` back to the terminal. Useful for screen sharing, or
+for an app that fights the window manager.
+
+It is one-way. While disabled the server rejects every command except `aerospace enable on`, and
+no binding fires, so the key cannot undo itself — re-enable from the menu bar icon or that
+command. Windows return to their original slots afterwards.
 
 ### Seeing the whole layout
 
