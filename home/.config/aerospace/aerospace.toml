@@ -1,14 +1,15 @@
 # AeroSpace — deterministic desktop layout
 #
-# Two horizontal tracks, one app per slot, every app always in the same place.
+# One horizontal track, one app per slot, every app always in the same place.
 #
-#   Work      1 Chrome         2 Orca  3 Slack  4 Calendar  5 Warp  6 VS Code
-#   Personal  7 Chrome Canary  8 cmux  9 VS Code Insiders
-#   Overflow  0 — anything not in the layout
+#   1 Desktop  2 Calendar  3 Slack  4 Orca  5 Chrome Work  6 Chrome Personal
+#   7 Warp     8 VS Code
+#   0 Overflow — anything not in the layout
+#
+# Slot 1 is deliberately empty: a clean desktop to land on.
 #
 # Navigation is spatial (see [mode.main.binding] at the bottom):
-#   alt-a / alt-d  move within the current track
-#   alt-w / alt-s  jump between tracks, restoring each track's last slot
+#   ctrl-a / ctrl-d  prev / next slot, looping around the ends
 #
 # Slots are fixed workspace numbers, so closing an app never shifts anything:
 # its workspace stays alive and empty (persistent-workspaces), and reopening
@@ -19,7 +20,7 @@ config-version = 2
 start-at-login = true
 auto-reload-config = true
 
-# Land on the first Work slot after login/restart so startup is reproducible.
+# Land on the empty desktop after login/restart so startup is reproducible.
 after-startup-command = ['workspace 1']
 
 # ─── Not a tiling workflow ───────────────────────────────────────────────────
@@ -42,33 +43,22 @@ gaps.outer.bottom = 0
 
 # ─── Fixed slots ─────────────────────────────────────────────────────────────
 # Keeps every slot alive even when empty. This is what makes closing an app a
-# no-op for everything else: slot 4 stays slot 4 whether Calendar is running or
-# not, so nothing renumbers or slides over.
-persistent-workspaces = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']
+# no-op for everything else: slot 2 stays slot 2 whether Calendar is running or
+# not, so nothing renumbers or slides over. It also keeps slot 1 empty but
+# reachable.
+persistent-workspaces = ['1', '2', '3', '4', '5', '6', '7', '8', '0']
 
 focus-follows-mouse.enabled = false
 on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
 automatically-unhide-macos-hidden-apps = false
 key-mapping.preset = 'qwerty'
 
-# Records the focused slot as its track's "last used" so alt-w / alt-s can
-# restore it. See ~/.local/bin/aerospace-track.
-exec-on-workspace-change = ['/bin/bash', '-c', '"$HOME/.local/bin/aerospace-track" record']
-
 # ─── Window routing ──────────────────────────────────────────────────────────
-# Matched by bundle ID, which is why Work and Personal use distinct apps:
-# Chrome vs Chromium, VS Code vs VS Code Insiders. Two windows of the *same*
-# app are indistinguishable to AeroSpace and could not be split across tracks.
-#
-# First match wins (check-further-callbacks defaults to false).
-
-# Work
-[[on-window-detected]]
-if = 'test %{app-bundle-id} = com.google.Chrome'
-run = ['move-node-to-workspace 1']
+# Matched by bundle ID. First match wins (check-further-callbacks defaults to
+# false). Nothing routes to slot 1 — that is the point of it.
 
 [[on-window-detected]]
-if = 'test %{app-bundle-id} = com.stablyai.orca'
+if = 'test %{app-bundle-id} = com.apple.iCal'
 run = ['move-node-to-workspace 2']
 
 [[on-window-detected]]
@@ -76,32 +66,37 @@ if = 'test %{app-bundle-id} = com.tinyspeck.slackmacgap'
 run = ['move-node-to-workspace 3']
 
 [[on-window-detected]]
-if = 'test %{app-bundle-id} = com.apple.iCal'
+if = 'test %{app-bundle-id} = com.stablyai.orca'
 run = ['move-node-to-workspace 4']
 
+# Chrome splits by profile. Chrome appends the profile name to the window
+# title once more than one profile is running, which is the only stable way to
+# tell two windows of the same app apart — window-id is reassigned at runtime
+# and both profiles share one pid.
+#
+# Anchor the patterns: bare 'Freddy' is a prefix of 'Freddy (dotcms.com)' and
+# would match both. Renaming a Chrome profile silently breaks these rules.
 [[on-window-detected]]
-if = 'test %{app-bundle-id} = dev.warp.Warp-Stable'
+if = 'test %{app-bundle-id} = com.google.Chrome && test %{window-title} ~= "Freddy \(dotcms\.com\)$"'
 run = ['move-node-to-workspace 5']
 
 [[on-window-detected]]
-if = 'test %{app-bundle-id} = com.microsoft.VSCode'
+if = 'test %{app-bundle-id} = com.google.Chrome && test %{window-title} ~= "Chrome - Freddy$"'
 run = ['move-node-to-workspace 6']
 
-# Personal
-# Canary is a separate signed app with its own bundle ID and its own profile
-# store, so it splits cleanly from work Chrome. The test above uses '=' (exact
-# equality), not '~=' (substring), so com.google.Chrome never swallows this one.
+# Fallback: with only one profile running Chrome drops the suffix entirely, so
+# an unlabelled Chrome window lands on Work rather than falling to overflow.
 [[on-window-detected]]
-if = 'test %{app-bundle-id} = com.google.Chrome.canary'
+if = 'test %{app-bundle-id} = com.google.Chrome'
+run = ['move-node-to-workspace 5']
+
+[[on-window-detected]]
+if = 'test %{app-bundle-id} = dev.warp.Warp-Stable'
 run = ['move-node-to-workspace 7']
 
 [[on-window-detected]]
-if = 'test %{app-bundle-id} = com.cmuxterm.app'
+if = 'test %{app-bundle-id} = com.microsoft.VSCode'
 run = ['move-node-to-workspace 8']
-
-[[on-window-detected]]
-if = 'test %{app-bundle-id} = com.microsoft.VSCodeInsiders'
-run = ['move-node-to-workspace 9']
 
 # Utilities float on whatever slot is in front instead of stealing one.
 [[on-window-detected]]
@@ -126,7 +121,6 @@ run = ['move-node-to-workspace --focus-follows-window 0']
 # Every slot is pinned to the main display, so the layout is identical on the
 # MacBook screen and on an external monitor. When both are connected everything
 # follows whichever display macOS calls main (System Settings → Displays).
-# To spread tracks across two displays, change the Personal rows to 'secondary'.
 [workspace-to-monitor-force-assignment]
 1 = 'main'
 2 = 'main'
@@ -136,7 +130,6 @@ run = ['move-node-to-workspace --focus-follows-window 0']
 6 = 'main'
 7 = 'main'
 8 = 'main'
-9 = 'main'
 0 = 'main'
 
 # ─── Exec environment ────────────────────────────────────────────────────────
@@ -151,13 +144,13 @@ PATH = '${HOME}/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:${PATH}'
 # ─── Keys ────────────────────────────────────────────────────────────────────
 [mode.main.binding]
 
-# Spatial navigation.
-#   a / d  previous / next slot in the current track (stops at the edges)
-#   w / s  Work track / Personal track, resuming where you left off
-alt-a = 'exec-and-forget "$HOME/.local/bin/aerospace-track" left'
-alt-d = 'exec-and-forget "$HOME/.local/bin/aerospace-track" right'
-alt-w = 'exec-and-forget "$HOME/.local/bin/aerospace-track" work'
-alt-s = 'exec-and-forget "$HOME/.local/bin/aerospace-track" personal'
+# Spatial navigation: prev / next slot, looping around the ends.
+#
+# These two are global grabs, so they shadow the terminal's readline keys:
+# ctrl-a (beginning of line) and ctrl-d (EOF). Prefix both with 'alt-' to hand
+# them back to the shell.
+ctrl-a = 'exec-and-forget "$HOME/.local/bin/aerospace-track" left'
+ctrl-d = 'exec-and-forget "$HOME/.local/bin/aerospace-track" right'
 
 # Jump straight to a slot.
 alt-1 = 'workspace 1'
@@ -168,7 +161,6 @@ alt-5 = 'workspace 5'
 alt-6 = 'workspace 6'
 alt-7 = 'workspace 7'
 alt-8 = 'workspace 8'
-alt-9 = 'workspace 9'
 alt-0 = 'workspace 0'
 
 # Toggle between the last two slots.
@@ -184,12 +176,16 @@ alt-shift-5 = 'move-node-to-workspace 5'
 alt-shift-6 = 'move-node-to-workspace 6'
 alt-shift-7 = 'move-node-to-workspace 7'
 alt-shift-8 = 'move-node-to-workspace 8'
-alt-shift-9 = 'move-node-to-workspace 9'
 alt-shift-0 = 'move-node-to-workspace 0'
 
 # Cycle windows when a slot holds more than one (accordion, so still full-screen).
 alt-j = 'focus dfs-prev --boundaries workspace --boundaries-action wrap-around-the-workspace'
 alt-k = 'focus dfs-next --boundaries workspace --boundaries-action wrap-around-the-workspace'
+
+# Split the current slot side by side, and back. Affects only the slot you are
+# on — everywhere else stays stacked. Useful for the occasional two-window
+# comparison without turning the whole desktop into a tiling workflow.
+alt-slash = 'layout tiles accordion'
 
 alt-shift-semicolon = 'mode service'
 
