@@ -165,8 +165,8 @@ These steps require human interaction and can't be automated:
 | `orbstack` | Lightweight Docker alternative |
 | `raycast` | Command launcher, still handles ad-hoc window resizing |
 | `slack` | Chat — desktop slot 3 |
-| `visual-studio-code` | Code editor — desktop slot 8 |
-| `warp` | Terminal — desktop slot 7 |
+| `visual-studio-code` | Code editor — desktop slot 7 |
+| `warp` | Terminal — no slot, lands in overflow |
 
 ## Desktop
 
@@ -176,9 +176,9 @@ in [`home/.local/bin/aerospace-track`](home/.local/bin/aerospace-track).
 
 One horizontal track, one app per slot, every app always in the same place:
 
-| 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
-|---|---|---|---|---|---|---|---|
-| Desktop | Calendar | Slack | Orca | Chrome Work | Chrome Me | Warp | VS Code |
+| 1 | 2 | 3 | 4 | 5 | 6 | 7 |
+|---|---|---|---|---|---|---|
+| Desktop | Calendar | Slack | Orca | Chrome Work | Chrome Me | VS Code |
 
 Slot 1 is deliberately empty — a clean desktop to land on, and where login drops you.
 
@@ -195,8 +195,8 @@ top of whatever is in front instead of being assigned anywhere.
 
 | Keys | Action |
 |---|---|
-| `ctrl-a` / `ctrl-d` | Previous / next slot, looping around the ends |
-| `alt-1`…`alt-8`, `alt-0` | Jump straight to a slot |
+| `ctrl-a` / `ctrl-d` | Previous / next occupied slot, looping around the ends |
+| `alt-1`…`alt-7`, `alt-0` | Jump straight to a slot |
 | `alt-shift-1`…`alt-shift-0` | Move the focused window to a slot |
 | `alt-tab` | Toggle between the last two slots |
 | `alt-j` / `alt-k` | Cycle windows within a slot |
@@ -210,8 +210,8 @@ inactive windows off-screen rather than using native macOS Spaces, so Mission Co
 everything jumbled into one Space. Run `spaces` (alias for `aerospace-track overview`) instead:
 
 ```
-   1 Desktop  2 Calendar  3 Slack  4 Orca  5 Chrome Work [6 Chrome Me] 7 Warp  8 VS Code
-   0 krisp
+   1 Desktop  2 Calendar  3 Slack  4 Orca  5 Chrome Work [6 Chrome Me] 7 VS Code
+   0 Warp, krisp
 ```
 
 The focused slot is bracketed and coloured, occupied slots are bold, and empty ones are dimmed.
@@ -220,6 +220,12 @@ into something else. The overflow row only appears when something is in it.
 
 `ctrl-a` / `ctrl-d` loop around the ends — right off VS Code returns to the empty desktop, left
 off the desktop goes to VS Code. Overflow is not on the loop; reach it with `alt-0`.
+
+**Empty slots are skipped.** An app that is not running would otherwise present a blank screen
+indistinguishable from the desktop, and you would have to count keypresses to know where you
+were. Slot 1 is exempt, being the intentional desktop. The trade-off is that the number of
+presses between two apps changes as apps open and close — the slots themselves never move, and
+`alt-N` always jumps straight to one.
 
 Both navigation keys are global grabs, so they shadow the terminal's readline bindings —
 `ctrl-a` (beginning of line) and `ctrl-d` (EOF). If that bites inside Warp, prefix both with

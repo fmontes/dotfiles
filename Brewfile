@@ -60,5 +60,7 @@ cask "nikitabobko/tap/aerospace"
 
 cask "slack"                      # slot 3
 cask "google-chrome"              # slots 5 and 6, split by profile
-cask "warp"                       # slot 7
-cask "visual-studio-code"         # slot 8
+cask "visual-studio-code"         # slot 7
+
+# Not in the layout — Warp has no slot, so it lands in overflow (slot 0).
+cask "warp"

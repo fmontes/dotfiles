@@ -2,7 +2,7 @@
 #
 # aerospace-track — spatial navigation along a single fixed track of slots.
 #
-#   left | right   prev / next slot, looping around the ends
+#   left | right   prev / next occupied slot, looping around the ends
 #   overview       print the whole layout, marking the focused slot
 #
 # Slot order is defined here. The window-routing rules that put each app in its
@@ -13,8 +13,8 @@
 
 set -euo pipefail
 
-TRACK=(1 2 3 4 5 6 7 8)
-LABELS=(Desktop Calendar Slack Orca "Chrome Work" "Chrome Me" Warp "VS Code")
+TRACK=(1 2 3 4 5 6 7)
+LABELS=(Desktop Calendar Slack Orca "Chrome Work" "Chrome Me" "VS Code")
 OVERFLOW=0
 
 AEROSPACE="${AEROSPACE_BIN:-}"
@@ -24,6 +24,18 @@ fi
 
 focused() {
   "$AEROSPACE" list-workspaces --focused
+}
+
+# Window counts per slot, fetched in one call rather than one call per slot.
+WINDOW_COUNTS=""
+
+load_counts() {
+  WINDOW_COUNTS=$("$AEROSPACE" list-windows --monitor all --format '%{workspace}' 2>/dev/null |
+    sort | uniq -c)
+}
+
+count_for() {
+  printf '%s\n' "$WINDOW_COUNTS" | awk -v w="$1" '$2 == w { print $1; hit = 1 } END { if (!hit) print 0 }'
 }
 
 # Index of a slot within TRACK, or failure if it is not on the track at all
@@ -39,35 +51,51 @@ index_of() {
   return 1
 }
 
-# Move delta slots along the track, wrapping at both ends: right off VS Code
-# returns to the empty desktop, left off the desktop goes to VS Code.
+# The first slot is the intentional empty desktop, so it stays reachable even
+# with no windows. Every other empty slot is skipped: an app that is not
+# running would otherwise present a blank screen indistinguishable from the
+# desktop, and you would have to count keypresses to know where you were.
+is_visitable() {
+  local slot=$1
+  if [[ $slot == "${TRACK[0]}" ]]; then
+    return 0
+  fi
+  [[ $(count_for "$slot") -gt 0 ]]
+}
+
+# Move to the next visitable slot in the given direction, wrapping at the ends.
+# Because empty slots are skipped, the number of presses between two apps
+# changes as apps open and close — the slots themselves never move.
 step() {
   local delta=$1
-  local cur idx count next
+  local cur idx count i next
 
+  load_counts
   cur=$(focused)
   count=${#TRACK[@]}
 
   if ! idx=$(index_of "$cur"); then
-    # Focused on the overflow slot — step back onto the track at the start.
+    # Focused on the overflow slot — step back onto the track at the desktop.
     "$AEROSPACE" workspace "${TRACK[0]}"
     return 0
   fi
 
-  # Adding count before the modulo keeps a leftward step off slot 0 positive.
-  next=$(((idx + delta + count) % count))
-  "$AEROSPACE" workspace "${TRACK[$next]}"
+  # Adding count*count keeps the modulo positive for leftward steps.
+  for ((i = 1; i <= count; i++)); do
+    next=$(((idx + delta * i + count * count) % count))
+    if is_visitable "${TRACK[$next]}"; then
+      "$AEROSPACE" workspace "${TRACK[$next]}"
+      return 0
+    fi
+  done
+
+  # Nothing else is visitable — stay put rather than jumping somewhere blank.
+  return 0
 }
 
 # AeroSpace has no overview GUI — its tray icon shows only the active workspace
 # — and it parks inactive windows off-screen rather than using macOS Spaces, so
 # Mission Control is no help either. This prints the whole layout instead.
-WINDOW_COUNTS=""
-
-count_for() {
-  printf '%s\n' "$WINDOW_COUNTS" | awk -v w="$1" '$2 == w { print $1; hit = 1 } END { if (!hit) print 0 }'
-}
-
 overview() {
   local cur i slot label n apps out=""
   local bold dim cyan reset
@@ -79,7 +107,7 @@ overview() {
   fi
 
   cur=$(focused)
-  WINDOW_COUNTS=$("$AEROSPACE" list-windows --all --format '%{workspace}' 2>/dev/null | sort | uniq -c)
+  load_counts
 
   for ((i = 0; i < ${#TRACK[@]}; i++)); do
     slot=${TRACK[$i]}
@@ -88,6 +116,7 @@ overview() {
 
     # Brackets rather than colour alone mark the focused slot, so the output
     # still reads correctly when piped, redirected, or shown by a status bar.
+    # Dimmed slots are the ones navigation skips.
     if [[ $slot == "$cur" ]]; then
       out+="$(printf '%s[%s %s]%s' "$bold$cyan" "$slot" "$label" "$reset")"
     elif [[ $n -gt 0 ]]; then
