@@ -17,6 +17,7 @@ This clones the repo to `~/.dotfiles` and runs the installer.
 - **Aliases** split by context — work aliases stay local, not committed
 - **Git** with delta for diffs, gh-dash for PR reviews
 - **mise** for managing Node, Python, and Java versions
+- **[AeroSpace](https://nikitabobko.github.io/AeroSpace/)** for a fixed two-track desktop layout with WASD navigation
 - **[Fresh](https://getfresh.dev/)** for terminal code editing and browsing
 - **[AI](ai/)** skills, instructions, and subagents for agentic coding harnesses
 - **macOS defaults** for Dock, Finder, keyboard
@@ -155,13 +156,98 @@ These steps require human interaction and can't be automated:
 | App | Description |
 |---|---|
 | `1password-cli` | 1Password CLI |
+| `aerospace` | Tiling window manager, drives the desktop layout |
 | `chai` | Sync AI agent config across platforms |
-| `chromium` + `chromedriver` | Headless browser for Puppeteer |
+| `chromedriver` | Headless driver for Puppeteer |
+| `chromium` | Puppeteer's browser (cask disabled 2026-09-01) |
+| `cmux` | Personal terminal, Ghostty-based |
 | `codex` | OpenAI Codex CLI |
+| `google-chrome` | Work browser |
+| `google-chrome@canary` | Personal browser |
 | `orbstack` | Lightweight Docker alternative |
-| `raycast` | Command launcher |
-| `visual-studio-code` | Code editor |
-| `warp` | AI-powered terminal |
+| `raycast` | Command launcher, still handles ad-hoc window resizing |
+| `slack` | Work chat |
+| `visual-studio-code` | Work editor |
+| `visual-studio-code@insiders` | Personal editor |
+| `warp` | Work terminal |
+
+## Desktop
+
+The desktop layout is [AeroSpace](https://nikitabobko.github.io/AeroSpace/), configured in
+[`home/.config/aerospace/aerospace.toml`](home/.config/aerospace/aerospace.toml) with navigation
+in [`home/.local/bin/aerospace-track`](home/.local/bin/aerospace-track).
+
+Two horizontal tracks, one app per slot, every app always in the same place:
+
+| | 1 | 2 | 3 | 4 | 5 | 6 |
+|---|---|---|---|---|---|---|
+| **Work** | Chrome | Orca | Slack | Calendar | Warp | VS Code |
+
+| | 7 | 8 | 9 |
+|---|---|---|---|
+| **Personal** | Chrome Canary | cmux | VS Code Insiders |
+
+Slot `0` is overflow — anything not in the layout lands there and takes focus with it, so a
+stray app never quietly steals a track slot. Utilities (System Settings, Finder, 1Password)
+float on top of whatever is in front instead of being assigned anywhere.
+
+### Navigation
+
+| Keys | Action |
+|---|---|
+| `alt-a` / `alt-d` | Previous / next slot in the current track, stopping at the edges |
+| `alt-w` / `alt-s` | Work track / Personal track, resuming that track's last slot |
+| `alt-1`…`alt-9`, `alt-0` | Jump straight to a slot |
+| `alt-shift-1`…`alt-shift-0` | Move the focused window to a slot |
+| `alt-tab` | Toggle between the last two slots |
+| `alt-j` / `alt-k` | Cycle windows within a slot |
+| `alt-shift-;` then `esc` | Service mode, then reload config |
+
+`alt-w` / `alt-s` remember where you were: leave Work on Slack, wander around Personal, and
+`alt-w` puts you back on Slack. That memory lives in `~/.local/state/aerospace/`, written by
+`aerospace-track record` on every workspace change.
+
+### Why the apps are split
+
+AeroSpace routes windows by **bundle ID**, so two windows of the same app are indistinguishable
+to it. Work and Personal therefore use different apps rather than different profiles:
+
+| Work | Personal | |
+|---|---|---|
+| `com.google.Chrome` | `com.google.Chrome.canary` | Chrome / Chrome Canary |
+| `com.microsoft.VSCode` | `com.microsoft.VSCodeInsiders` | VS Code / VS Code Insiders |
+
+Chrome profiles alone could not be pinned to separate slots, because a Chrome window title
+carries no profile information. Canary is a separate signed app with its own profile store, so
+Personal browsing stays genuinely separate while keeping the Chrome engine and extensions.
+The routing rules use `=` (exact match), not `~=` (substring), so `com.google.Chrome` never
+captures Canary's windows.
+
+### Changing the layout
+
+Adding or reordering an app means two edits that must stay in sync:
+
+1. The `[[on-window-detected]]` rule in `aerospace.toml` that maps a bundle ID to a slot.
+2. The `WORK` / `PERSONAL` arrays at the top of `aerospace-track`.
+
+Find a bundle ID with:
+
+```bash
+osascript -e 'id of app "Slack"'
+```
+
+Config reloads on save (`auto-reload-config = true`). To check it before trusting it:
+
+```bash
+aerospace reload-config --dry-run
+```
+
+Every slot is pinned to the main display, so the layout is identical on the MacBook screen and
+on an external monitor. To spread the tracks across two displays instead, change the Personal
+rows in `[workspace-to-monitor-force-assignment]` from `main` to `secondary`.
+
+AeroSpace needs Accessibility access (System Settings → Privacy & Security → Accessibility)
+before it can move any windows.
 
 ## Fresh
 
@@ -220,7 +306,11 @@ dotfiles/
     ├── .zshrc
     ├── .gitconfig
     ├── chai.toml             # AI config sync manifest (~/chai.toml)
+    ├── .local/bin/
+    │   └── aerospace-track   # WASD track navigation for the desktop layout
     └── .config/
+        ├── aerospace/
+        │   └── aerospace.toml # Desktop layout: slots, routing, keys
         ├── zsh/
         │   └── aliases.zsh   # Git + misc aliases
         └── starship.toml     # Starship prompt config

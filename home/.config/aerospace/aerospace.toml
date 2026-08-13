@@ -1,0 +1,200 @@
+# AeroSpace — deterministic desktop layout
+#
+# Two horizontal tracks, one app per slot, every app always in the same place.
+#
+#   Work      1 Chrome         2 Orca  3 Slack  4 Calendar  5 Warp  6 VS Code
+#   Personal  7 Chrome Canary  8 cmux  9 VS Code Insiders
+#   Overflow  0 — anything not in the layout
+#
+# Navigation is spatial (see [mode.main.binding] at the bottom):
+#   alt-a / alt-d  move within the current track
+#   alt-w / alt-s  jump between tracks, restoring each track's last slot
+#
+# Slots are fixed workspace numbers, so closing an app never shifts anything:
+# its workspace stays alive and empty (persistent-workspaces), and reopening
+# the app lands it back in the same slot (on-window-detected).
+
+config-version = 2
+
+start-at-login = true
+auto-reload-config = true
+
+# Land on the first Work slot after login/restart so startup is reproducible.
+after-startup-command = ['workspace 1']
+
+# ─── Not a tiling workflow ───────────────────────────────────────────────────
+# One app per workspace means tiling never has anything to tile. When a second
+# window does land in a slot (a Chrome popup, VS Code opening a new window),
+# accordion with zero padding stacks it full-screen instead of splitting.
+default-root-container-layout = 'accordion'
+default-root-container-orientation = 'auto'
+accordion-padding = 0
+
+enable-normalization-flatten-containers = true
+enable-normalization-opposite-orientation-for-nested-containers = true
+
+gaps.inner.horizontal = 0
+gaps.inner.vertical = 0
+gaps.outer.left = 0
+gaps.outer.right = 0
+gaps.outer.top = 0
+gaps.outer.bottom = 0
+
+# ─── Fixed slots ─────────────────────────────────────────────────────────────
+# Keeps every slot alive even when empty. This is what makes closing an app a
+# no-op for everything else: slot 4 stays slot 4 whether Calendar is running or
+# not, so nothing renumbers or slides over.
+persistent-workspaces = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']
+
+focus-follows-mouse.enabled = false
+on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
+automatically-unhide-macos-hidden-apps = false
+key-mapping.preset = 'qwerty'
+
+# Records the focused slot as its track's "last used" so alt-w / alt-s can
+# restore it. See ~/.local/bin/aerospace-track.
+exec-on-workspace-change = ['/bin/bash', '-c', '"$HOME/.local/bin/aerospace-track" record']
+
+# ─── Window routing ──────────────────────────────────────────────────────────
+# Matched by bundle ID, which is why Work and Personal use distinct apps:
+# Chrome vs Chromium, VS Code vs VS Code Insiders. Two windows of the *same*
+# app are indistinguishable to AeroSpace and could not be split across tracks.
+#
+# First match wins (check-further-callbacks defaults to false).
+
+# Work
+[[on-window-detected]]
+if = 'test %{app-bundle-id} = com.google.Chrome'
+run = ['move-node-to-workspace 1']
+
+[[on-window-detected]]
+if = 'test %{app-bundle-id} = com.stablyai.orca'
+run = ['move-node-to-workspace 2']
+
+[[on-window-detected]]
+if = 'test %{app-bundle-id} = com.tinyspeck.slackmacgap'
+run = ['move-node-to-workspace 3']
+
+[[on-window-detected]]
+if = 'test %{app-bundle-id} = com.apple.iCal'
+run = ['move-node-to-workspace 4']
+
+[[on-window-detected]]
+if = 'test %{app-bundle-id} = dev.warp.Warp-Stable'
+run = ['move-node-to-workspace 5']
+
+[[on-window-detected]]
+if = 'test %{app-bundle-id} = com.microsoft.VSCode'
+run = ['move-node-to-workspace 6']
+
+# Personal
+# Canary is a separate signed app with its own bundle ID and its own profile
+# store, so it splits cleanly from work Chrome. The test above uses '=' (exact
+# equality), not '~=' (substring), so com.google.Chrome never swallows this one.
+[[on-window-detected]]
+if = 'test %{app-bundle-id} = com.google.Chrome.canary'
+run = ['move-node-to-workspace 7']
+
+[[on-window-detected]]
+if = 'test %{app-bundle-id} = com.cmuxterm.app'
+run = ['move-node-to-workspace 8']
+
+[[on-window-detected]]
+if = 'test %{app-bundle-id} = com.microsoft.VSCodeInsiders'
+run = ['move-node-to-workspace 9']
+
+# Utilities float on whatever slot is in front instead of stealing one.
+[[on-window-detected]]
+if = 'test %{app-bundle-id} = com.apple.systempreferences'
+run = ['layout floating']
+
+[[on-window-detected]]
+if = 'test %{app-bundle-id} = com.apple.finder'
+run = ['layout floating']
+
+[[on-window-detected]]
+if = 'test %{app-bundle-id} = com.1password.1password'
+run = ['layout floating']
+
+# Everything else goes to the overflow slot and takes focus with it, so a
+# stray app is never silently swallowed and never lands in a track slot.
+[[on-window-detected]]
+if = 'true'
+run = ['move-node-to-workspace --focus-follows-window 0']
+
+# ─── Monitors ────────────────────────────────────────────────────────────────
+# Every slot is pinned to the main display, so the layout is identical on the
+# MacBook screen and on an external monitor. When both are connected everything
+# follows whichever display macOS calls main (System Settings → Displays).
+# To spread tracks across two displays, change the Personal rows to 'secondary'.
+[workspace-to-monitor-force-assignment]
+1 = 'main'
+2 = 'main'
+3 = 'main'
+4 = 'main'
+5 = 'main'
+6 = 'main'
+7 = 'main'
+8 = 'main'
+9 = 'main'
+0 = 'main'
+
+# ─── Exec environment ────────────────────────────────────────────────────────
+# AeroSpace launches from macOS login with a bare environment, so spell out
+# where aerospace-track and the aerospace binary live.
+[exec]
+inherit-env-vars = true
+
+[exec.env-vars]
+PATH = '${HOME}/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:${PATH}'
+
+# ─── Keys ────────────────────────────────────────────────────────────────────
+[mode.main.binding]
+
+# Spatial navigation.
+#   a / d  previous / next slot in the current track (stops at the edges)
+#   w / s  Work track / Personal track, resuming where you left off
+alt-a = 'exec-and-forget "$HOME/.local/bin/aerospace-track" left'
+alt-d = 'exec-and-forget "$HOME/.local/bin/aerospace-track" right'
+alt-w = 'exec-and-forget "$HOME/.local/bin/aerospace-track" work'
+alt-s = 'exec-and-forget "$HOME/.local/bin/aerospace-track" personal'
+
+# Jump straight to a slot.
+alt-1 = 'workspace 1'
+alt-2 = 'workspace 2'
+alt-3 = 'workspace 3'
+alt-4 = 'workspace 4'
+alt-5 = 'workspace 5'
+alt-6 = 'workspace 6'
+alt-7 = 'workspace 7'
+alt-8 = 'workspace 8'
+alt-9 = 'workspace 9'
+alt-0 = 'workspace 0'
+
+# Toggle between the last two slots.
+alt-tab = 'workspace-back-and-forth'
+
+# Manual override: park the focused window in another slot. Routing rules above
+# still apply the next time that window is created.
+alt-shift-1 = 'move-node-to-workspace 1'
+alt-shift-2 = 'move-node-to-workspace 2'
+alt-shift-3 = 'move-node-to-workspace 3'
+alt-shift-4 = 'move-node-to-workspace 4'
+alt-shift-5 = 'move-node-to-workspace 5'
+alt-shift-6 = 'move-node-to-workspace 6'
+alt-shift-7 = 'move-node-to-workspace 7'
+alt-shift-8 = 'move-node-to-workspace 8'
+alt-shift-9 = 'move-node-to-workspace 9'
+alt-shift-0 = 'move-node-to-workspace 0'
+
+# Cycle windows when a slot holds more than one (accordion, so still full-screen).
+alt-j = 'focus dfs-prev --boundaries workspace --boundaries-action wrap-around-the-workspace'
+alt-k = 'focus dfs-next --boundaries workspace --boundaries-action wrap-around-the-workspace'
+
+alt-shift-semicolon = 'mode service'
+
+[mode.service.binding]
+esc = ['reload-config', 'mode main']
+# Pop the focused window out of tiling and back, for the rare manual arrangement.
+f = ['layout floating tiling', 'mode main']
+r = ['flatten-workspace-tree', 'mode main']

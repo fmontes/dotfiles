@@ -1,0 +1,129 @@
+#!/usr/bin/env bash
+#
+# aerospace-track — spatial WASD navigation across two fixed horizontal tracks.
+#
+#   left | right       step within the current track, stopping at its edges
+#   work | personal    switch tracks, resuming that track's last used slot
+#   record             remember the focused slot; called by exec-on-workspace-change
+#
+# Track membership and slot order are defined here. The window-routing rules
+# that put each app in its slot live in ~/.config/aerospace/aerospace.toml —
+# keep the two in sync when you add or reorder an app.
+#
+# Written for bash 3.2 (what macOS ships), so no namerefs or associative arrays.
+
+set -euo pipefail
+
+WORK=(1 2 3 4 5 6)       # Chrome  Orca  Slack  Calendar  Warp  VS Code
+PERSONAL=(7 8 9)         # Chromium  cmux  VS Code Insiders
+
+STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/aerospace"
+
+AEROSPACE="${AEROSPACE_BIN:-}"
+if [[ -z $AEROSPACE ]]; then
+  AEROSPACE=$(command -v aerospace) || AEROSPACE=/opt/homebrew/bin/aerospace
+fi
+
+focused() {
+  "$AEROSPACE" list-workspaces --focused
+}
+
+goto() {
+  "$AEROSPACE" workspace "$1"
+}
+
+# Echo the track a slot belongs to, or fail if it belongs to neither
+# (the overflow slot 0, or any workspace created outside this layout).
+track_of() {
+  local ws=$1 slot
+  for slot in "${WORK[@]}"; do
+    if [[ $slot == "$ws" ]]; then echo work; return 0; fi
+  done
+  for slot in "${PERSONAL[@]}"; do
+    if [[ $slot == "$ws" ]]; then echo personal; return 0; fi
+  done
+  return 1
+}
+
+slots_of() {
+  case $1 in
+    work)     echo "${WORK[@]}" ;;
+    personal) echo "${PERSONAL[@]}" ;;
+  esac
+}
+
+# The track's last used slot, falling back to its first slot when there is no
+# state yet or the stored value is stale (e.g. the track was reordered).
+remembered() {
+  local track=$1
+  local file="$STATE_DIR/last-$track"
+  local ws=""
+  local slots
+
+  if [[ -r $file ]]; then
+    ws=$(cat "$file")
+  fi
+  if [[ -n $ws ]] && [[ $(track_of "$ws" || true) == "$track" ]]; then
+    echo "$ws"
+    return 0
+  fi
+
+  slots=($(slots_of "$track"))
+  echo "${slots[0]}"
+}
+
+# Move delta slots along the current track. Deliberately clamps instead of
+# wrapping: the tracks are meant to feel like fixed positions in space, so
+# running off the right edge of Work should not teleport you back to Chrome.
+step() {
+  local delta=$1
+  local cur track slots i idx next
+
+  cur=$(focused)
+  if ! track=$(track_of "$cur"); then
+    # Focused on the overflow slot — step back into the Work track.
+    goto "$(remembered work)"
+    return 0
+  fi
+
+  slots=($(slots_of "$track"))
+  idx=-1
+  for ((i = 0; i < ${#slots[@]}; i++)); do
+    if [[ ${slots[$i]} == "$cur" ]]; then idx=$i; fi
+  done
+
+  next=$((idx + delta))
+  if ((next < 0 || next >= ${#slots[@]})); then
+    return 0
+  fi
+  goto "${slots[$next]}"
+}
+
+record() {
+  local ws="${AEROSPACE_FOCUSED_WORKSPACE:-}"
+  local track
+
+  if [[ -z $ws ]]; then
+    ws=$(focused)
+  fi
+  if ! track=$(track_of "$ws"); then
+    # Overflow slot: leave both tracks' memory untouched so alt-w / alt-s
+    # still return to whatever you were actually working in.
+    return 0
+  fi
+
+  mkdir -p "$STATE_DIR"
+  printf '%s\n' "$ws" > "$STATE_DIR/last-$track"
+}
+
+case "${1:-}" in
+  left)     step -1 ;;
+  right)    step 1 ;;
+  work)     goto "$(remembered work)" ;;
+  personal) goto "$(remembered personal)" ;;
+  record)   record ;;
+  *)
+    echo "usage: aerospace-track (left|right|work|personal|record)" >&2
+    exit 2
+    ;;
+esac
