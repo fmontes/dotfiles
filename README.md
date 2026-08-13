@@ -187,11 +187,15 @@ size (`accordion` with zero padding), so one app fills the screen at a time; `al
 cycles between them. When you do want two side by side, `alt-/` splits just the slot you are on
 and toggles back — the rest of the layout stays stacked.
 
-The one standing exception is a **Slack huddle**, which opens beside the channel rather than on
-top of it. macOS reports the huddle as a utility panel so AeroSpace floats it by default; a rule
-matching `^Huddle:` in the title forces it back into tiling and switches slot 3 to horizontal
-tiles. The slot stays tiled after the huddle ends, which is invisible with one window; `alt-/`
-switches it back.
+The one standing exception is **Slack**, whose windows always tile so a huddle sits beside the
+channel rather than on top of it. macOS reports the huddle as a utility panel, so the rule uses
+`layout tiling` to override AeroSpace's auto-float and `layout h_tiles` to split the slot.
+
+The rule deliberately does not match on the title. Slack sets the `Huddle:` title a moment *after*
+the window appears, so a `~= "^Huddle:"` pattern never matches at detection time — it works only
+when re-run afterwards, which is a good way to be fooled into thinking a rule is correct. Tiling
+every Slack window sidesteps the race. The slot stays tiled once the huddle ends, which is
+indistinguishable from accordion with one window; `alt-/` switches it back.
 
 Slot `0` is overflow — anything not in the layout lands there and takes focus with it, so a
 stray app never quietly steals a slot. Utilities (System Settings, Finder, 1Password) float on

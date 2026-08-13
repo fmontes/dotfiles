@@ -66,20 +66,22 @@ key-mapping.preset = 'qwerty'
 if = 'test %{app-bundle-id} = com.apple.iCal'
 run = ['move-node-to-workspace 2']
 
-# A Slack huddle opens a second window that macOS reports as a utility panel,
-# so AeroSpace floats it by default. Force it back into tiling and switch the
-# slot to horizontal tiles, putting the huddle beside the channel instead of
-# on top of it. Must precede the general Slack rule — first match wins.
+# A Slack huddle opens a second window, and it should sit beside the channel
+# rather than on top of it. macOS reports it as a utility panel, so AeroSpace
+# floats it by default; `layout tiling` overrides that and `layout h_tiles`
+# splits the slot.
 #
-# The slot stays h_tiles after the huddle ends. That is harmless with a single
-# window, which fills the screen either way; alt-/ switches it back.
-[[on-window-detected]]
-if = 'test %{app-bundle-id} = com.tinyspeck.slackmacgap && test %{window-title} ~= "^Huddle:"'
-run = ['move-node-to-workspace 3', 'layout tiling', 'layout h_tiles']
-
+# This deliberately does not match on the title. Slack sets the "Huddle:" title
+# a moment *after* the window appears, so a `~= "^Huddle:"` pattern never
+# matches at detection time — it only works when re-run later. Tiling every
+# Slack window sidesteps the race: the huddle is effectively the only second
+# window Slack opens, and a popped-out thread tiling too is no loss.
+#
+# The slot stays h_tiles once the huddle ends, which is indistinguishable from
+# accordion with a single window; alt-/ switches it back.
 [[on-window-detected]]
 if = 'test %{app-bundle-id} = com.tinyspeck.slackmacgap'
-run = ['move-node-to-workspace 3']
+run = ['move-node-to-workspace 3', 'layout tiling', 'layout h_tiles']
 
 [[on-window-detected]]
 if = 'test %{app-bundle-id} = com.stablyai.orca'
