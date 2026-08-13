@@ -205,6 +205,12 @@ alt-k = 'focus dfs-next --boundaries workspace --boundaries-action wrap-around-t
 # comparison without turning the whole desktop into a tiling workflow.
 alt-slash = 'layout tiles accordion'
 
+# Re-apply every routing rule to every open window. Use when something has
+# drifted out of its slot — an accidental alt-shift-N, a window dragged across,
+# or an app that opened before its rule existed. Routing normally only runs
+# when a window is first detected, so nothing else puts a stray window back.
+alt-shift-r = 'exec-and-forget aerospace run-callback --for-every-window on-window-detected'
+
 # Escape hatch. Disabling stops AeroSpace intercepting keys and brings hidden
 # workspaces back on screen — for screen sharing, or to hand ctrl-a / ctrl-d
 # back to the terminal.

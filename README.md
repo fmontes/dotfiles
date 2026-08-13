@@ -212,7 +212,18 @@ top of whatever is in front instead of being assigned anywhere.
 | `alt-j` / `alt-k` | Cycle windows within a slot |
 | `alt-/` | Split the current slot side by side, and back |
 | `alt-shift-;` then `esc` | Service mode, then reload config |
+| `alt-shift-r` | Re-apply every routing rule — snaps drifted windows back to their slots |
 | `alt-shift-e` | Disable AeroSpace entirely (see below) |
+
+### When a window drifts
+
+Routing only runs when a window is first *detected*, so nothing puts a stray window back on its
+own. An accidental `alt-shift-N`, a window dragged across, or an app that was open before its rule
+existed will all sit in the wrong slot indefinitely. `alt-shift-r` re-applies every rule to every
+open window and fixes it.
+
+That is also worth reaching for before concluding a rule is broken — a window in the wrong place is
+more often drift than a bad rule.
 
 ### Turning it off
 
