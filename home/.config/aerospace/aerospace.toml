@@ -2,14 +2,19 @@
 #
 # One horizontal track, one app per slot, every app always in the same place.
 #
-#   1 Desktop  2 Calendar  3 Slack  4 Orca  5 Chrome Work  6 Chrome Personal
-#   7 Warp     8 VS Code
-#   0 Overflow — anything not in the layout
+#   1 Desktop  2 Calendar  3 Slack  4 Orca  5 Chrome Work  6 Chrome Me
+#   7 VS Code
+#   0 Overflow — anything not in the layout, Warp included
 #
 # Slot 1 is deliberately empty: a clean desktop to land on.
 #
 # Navigation is spatial (see [mode.main.binding] at the bottom):
-#   ctrl-a / ctrl-d  prev / next slot, looping around the ends
+#   ctrl-a / ctrl-d  prev / next occupied slot, looping around the ends
+#
+# Empty slots are skipped, so an app that is not running never presents a blank
+# screen you cannot tell apart from the desktop. Slot 1 is exempt. The trade-off
+# is that the number of presses between two apps changes as apps open and close
+# — the slots themselves never move, and alt-N always jumps straight to one.
 #
 # Slots are fixed workspace numbers, so closing an app never shifts anything:
 # its workspace stays alive and empty (persistent-workspaces), and reopening
@@ -46,7 +51,7 @@ gaps.outer.bottom = 0
 # no-op for everything else: slot 2 stays slot 2 whether Calendar is running or
 # not, so nothing renumbers or slides over. It also keeps slot 1 empty but
 # reachable.
-persistent-workspaces = ['1', '2', '3', '4', '5', '6', '7', '8', '0']
+persistent-workspaces = ['1', '2', '3', '4', '5', '6', '7', '0']
 
 focus-follows-mouse.enabled = false
 on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
@@ -91,12 +96,8 @@ if = 'test %{app-bundle-id} = com.google.Chrome'
 run = ['move-node-to-workspace 5']
 
 [[on-window-detected]]
-if = 'test %{app-bundle-id} = dev.warp.Warp-Stable'
-run = ['move-node-to-workspace 7']
-
-[[on-window-detected]]
 if = 'test %{app-bundle-id} = com.microsoft.VSCode'
-run = ['move-node-to-workspace 8']
+run = ['move-node-to-workspace 7']
 
 # Utilities float on whatever slot is in front instead of stealing one.
 [[on-window-detected]]
@@ -129,7 +130,6 @@ run = ['move-node-to-workspace --focus-follows-window 0']
 5 = 'main'
 6 = 'main'
 7 = 'main'
-8 = 'main'
 0 = 'main'
 
 # ─── Exec environment ────────────────────────────────────────────────────────
@@ -144,7 +144,9 @@ PATH = '${HOME}/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:${PATH}'
 # ─── Keys ────────────────────────────────────────────────────────────────────
 [mode.main.binding]
 
-# Spatial navigation: prev / next slot, looping around the ends.
+# Spatial navigation: prev / next occupied slot, looping around the ends.
+# Empty slots are skipped so you never land on a blank screen you cannot
+# identify; slot 1 is exempt, being the intentional desktop.
 #
 # These two are global grabs, so they shadow the terminal's readline keys:
 # ctrl-a (beginning of line) and ctrl-d (EOF). Prefix both with 'alt-' to hand
@@ -160,7 +162,6 @@ alt-4 = 'workspace 4'
 alt-5 = 'workspace 5'
 alt-6 = 'workspace 6'
 alt-7 = 'workspace 7'
-alt-8 = 'workspace 8'
 alt-0 = 'workspace 0'
 
 # Toggle between the last two slots.
@@ -175,7 +176,6 @@ alt-shift-4 = 'move-node-to-workspace 4'
 alt-shift-5 = 'move-node-to-workspace 5'
 alt-shift-6 = 'move-node-to-workspace 6'
 alt-shift-7 = 'move-node-to-workspace 7'
-alt-shift-8 = 'move-node-to-workspace 8'
 alt-shift-0 = 'move-node-to-workspace 0'
 
 # Cycle windows when a slot holds more than one (accordion, so still full-screen).
