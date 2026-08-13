@@ -187,6 +187,12 @@ size (`accordion` with zero padding), so one app fills the screen at a time; `al
 cycles between them. When you do want two side by side, `alt-/` splits just the slot you are on
 and toggles back — the rest of the layout stays stacked.
 
+The one standing exception is a **Slack huddle**, which opens beside the channel rather than on
+top of it. macOS reports the huddle as a utility panel so AeroSpace floats it by default; a rule
+matching `^Huddle:` in the title forces it back into tiling and switches slot 3 to horizontal
+tiles. The slot stays tiled after the huddle ends, which is invisible with one window; `alt-/`
+switches it back.
+
 Slot `0` is overflow — anything not in the layout lands there and takes focus with it, so a
 stray app never quietly steals a slot. Utilities (System Settings, Finder, 1Password) float on
 top of whatever is in front instead of being assigned anywhere.
@@ -275,6 +281,17 @@ Config reloads on save (`auto-reload-config = true`). To check it before trustin
 ```bash
 aerospace reload-config --dry-run
 ```
+
+Reloading does not re-place windows that are already open — routing only fires when a window is
+detected. Rather than restarting AeroSpace, apply new rules retroactively:
+
+```bash
+aerospace run-callback --for-every-window on-window-detected   # re-route everything
+aerospace run-callback --window-id <id> on-window-detected     # test one rule
+```
+
+The second form is the way to check a rule against a live window; it forwards the output of every
+command in the callback.
 
 Every slot is pinned to the main display, so the layout is identical on the MacBook screen and
 on an external monitor. To push some slots onto a second display instead, change their rows in

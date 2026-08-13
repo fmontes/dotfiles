@@ -66,6 +66,17 @@ key-mapping.preset = 'qwerty'
 if = 'test %{app-bundle-id} = com.apple.iCal'
 run = ['move-node-to-workspace 2']
 
+# A Slack huddle opens a second window that macOS reports as a utility panel,
+# so AeroSpace floats it by default. Force it back into tiling and switch the
+# slot to horizontal tiles, putting the huddle beside the channel instead of
+# on top of it. Must precede the general Slack rule — first match wins.
+#
+# The slot stays h_tiles after the huddle ends. That is harmless with a single
+# window, which fills the screen either way; alt-/ switches it back.
+[[on-window-detected]]
+if = 'test %{app-bundle-id} = com.tinyspeck.slackmacgap && test %{window-title} ~= "^Huddle:"'
+run = ['move-node-to-workspace 3', 'layout tiling', 'layout h_tiles']
+
 [[on-window-detected]]
 if = 'test %{app-bundle-id} = com.tinyspeck.slackmacgap'
 run = ['move-node-to-workspace 3']
