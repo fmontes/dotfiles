@@ -53,16 +53,12 @@ cask "raycast"
 cask "chromium"
 
 # ─── Desktop layout ─────────────────────────────────────────────────────────
-# The AeroSpace layout in home/.config/aerospace/aerospace.toml routes windows
-# by bundle ID, so each track needs its own app. Work and Personal are split
-# Chrome/Chrome Canary and VS Code/Insiders for exactly that reason — swapping
-# an app here means updating the matching on-window-detected rule.
+# The AeroSpace layout in home/.config/aerospace/aerospace.toml pins each of
+# these to a fixed slot by bundle ID. Slot 1 is a deliberately empty desktop,
+# and Orca (slot 4) has no cask — see scripts/07-post-install.sh.
 cask "nikitabobko/tap/aerospace"
 
-cask "google-chrome"               # Work     slot 1
-cask "slack"                       # Work     slot 3
-cask "warp"                        # Work     slot 5
-cask "visual-studio-code"          # Work     slot 6
-cask "google-chrome@canary"        # Personal slot 7
-cask "cmux"                        # Personal slot 8
-cask "visual-studio-code@insiders" # Personal slot 9
+cask "slack"                      # slot 3
+cask "google-chrome"              # slots 5 and 6, split by profile
+cask "warp"                       # slot 7
+cask "visual-studio-code"         # slot 8

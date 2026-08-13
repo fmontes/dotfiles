@@ -17,7 +17,7 @@ This clones the repo to `~/.dotfiles` and runs the installer.
 - **Aliases** split by context — work aliases stay local, not committed
 - **Git** with delta for diffs, gh-dash for PR reviews
 - **mise** for managing Node, Python, and Java versions
-- **[AeroSpace](https://nikitabobko.github.io/AeroSpace/)** for a fixed two-track desktop layout with WASD navigation
+- **[AeroSpace](https://nikitabobko.github.io/AeroSpace/)** for a fixed desktop layout where every app has its own slot
 - **[Fresh](https://getfresh.dev/)** for terminal code editing and browsing
 - **[AI](ai/)** skills, instructions, and subagents for agentic coding harnesses
 - **macOS defaults** for Dock, Finder, keyboard
@@ -160,16 +160,13 @@ These steps require human interaction and can't be automated:
 | `chai` | Sync AI agent config across platforms |
 | `chromedriver` | Headless driver for Puppeteer |
 | `chromium` | Puppeteer's browser (cask disabled 2026-09-01) |
-| `cmux` | Personal terminal, Ghostty-based |
 | `codex` | OpenAI Codex CLI |
-| `google-chrome` | Work browser |
-| `google-chrome@canary` | Personal browser |
+| `google-chrome` | Browser — desktop slots 5 and 6, split by profile |
 | `orbstack` | Lightweight Docker alternative |
 | `raycast` | Command launcher, still handles ad-hoc window resizing |
-| `slack` | Work chat |
-| `visual-studio-code` | Work editor |
-| `visual-studio-code@insiders` | Personal editor |
-| `warp` | Work terminal |
+| `slack` | Chat — desktop slot 3 |
+| `visual-studio-code` | Code editor — desktop slot 8 |
+| `warp` | Terminal — desktop slot 7 |
 
 ## Desktop
 
@@ -177,58 +174,89 @@ The desktop layout is [AeroSpace](https://nikitabobko.github.io/AeroSpace/), con
 [`home/.config/aerospace/aerospace.toml`](home/.config/aerospace/aerospace.toml) with navigation
 in [`home/.local/bin/aerospace-track`](home/.local/bin/aerospace-track).
 
-Two horizontal tracks, one app per slot, every app always in the same place:
+One horizontal track, one app per slot, every app always in the same place:
 
-| | 1 | 2 | 3 | 4 | 5 | 6 |
-|---|---|---|---|---|---|---|
-| **Work** | Chrome | Orca | Slack | Calendar | Warp | VS Code |
+| 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+|---|---|---|---|---|---|---|---|
+| Desktop | Calendar | Slack | Orca | Chrome Work | Chrome Me | Warp | VS Code |
 
-| | 7 | 8 | 9 |
-|---|---|---|---|
-| **Personal** | Chrome Canary | cmux | VS Code Insiders |
+Slot 1 is deliberately empty — a clean desktop to land on, and where login drops you.
+
+Windows never tile. A second window of an app joins that app's slot and covers the first at full
+size (`accordion` with zero padding), so one app fills the screen at a time; `alt-j` / `alt-k`
+cycles between them. When you do want two side by side, `alt-/` splits just the slot you are on
+and toggles back — the rest of the layout stays stacked.
 
 Slot `0` is overflow — anything not in the layout lands there and takes focus with it, so a
-stray app never quietly steals a track slot. Utilities (System Settings, Finder, 1Password)
-float on top of whatever is in front instead of being assigned anywhere.
+stray app never quietly steals a slot. Utilities (System Settings, Finder, 1Password) float on
+top of whatever is in front instead of being assigned anywhere.
 
 ### Navigation
 
 | Keys | Action |
 |---|---|
-| `alt-a` / `alt-d` | Previous / next slot in the current track, stopping at the edges |
-| `alt-w` / `alt-s` | Work track / Personal track, resuming that track's last slot |
-| `alt-1`…`alt-9`, `alt-0` | Jump straight to a slot |
+| `ctrl-a` / `ctrl-d` | Previous / next slot, looping around the ends |
+| `alt-1`…`alt-8`, `alt-0` | Jump straight to a slot |
 | `alt-shift-1`…`alt-shift-0` | Move the focused window to a slot |
 | `alt-tab` | Toggle between the last two slots |
 | `alt-j` / `alt-k` | Cycle windows within a slot |
+| `alt-/` | Split the current slot side by side, and back |
 | `alt-shift-;` then `esc` | Service mode, then reload config |
 
-`alt-w` / `alt-s` remember where you were: leave Work on Slack, wander around Personal, and
-`alt-w` puts you back on Slack. That memory lives in `~/.local/state/aerospace/`, written by
-`aerospace-track record` on every workspace change.
+### Seeing the whole layout
 
-### Why the apps are split
+AeroSpace has no overview GUI — its tray icon shows only the active workspace — and it parks
+inactive windows off-screen rather than using native macOS Spaces, so Mission Control shows
+everything jumbled into one Space. Run `spaces` (alias for `aerospace-track overview`) instead:
 
-AeroSpace routes windows by **bundle ID**, so two windows of the same app are indistinguishable
-to it. Work and Personal therefore use different apps rather than different profiles:
+```
+   1 Desktop  2 Calendar  3 Slack  4 Orca  5 Chrome Work [6 Chrome Me] 7 Warp  8 VS Code
+   0 krisp
+```
 
-| Work | Personal | |
-|---|---|---|
-| `com.google.Chrome` | `com.google.Chrome.canary` | Chrome / Chrome Canary |
-| `com.microsoft.VSCode` | `com.microsoft.VSCodeInsiders` | VS Code / VS Code Insiders |
+The focused slot is bracketed and coloured, occupied slots are bold, and empty ones are dimmed.
+Brackets rather than colour alone mark the focus, so the output still reads correctly when piped
+into something else. The overflow row only appears when something is in it.
 
-Chrome profiles alone could not be pinned to separate slots, because a Chrome window title
-carries no profile information. Canary is a separate signed app with its own profile store, so
-Personal browsing stays genuinely separate while keeping the Chrome engine and extensions.
-The routing rules use `=` (exact match), not `~=` (substring), so `com.google.Chrome` never
-captures Canary's windows.
+`ctrl-a` / `ctrl-d` loop around the ends — right off VS Code returns to the empty desktop, left
+off the desktop goes to VS Code. Overflow is not on the loop; reach it with `alt-0`.
+
+Both navigation keys are global grabs, so they shadow the terminal's readline bindings —
+`ctrl-a` (beginning of line) and `ctrl-d` (EOF). If that bites inside Warp, prefix both with
+`alt-` in `aerospace.toml` to hand them back to the shell.
+
+### Splitting Chrome by profile
+
+Most rules match on bundle ID, which cannot tell two windows of the same app apart. Chrome is the
+exception: once more than one profile is running it appends the profile name to every window
+title, so the title becomes a usable discriminator.
+
+```toml
+if = 'test %{app-bundle-id} = com.google.Chrome && test %{window-title} ~= "Freddy \(dotcms\.com\)$"'
+```
+
+Three things this depends on:
+
+- **Anchor the pattern.** Bare `Freddy` is a prefix of `Freddy (dotcms.com)` and matches both
+  profiles. `~=` is a case-insensitive regex, so `$` works.
+- **Renaming a Chrome profile silently breaks the rule.** The profile name is hardcoded.
+- **With one profile running, Chrome drops the suffix.** A third rule matching bundle ID alone
+  catches that case and sends the window to slot 5, so it never falls through to overflow.
+
+Note that a regex beginning with `-` is parsed as a CLI flag and silently fails to match — write
+`Chrome - Freddy$` rather than `- Freddy$`.
+
+Other identifiers do not work for this: `window-id` is reassigned at runtime, and both profiles
+share one `app-pid` and one bundle path. Everywhere else in the layout, an app owns exactly one
+slot and extra windows stack full-screen on top (`alt-j` / `alt-k` cycles them).
 
 ### Changing the layout
 
 Adding or reordering an app means two edits that must stay in sync:
 
 1. The `[[on-window-detected]]` rule in `aerospace.toml` that maps a bundle ID to a slot.
-2. The `WORK` / `PERSONAL` arrays at the top of `aerospace-track`.
+2. The `TRACK` and `LABELS` arrays at the top of `aerospace-track`, which must stay
+   positionally aligned with each other.
 
 Find a bundle ID with:
 
@@ -243,8 +271,8 @@ aerospace reload-config --dry-run
 ```
 
 Every slot is pinned to the main display, so the layout is identical on the MacBook screen and
-on an external monitor. To spread the tracks across two displays instead, change the Personal
-rows in `[workspace-to-monitor-force-assignment]` from `main` to `secondary`.
+on an external monitor. To push some slots onto a second display instead, change their rows in
+`[workspace-to-monitor-force-assignment]` from `main` to `secondary`.
 
 AeroSpace needs Accessibility access (System Settings → Privacy & Security → Accessibility)
 before it can move any windows.

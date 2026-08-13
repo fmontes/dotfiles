@@ -71,6 +71,10 @@ alias prs="gh dash"
 dotfiles() { code --new-window ~/Developer/dotfiles }
 alias zreload="source ~/.zshrc && echo 'Reloaded'"
 
+# ─── Desktop ────────────────────────────────────────────────────────────────
+# AeroSpace has no overview GUI, so print the whole slot layout instead.
+alias spaces="aerospace-track overview"
+
 # ─── Help ───────────────────────────────────────────────────────────────────
 aliases() { bat --language=sh ~/.config/zsh/*.zsh }
 
