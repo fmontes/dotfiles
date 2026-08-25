@@ -95,3 +95,7 @@ whence -p try &>/dev/null && eval "$(command try init ~/src/tries)"
 
 # direnv hook
 command -v direnv &>/dev/null && eval "$(direnv hook zsh)"
+
+# >>> railway initialize >>>
+source "$HOME/.railway/env"
+# <<< railway initialize <<<
