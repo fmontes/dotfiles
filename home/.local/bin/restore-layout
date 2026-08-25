@@ -1,0 +1,219 @@
+#!/usr/bin/env bash
+#
+# restore-layout — reset the desktop to its canonical arrangement.
+#
+#   1 Calendar   2 Slack   3 Orca   4 Chrome Work   5 Chrome Me
+#
+# Workspaces in this setup are generic contexts: no aerospace.toml rule assigns
+# any app to any workspace, and a new window opens on whatever workspace has
+# focus. This script is the one place a specific arrangement is written down,
+# and running it is how you get back to it.
+#
+# It is a reset, not a policy. Nothing enforces the arrangement continuously —
+# move a window afterwards and it stays moved. But every run ends in the same
+# state regardless of what it started from:
+#
+#   * A window in the wrong place is moved to its workspace.
+#   * A missing app is launched on its workspace.
+#   * An app already in the right place is left untouched.
+#
+# So the end state depends only on the plan below, never on how far things had
+# drifted. It never closes anything and never opens a second window of an app
+# that is already up, which is what makes it safe to run repeatedly.
+#
+#   restore-layout            reset to the plan
+#   restore-layout --dry-run  report what it would do, change nothing
+#
+# Because no aerospace.toml rule backs this up, the workspace numbers live here
+# and nowhere else — this file is the whole source of truth for the layout.
+#
+# VS Code is deliberately absent: launching it with no project gives an empty
+# window, which is worse than an empty workspace.
+#
+# Written for bash 3.2 (what macOS ships), so no namerefs or associative arrays.
+
+set -euo pipefail
+
+DRY_RUN=false
+case "${1:-}" in
+  --dry-run) DRY_RUN=true ;;
+  "") ;;
+  *)
+    echo "usage: restore-layout [--dry-run]" >&2
+    exit 2
+    ;;
+esac
+
+AEROSPACE="${AEROSPACE_BIN:-}"
+if [[ -z $AEROSPACE ]]; then
+  AEROSPACE=$(command -v aerospace) || AEROSPACE=/opt/homebrew/bin/aerospace
+fi
+
+if ! "$AEROSPACE" list-workspaces --focused >/dev/null 2>&1; then
+  echo "restore-layout: AeroSpace is not responding (is it running, or disabled?)" >&2
+  exit 1
+fi
+
+# One entry per app, in the order they should be placed. Fields:
+#
+#   workspace | label | bundle-id | title-regex | launch-key
+#
+# An empty title-regex matches any window of that bundle. The launch-key
+# selects the launch command in launch() below, because Chrome needs a profile
+# argument that does not fit in a field.
+PLAN=(
+  "1|Calendar|com.apple.iCal||calendar"
+  "2|Slack|com.tinyspeck.slackmacgap||slack"
+  "3|Orca|com.stablyai.orca||orca"
+  "4|Chrome Work|com.google.Chrome|Freddy \(dotcms\.com\)\$|chrome-work"
+  "5|Chrome Me|com.google.Chrome|Chrome - Freddy\$|chrome-me"
+)
+
+# Every window matching an entry, as 'window-id workspace' lines. All of them,
+# not just the first: a reset should gather three stray Chrome windows onto one
+# workspace, not pick one and ignore the rest.
+#
+# The title is printed last because a title may itself contain the delimiter;
+# everything from field 3 onward is the title.
+matching_windows() {
+  local bundle=$1 title_re=$2
+
+  "$AEROSPACE" list-windows --all \
+    --format '%{window-id}|%{workspace}|%{app-bundle-id}|%{window-title}' 2>/dev/null |
+    awk -F'|' -v b="$bundle" '$3 == b { print }' |
+    while IFS= read -r row; do
+      # Strip id|workspace|bundle| to leave the title.
+      title=${row#*|}; title=${title#*|}; title=${title#*|}
+      if [[ -z $title_re ]] || printf '%s' "$title" | grep -Eq "$title_re"; then
+        printf '%s %s\n' "$(printf '%s' "$row" | cut -d'|' -f1)" \
+                         "$(printf '%s' "$row" | cut -d'|' -f2)"
+      fi
+    done
+}
+
+# Chrome is the only app that cannot simply be activated by bundle ID: one
+# process serves every profile, so the profile has to be named explicitly and
+# `open -n` is required to make Chrome act on it. That is safe here only
+# because the caller has already established the profile has no window.
+launch() {
+  case "$1" in
+    calendar)    open -b com.apple.iCal ;;
+    slack)       open -b com.tinyspeck.slackmacgap ;;
+    orca)        open -b com.stablyai.orca ;;
+    chrome-work) open -na "Google Chrome" --args --profile-directory="Profile 1" ;;
+    chrome-me)   open -na "Google Chrome" --args --profile-directory="Default" ;;
+    *)
+      echo "restore-layout: no launch command for '$1'" >&2
+      return 1
+      ;;
+  esac
+}
+
+# Wait for a launched app's window to appear before moving to the next entry.
+# Two reasons: the window has to exist before focus leaves its workspace, or it
+# would be born somewhere else; and Chrome sets its profile suffix a moment
+# after the window appears, so checking too early misses it.
+wait_for_window() {
+  local bundle=$1 title_re=$2 i
+  for ((i = 0; i < 100; i++)); do
+    if [[ -n $(matching_windows "$bundle" "$title_re") ]]; then
+      return 0
+    fi
+    sleep 0.2
+  done
+  return 1
+}
+
+opened=0
+moved=0
+ok=0
+failed=0
+touched_workspaces=""
+
+for entry in "${PLAN[@]}"; do
+  IFS='|' read -r ws label bundle title_re key <<<"$entry"
+
+  windows=$(matching_windows "$bundle" "$title_re")
+
+  # ── Nothing open: launch it on its workspace ──────────────────────────────
+  if [[ -z $windows ]]; then
+    if $DRY_RUN; then
+      printf '  %s  %-12s would open\n' "$ws" "$label"
+      opened=$((opened + 1))
+      continue
+    fi
+
+    printf '  %s  %-12s opening' "$ws" "$label"
+
+    # Focus first: with no routing rules, the focused workspace is the only
+    # thing that decides where a new window lands.
+    "$AEROSPACE" workspace "$ws" >/dev/null 2>&1 || true
+
+    if ! launch "$key" >/dev/null 2>&1; then
+      printf ' — failed to launch\n'
+      failed=$((failed + 1))
+      continue
+    fi
+
+    if wait_for_window "$bundle" "$title_re"; then
+      printf ' — up\n'
+      opened=$((opened + 1))
+      touched_workspaces="$touched_workspaces $ws"
+    else
+      printf ' — no window after 20s, may land elsewhere\n'
+      failed=$((failed + 1))
+    fi
+    continue
+  fi
+
+  # ── Already open: move whatever is in the wrong place ─────────────────────
+  strays=0
+  while read -r wid at; do
+    [[ -n $wid ]] || continue
+    if [[ $at == "$ws" ]]; then
+      continue
+    fi
+    strays=$((strays + 1))
+    if ! $DRY_RUN; then
+      "$AEROSPACE" move-node-to-workspace --window-id "$wid" "$ws" >/dev/null 2>&1 || true
+    fi
+  done <<<"$windows"
+
+  count=$(printf '%s\n' "$windows" | grep -c . || true)
+
+  if [[ $strays -eq 0 ]]; then
+    printf '  %s  %-12s in place\n' "$ws" "$label"
+    ok=$((ok + 1))
+  elif $DRY_RUN; then
+    printf '  %s  %-12s would move %d of %d here\n' "$ws" "$label" "$strays" "$count"
+    moved=$((moved + 1))
+  else
+    printf '  %s  %-12s moved %d of %d here\n' "$ws" "$label" "$strays" "$count"
+    moved=$((moved + 1))
+    touched_workspaces="$touched_workspaces $ws"
+  fi
+done
+
+if $DRY_RUN; then
+  printf '\n  would open %d, move %d, leave %d (dry run, nothing changed)\n\n' \
+    "$opened" "$moved" "$ok"
+  exit 0
+fi
+
+# Flatten every workspace that gained a window. Moving several windows in can
+# leave nesting from the order they arrived, so without this two runs could
+# produce the same windows in different shapes — the opposite of a reset.
+for ws in $(printf '%s\n' $touched_workspaces | sort -u); do
+  "$AEROSPACE" flatten-workspace-tree --workspace "$ws" >/dev/null 2>&1 || true
+done
+
+printf '\n  opened %d, moved %d, left %d' "$opened" "$moved" "$ok"
+if [[ $failed -gt 0 ]]; then
+  printf ', %d needing attention' "$failed"
+fi
+printf '\n\n'
+
+"$AEROSPACE" workspace 1 >/dev/null 2>&1 || true
+
+"$AEROSPACE" list-windows --all --format '  %{workspace}  %{app-name}' 2>/dev/null | sort -n
+echo

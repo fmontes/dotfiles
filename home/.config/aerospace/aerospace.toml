@@ -1,143 +1,115 @@
-# AeroSpace — deterministic desktop layout
+# AeroSpace — Omarchy/Hyprland-style tiling
 #
-# One horizontal track, one app per slot, every app always in the same place.
+# Workspaces are generic contexts, not app slots. Nothing is assigned to a
+# workspace: an app opens on whichever workspace has focus and tiles into it,
+# and you arrange work by moving windows, exactly as in Omarchy.
 #
-#   1 Desktop  2 Calendar  3 Slack  4 Orca  5 Chrome Work  6 Chrome Me
-#   7 VS Code
-#   0 Overflow — anything not in the layout, Warp included
+# Workspaces exist only while they hold a window. There is deliberately no
+# persistent-workspaces list, so alt-5 creates workspace 5 on demand and it
+# disappears when you close the last window on it — which also means
+# ctrl-a / ctrl-d cycle only through workspaces that actually have something
+# in them.
 #
-# Slot 1 is deliberately empty: a clean desktop to land on.
+# Routing rules exist only for windows that need behaviour they cannot get on
+# their own: four utilities that should float, and Slack, whose huddle window
+# macOS mislabels as a panel. No rule moves a window to a workspace.
 #
-# Navigation is spatial (see [mode.main.binding] at the bottom):
-#   ctrl-a / ctrl-d  prev / next occupied slot, looping around the ends
-#
-# Empty slots are skipped, so an app that is not running never presents a blank
-# screen you cannot tell apart from the desktop. Slot 1 is exempt. The trade-off
-# is that the number of presses between two apps changes as apps open and close
-# — the slots themselves never move, and alt-N always jumps straight to one.
-#
-# Slots are fixed workspace numbers, so closing an app never shifts anything:
-# its workspace stays alive and empty (persistent-workspaces), and reopening
-# the app lands it back in the same slot (on-window-detected).
+#   alt + arrows          focus       alt + shift + arrows  move window
+#   alt + 1..9            workspace   alt + shift + 1..9    send window there
+#   alt + tab             previous workspace
+#   ctrl + a / ctrl + d   prev / next occupied workspace
+#   alt + f  fullscreen   alt + t  float toggle   alt + j  split orientation
 
 config-version = 2
 
 start-at-login = true
 auto-reload-config = true
 
-# Land on the empty desktop after login/restart so startup is reproducible.
+# Land on workspace 1 after login/restart so startup is reproducible.
 after-startup-command = ['workspace 1']
 
-# ─── Not a tiling workflow ───────────────────────────────────────────────────
-# One app per workspace means tiling never has anything to tile. When a second
-# window does land in a slot (a Chrome popup, VS Code opening a new window),
-# accordion with zero padding stacks it full-screen instead of splitting.
-default-root-container-layout = 'accordion'
+# ─── Tiling ──────────────────────────────────────────────────────────────────
+# Every new window joins the tiling tree of the focused workspace. 'auto' picks
+# the split axis from the container's aspect ratio, so a wide container splits
+# side by side and a tall one stacks — the same instinct as Hyprland's dwindle.
+#
+# Floating is the exception, granted per app in the rules below or per window
+# with alt-t. AeroSpace has no animations, so there is nothing to turn off.
+default-root-container-layout = 'tiles'
 default-root-container-orientation = 'auto'
-accordion-padding = 0
 
+# Accordion is the opt-in stack mode on alt-slash, not the default. It needs
+# visible padding to read as a stack rather than as a single window.
+accordion-padding = 30
+
+# flatten-containers removes a container as soon as it holds one window, so the
+# tree never keeps invisible nesting from a window you closed. The opposite-
+# orientation rule makes each nested split alternate axis automatically, which
+# is what makes new windows land somewhere predictable without any manual
+# split-direction bookkeeping.
 enable-normalization-flatten-containers = true
 enable-normalization-opposite-orientation-for-nested-containers = true
 
-gaps.inner.horizontal = 0
-gaps.inner.vertical = 0
-gaps.outer.left = 0
-gaps.outer.right = 0
-gaps.outer.top = 0
-gaps.outer.bottom = 0
+# Small and uniform: enough to see the seam between windows, not enough to
+# waste screen. Same value inside and out so the grid reads as even.
+gaps.inner.horizontal = 6
+gaps.inner.vertical = 6
+gaps.outer.left = 6
+gaps.outer.right = 6
+gaps.outer.top = 6
+gaps.outer.bottom = 6
 
-# ─── Fixed slots ─────────────────────────────────────────────────────────────
-# Keeps every slot alive even when empty. This is what makes closing an app a
-# no-op for everything else: slot 2 stays slot 2 whether Calendar is running or
-# not, so nothing renumbers or slides over. It also keeps slot 1 empty but
-# reachable.
-persistent-workspaces = ['1', '2', '3', '4', '5', '6', '7', '0']
-
+# ─── Focus ───────────────────────────────────────────────────────────────────
+# AeroSpace draws nothing around the focused window — its author left borders
+# out on purpose — so the cursor is the focus indicator. It jumps to the centre
+# of whatever window you focus, which also stops it being orphaned over a
+# window that no longer has focus. 'lazy' means it only moves when the cursor
+# is not already inside that window, so it never fights you mid-drag.
+#
+# focus-follows-mouse stays off: these two would form a loop, the cursor
+# landing on a window and that landing re-triggering focus.
 focus-follows-mouse.enabled = false
+on-focus-changed = ['move-mouse window-lazy-center']
 on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
+
 automatically-unhide-macos-hidden-apps = false
 key-mapping.preset = 'qwerty'
 
-# ─── Window routing ──────────────────────────────────────────────────────────
-# Matched by bundle ID. First match wins (check-further-callbacks defaults to
-# false). Nothing routes to slot 1 — that is the point of it.
+# ─── Window rules ────────────────────────────────────────────────────────────
+# Only windows needing special behaviour appear here. Everything else gets the
+# default — open on the focused workspace, join its tiling tree — which is the
+# whole point of generic workspaces. There is no catch-all rule and no rule
+# that moves a window to a workspace.
+#
+# Matched by bundle ID, first match wins (check-further-callbacks defaults to
+# false).
 
-[[on-window-detected]]
-if = 'test %{app-bundle-id} = com.apple.iCal'
-run = ['move-node-to-workspace 2']
-
-# A Slack huddle opens a second window, and it should sit beside the channel
-# rather than on top of it. macOS reports it as a utility panel, so AeroSpace
-# floats it by default; `layout tiling` overrides that and `layout h_tiles`
-# splits the slot.
+# macOS reports a Slack huddle as a utility panel, which AeroSpace auto-floats.
+# `layout tiling` hands it back to the normal tiling rules so a huddle sits
+# beside the channel rather than on top of it.
 #
 # This deliberately does not match on the title. Slack sets the "Huddle:" title
 # a moment *after* the window appears, so a `~= "^Huddle:"` pattern never
 # matches at detection time — it only works when re-run later. Tiling every
 # Slack window sidesteps the race: the huddle is effectively the only second
 # window Slack opens, and a popped-out thread tiling too is no loss.
-#
-# The slot stays h_tiles once the huddle ends, which is indistinguishable from
-# accordion with a single window; alt-/ switches it back.
 [[on-window-detected]]
 if = 'test %{app-bundle-id} = com.tinyspeck.slackmacgap'
-run = ['move-node-to-workspace 3', 'layout tiling', 'layout h_tiles']
+run = ['layout tiling']
 
-[[on-window-detected]]
-if = 'test %{app-bundle-id} = com.stablyai.orca'
-run = ['move-node-to-workspace 4']
-
-# Chrome splits by profile. Chrome appends the profile name to the window
-# title once more than one profile is running, which is the only stable way to
-# tell two windows of the same app apart — window-id is reassigned at runtime
-# and both profiles share one pid.
-#
-# Anchor the patterns: bare 'Freddy' is a prefix of 'Freddy (dotcms.com)' and
-# would match both. Renaming a Chrome profile silently breaks these rules.
-[[on-window-detected]]
-if = 'test %{app-bundle-id} = com.google.Chrome && test %{window-title} ~= "Freddy \(dotcms\.com\)$"'
-run = ['move-node-to-workspace 5']
-
-[[on-window-detected]]
-if = 'test %{app-bundle-id} = com.google.Chrome && test %{window-title} ~= "Chrome - Freddy$"'
-run = ['move-node-to-workspace 6']
-
-# Fallback: with only one profile running Chrome drops the suffix entirely, so
-# an unlabelled Chrome window lands on Work rather than falling to overflow.
-[[on-window-detected]]
-if = 'test %{app-bundle-id} = com.google.Chrome'
-run = ['move-node-to-workspace 5']
-
-[[on-window-detected]]
-if = 'test %{app-bundle-id} = com.microsoft.VSCode'
-run = ['move-node-to-workspace 7']
-
-# Utilities float on whatever slot is in front instead of stealing one.
+# These two float on whatever workspace is in front instead of splitting it.
+# They are things you glance at, not windows you work in.
 [[on-window-detected]]
 if = 'test %{app-bundle-id} = com.apple.systempreferences'
-run = ['layout floating']
-
-[[on-window-detected]]
-if = 'test %{app-bundle-id} = com.apple.finder'
 run = ['layout floating']
 
 [[on-window-detected]]
 if = 'test %{app-bundle-id} = com.1password.1password'
 run = ['layout floating']
 
-[[on-window-detected]]
-if = 'test %{app-bundle-id} = com.apple.Notes'
-run = ['layout floating']
-
-# Messages is com.apple.MobileSMS, not com.apple.Messages — the bundle ID still
-# carries the name it shipped with on iPhone OS.
-[[on-window-detected]]
-if = 'test %{app-bundle-id} = com.apple.MobileSMS'
-run = ['layout floating']
-
 # Cap's recording overlay and krisp's mic widget are transient controls, not
-# windows worth a slot. Without these they hit the catch-all below and get
-# dragged to overflow mid-recording.
+# windows worth tiling. Without these they would split whatever workspace is
+# focused, mid-recording.
 [[on-window-detected]]
 if = 'test %{app-bundle-id} = so.cap.desktop'
 run = ['layout floating']
@@ -146,16 +118,15 @@ run = ['layout floating']
 if = 'test %{app-bundle-id} = ai.krisp.krispMac'
 run = ['layout floating']
 
-# Everything else goes to the overflow slot and takes focus with it, so a
-# stray app is never silently swallowed and never lands in a track slot.
-[[on-window-detected]]
-if = 'true'
-run = ['move-node-to-workspace --focus-follows-window 0']
-
 # ─── Monitors ────────────────────────────────────────────────────────────────
-# Every slot is pinned to the main display, so the layout is identical on the
-# MacBook screen and on an external monitor. When both are connected everything
+# Every workspace is pinned to the main display, so behaviour is identical on
+# the MacBook screen alone and with an external monitor attached: everything
 # follows whichever display macOS calls main (System Settings → Displays).
+#
+# This is carried over deliberately rather than reconsidered — it is what stops
+# a workspace turning up on a monitor you did not expect. The cost is that the
+# non-main display holds nothing, so alt+arrows has no second monitor to cross
+# into. Delete this whole block to let AeroSpace spread workspaces across both.
 [workspace-to-monitor-force-assignment]
 1 = 'main'
 2 = 'main'
@@ -164,11 +135,12 @@ run = ['move-node-to-workspace --focus-follows-window 0']
 5 = 'main'
 6 = 'main'
 7 = 'main'
-0 = 'main'
+8 = 'main'
+9 = 'main'
 
 # ─── Exec environment ────────────────────────────────────────────────────────
 # AeroSpace launches from macOS login with a bare environment, so spell out
-# where aerospace-track and the aerospace binary live.
+# where the aerospace binary and restore-layout live.
 [exec]
 inherit-env-vars = true
 
@@ -176,21 +148,42 @@ inherit-env-vars = true
 PATH = '${HOME}/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:${PATH}'
 
 # ─── Keys ────────────────────────────────────────────────────────────────────
+# alt stands in for Super. It is the one modifier macOS leaves largely free at
+# this scale: cmd-1..9 is tab switching in every browser and editor, and ctrl-N
+# belongs to the terminal. The cost is Option+arrow word navigation, traded
+# knowingly for arrow keys that match Hyprland.
 [mode.main.binding]
 
-# Spatial navigation: prev / next occupied slot, looping around the ends.
-# Empty slots are skipped so you never land on a blank screen you cannot
-# identify; slot 1 is exempt, being the intentional desktop.
-#
-# These two are global grabs, so they shadow the terminal's readline keys:
-# ctrl-a (beginning of line) and ctrl-d (EOF). Prefix both with 'alt-' to hand
-# them back to the shell.
-ctrl-a = 'exec-and-forget "$HOME/.local/bin/aerospace-track" left'
-ctrl-d = 'exec-and-forget "$HOME/.local/bin/aerospace-track" right'
+# ── Focus ────────────────────────────────────────────────────────────────────
+# all-monitors-outer-frame lets focus cross onto a second display instead of
+# stopping at the workspace edge; 'stop' at the outer frame means the far edge
+# is a dead end rather than wrapping you to the opposite side of the screen,
+# which is what Hyprland's movefocus does.
+alt-left = 'focus --boundaries all-monitors-outer-frame --boundaries-action stop left'
+alt-down = 'focus --boundaries all-monitors-outer-frame --boundaries-action stop down'
+alt-up = 'focus --boundaries all-monitors-outer-frame --boundaries-action stop up'
+alt-right = 'focus --boundaries all-monitors-outer-frame --boundaries-action stop right'
 
-# Jump straight to a slot. --auto-back-and-forth makes each key a toggle:
-# pressing the key for the slot you are already on returns you to the previous
-# one, so alt-3 bounces in and out of Slack without a second binding.
+# ── Move within the layout ───────────────────────────────────────────────────
+# Defaults are deliberate: moving a window against the grain of its container
+# creates the container it needs, so pushing a window up out of a side-by-side
+# split turns that half into a stack. Same behaviour as i3/sway move.
+alt-shift-left = 'move left'
+alt-shift-down = 'move down'
+alt-shift-up = 'move up'
+alt-shift-right = 'move right'
+
+# ── Resize ───────────────────────────────────────────────────────────────────
+# 'smart' resizes along whichever axis the focused window's container runs, so
+# one pair of keys covers both directions. Needs at least two tiled windows in
+# the workspace — there is nothing to resize against otherwise.
+alt-minus = 'resize smart -50'
+alt-equal = 'resize smart +50'
+
+# ── Workspaces ───────────────────────────────────────────────────────────────
+# Generic contexts, created on demand. --auto-back-and-forth makes each key a
+# toggle: pressing the key for the workspace you are already on returns you to
+# the previous one, so alt-3 bounces in and out without a second binding.
 alt-1 = 'workspace --auto-back-and-forth 1'
 alt-2 = 'workspace --auto-back-and-forth 2'
 alt-3 = 'workspace --auto-back-and-forth 3'
@@ -198,16 +191,14 @@ alt-4 = 'workspace --auto-back-and-forth 4'
 alt-5 = 'workspace --auto-back-and-forth 5'
 alt-6 = 'workspace --auto-back-and-forth 6'
 alt-7 = 'workspace --auto-back-and-forth 7'
-alt-0 = 'workspace --auto-back-and-forth 0'
+alt-8 = 'workspace --auto-back-and-forth 8'
+alt-9 = 'workspace --auto-back-and-forth 9'
 
-# Toggle between the last two windows, falling back to the last two slots.
-# focus-back-and-forth exits non-zero when the previous window is gone (it
-# remembers only one), which is why the fallback is chained rather than run
-# alongside. Window-level matters when a slot holds two, like Slack mid-huddle.
-alt-tab = 'exec-and-forget aerospace focus-back-and-forth || aerospace workspace-back-and-forth'
+# Previous workspace, matching Omarchy's Super+Tab.
+alt-tab = 'workspace-back-and-forth'
 
-# Manual override: park the focused window in another slot. Routing rules above
-# still apply the next time that window is created.
+# Send the focused window to a workspace without following it. The target is
+# created if it does not exist yet.
 alt-shift-1 = 'move-node-to-workspace 1'
 alt-shift-2 = 'move-node-to-workspace 2'
 alt-shift-3 = 'move-node-to-workspace 3'
@@ -215,37 +206,56 @@ alt-shift-4 = 'move-node-to-workspace 4'
 alt-shift-5 = 'move-node-to-workspace 5'
 alt-shift-6 = 'move-node-to-workspace 6'
 alt-shift-7 = 'move-node-to-workspace 7'
-alt-shift-0 = 'move-node-to-workspace 0'
+alt-shift-8 = 'move-node-to-workspace 8'
+alt-shift-9 = 'move-node-to-workspace 9'
 
-# Cycle windows when a slot holds more than one (accordion, so still full-screen).
-alt-j = 'focus dfs-prev --boundaries workspace --boundaries-action wrap-around-the-workspace'
-alt-k = 'focus dfs-next --boundaries workspace --boundaries-action wrap-around-the-workspace'
+# Cycle workspaces. Because no workspace is persistent, these visit only the
+# ones that currently hold a window, so you never land somewhere blank.
+#
+# These two are global grabs, so they shadow the terminal's readline keys:
+# ctrl-a (beginning of line) and ctrl-d (EOF). Prefix both with 'alt-' to hand
+# them back to the shell.
+ctrl-a = 'workspace --wrap-around prev'
+ctrl-d = 'workspace --wrap-around next'
 
-# Split the current slot side by side, and back. Affects only the slot you are
-# on — everywhere else stays stacked. Useful for the occasional two-window
-# comparison without turning the whole desktop into a tiling workflow.
+# ── Layout ───────────────────────────────────────────────────────────────────
+# Flip the focused window's container between side-by-side and stacked — the
+# equivalent of Hyprland's togglesplit.
+alt-j = 'layout horizontal vertical'
+
+# Collapse the workspace into an accordion stack and back, for when three
+# windows tiled is two too many.
 alt-slash = 'layout tiles accordion'
 
-# Re-apply every routing rule to every open window. Use when something has
-# drifted out of its slot — an accidental alt-shift-N, a window dragged across,
-# or an app that opened before its rule existed. Routing normally only runs
-# when a window is first detected, so nothing else puts a stray window back.
+# Fullscreen the focused window, and back. Gaps stay, so it still reads as a
+# managed window rather than a macOS native fullscreen space.
+alt-f = 'fullscreen'
+
+# Pop the focused window out of the tiling tree and back.
+alt-t = 'layout floating tiling'
+
+# Rebuild the current workspace's tree as one flat row. The escape hatch when a
+# sequence of moves has produced nesting you no longer want to reason about.
+alt-shift-backslash = 'flatten-workspace-tree'
+
+# ── Maintenance ──────────────────────────────────────────────────────────────
+# Re-apply the window rules to every open window. Rules normally run only when
+# a window is first detected, so this is what picks up an app that was already
+# running before its float rule existed. It no longer moves anything between
+# workspaces — no rule does.
 alt-shift-r = 'exec-and-forget aerospace run-callback --for-every-window on-window-detected'
 
 # Escape hatch. Disabling stops AeroSpace intercepting keys and brings hidden
 # workspaces back on screen — for screen sharing, or to hand ctrl-a / ctrl-d
-# back to the terminal.
+# and Option+arrow back to the terminal.
 #
 # One-way: while disabled the server rejects every command except
 # `aerospace enable on`, and no binding fires, so this key cannot undo itself.
-# Re-enable from the menu bar icon or that command. Windows do return to their
-# original slots afterwards.
+# Re-enable from the menu bar icon or that command.
 alt-shift-e = 'enable toggle'
 
 alt-shift-semicolon = 'mode service'
 
 [mode.service.binding]
 esc = ['reload-config', 'mode main']
-# Pop the focused window out of tiling and back, for the rare manual arrangement.
-f = ['layout floating tiling', 'mode main']
 r = ['flatten-workspace-tree', 'mode main']

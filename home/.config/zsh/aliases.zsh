@@ -72,8 +72,11 @@ dotfiles() { code --new-window ~/Developer/dotfiles }
 alias zreload="source ~/.zshrc && echo 'Reloaded'"
 
 # ─── Desktop ────────────────────────────────────────────────────────────────
-# AeroSpace has no overview GUI, so print the whole slot layout instead.
-alias spaces="aerospace-track overview"
+# AeroSpace has no overview GUI and parks inactive windows off-screen rather
+# than using macOS Spaces, so Mission Control is no help either. Workspaces are
+# generic and exist only while occupied, so there is nothing to label — just
+# list what is where.
+alias spaces="aerospace list-windows --all --format '%{workspace}  %{app-name}  %{window-title}' | sort -n"
 
 # ─── Help ───────────────────────────────────────────────────────────────────
 aliases() { bat --language=sh ~/.config/zsh/*.zsh }
