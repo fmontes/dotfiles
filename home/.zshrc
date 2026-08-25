@@ -84,7 +84,14 @@ source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 eval "$(starship init zsh)"
 
 # try-cli (tobi/try) — ephemeral workspace manager
-command -v try &>/dev/null && eval "$(try init ~/src/tries)"
+#
+# Both halves must name the *binary*, not the function. The eval below defines a
+# shell function called `try`, so on a re-source that function shadows the
+# binary: `try init ~/src/tries` then reaches try.rb as `exec ... init`, which
+# reads `init` as a search query and opens the interactive selector instead of
+# printing anything. `command -v try` finds the function too, so it is no guard.
+# `whence -p` searches only $PATH, and `command try` skips the function.
+whence -p try &>/dev/null && eval "$(command try init ~/src/tries)"
 
 # direnv hook
 command -v direnv &>/dev/null && eval "$(direnv hook zsh)"
