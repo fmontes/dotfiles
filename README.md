@@ -17,7 +17,7 @@ This clones the repo to `~/.dotfiles` and runs the installer.
 - **Aliases** split by context — work aliases stay local, not committed
 - **Git** with delta for diffs, gh-dash for PR reviews
 - **mise** for managing Node, Python, and Java versions
-- **[AeroSpace](https://nikitabobko.github.io/AeroSpace/)** for a fixed desktop layout where every app has its own slot
+- **[AeroSpace](https://nikitabobko.github.io/AeroSpace/)** for an Omarchy-style tiling desktop with generic workspaces
 - **[Fresh](https://getfresh.dev/)** for terminal code editing and browsing
 - **[AI](ai/)** skills, instructions, and subagents for agentic coding harnesses
 - **macOS defaults** for Dock, Finder, keyboard
@@ -161,140 +161,227 @@ These steps require human interaction and can't be automated:
 | `chromedriver` | Headless driver for Puppeteer |
 | `chromium` | Puppeteer's browser (cask disabled 2026-09-01) |
 | `codex` | OpenAI Codex CLI |
-| `google-chrome` | Browser — desktop slots 5 and 6, split by profile |
+| `google-chrome` | Browser — two profiles, Work and personal |
 | `orbstack` | Lightweight Docker alternative |
 | `raycast` | Command launcher, still handles ad-hoc window resizing |
-| `slack` | Chat — desktop slot 3 |
-| `visual-studio-code` | Code editor — desktop slot 7 |
-| `warp` | Terminal — no slot, lands in overflow |
+| `slack` | Chat |
+| `visual-studio-code` | Code editor |
+| `warp` | Terminal — tiles into whichever workspace has focus |
 
 ## Desktop
 
-The desktop layout is [AeroSpace](https://nikitabobko.github.io/AeroSpace/), configured in
-[`home/.config/aerospace/aerospace.toml`](home/.config/aerospace/aerospace.toml) with navigation
-in [`home/.local/bin/aerospace-track`](home/.local/bin/aerospace-track).
+The desktop is [AeroSpace](https://nikitabobko.github.io/AeroSpace/), configured in
+[`home/.config/aerospace/aerospace.toml`](home/.config/aerospace/aerospace.toml), set up to behave
+as much like Omarchy/Hyprland as macOS allows.
 
-One horizontal track, one app per slot, every app always in the same place:
+**Workspaces are generic contexts, not app slots.** Nothing is assigned anywhere. An app opens on
+whichever workspace has focus and tiles into it, and you arrange work by moving windows. There is
+no rule that sends Slack to workspace 3 — if you want it there, you put it there.
 
-| 1 | 2 | 3 | 4 | 5 | 6 | 7 |
-|---|---|---|---|---|---|---|
-| Desktop | Calendar | Slack | Orca | Chrome Work | Chrome Me | VS Code |
+Workspaces exist only while they hold a window. There is deliberately no `persistent-workspaces`
+list, so `alt-5` creates workspace 5 on demand and it disappears when you close its last window.
+That is also what makes `ctrl-a` / `ctrl-d` useful: they cycle only workspaces that currently hold
+something, so you never land somewhere blank.
 
-Slot 1 is deliberately empty — a clean desktop to land on, and where login drops you.
+### Tiling
 
-Windows never tile. A second window of an app joins that app's slot and covers the first at full
-size (`accordion` with zero padding), so one app fills the screen at a time; `alt-j` / `alt-k`
-cycles between them. When you do want two side by side, `alt-/` splits just the slot you are on
-and toggles back — the rest of the layout stays stacked.
+Windows tile. A second window in a workspace splits it rather than covering it, and
+`default-root-container-orientation = 'auto'` picks the axis from the container's shape — a wide
+container splits side by side, a tall one stacks. Nested splits alternate axis automatically
+(`enable-normalization-opposite-orientation-for-nested-containers`), the same instinct as
+Hyprland's dwindle: new windows land somewhere predictable with no manual split bookkeeping.
 
-The one standing exception is **Slack**, whose windows always tile so a huddle sits beside the
-channel rather than on top of it. macOS reports the huddle as a utility panel, so the rule uses
-`layout tiling` to override AeroSpace's auto-float and `layout h_tiles` to split the slot.
+Gaps are 6px, uniform inside and out. AeroSpace has no animations, so there is nothing to disable
+for latency.
 
-The rule deliberately does not match on the title. Slack sets the `Huddle:` title a moment *after*
-the window appears, so a `~= "^Huddle:"` pattern never matches at detection time — it works only
-when re-run afterwards, which is a good way to be fooled into thinking a rule is correct. Tiling
-every Slack window sidesteps the race. The slot stays tiled once the huddle ends, which is
-indistinguishable from accordion with one window; `alt-/` switches it back.
+`alt-/` collapses a workspace into an `accordion` stack and back, for when three windows tiled is
+two too many. Floating is the exception rather than the default: granted per app in the window
+rules, or per window with `alt-t`.
 
-Slot `0` is overflow — anything not in the layout lands there and takes focus with it, so a
-stray app never quietly steals a slot. Utilities (System Settings, Finder, 1Password) float on
-top of whatever is in front instead of being assigned anywhere.
+**The cursor is the focus indicator.** AeroSpace draws nothing around the focused window — its
+author left borders out on purpose — so `on-focus-changed = ['move-mouse window-lazy-center']`
+sends the pointer to the centre of whatever you focus. That doubles as a fix for the cursor being
+orphaned over a window that no longer has focus, which is easy to do when navigating by keyboard.
+`lazy` means it only moves when the cursor is not already inside that window, so it never fights
+you mid-drag.
+
+`focus-follows-mouse` stays off deliberately: the two together form a loop, the cursor landing on a
+window and that landing re-triggering focus.
+
+If you want a real border instead, [JankyBorders](https://github.com/FelixKratz/JankyBorders)
+(`brew install felixkratz/formulae/borders`) is the usual companion, launched from
+`after-startup-command`. It is not installed here — it leans on private macOS APIs that major
+releases tend to break, and the cursor cue costs nothing and cannot break.
 
 ### Navigation
 
+`alt` stands in for Omarchy's `Super`, so the muscle memory carries between this machine and
+Hyprland.
+
 | Keys | Action |
 |---|---|
-| `ctrl-a` / `ctrl-d` | Previous / next occupied slot, looping around the ends |
-| `alt-1`…`alt-7`, `alt-0` | Jump straight to a slot; press again to bounce back |
-| `alt-shift-1`…`alt-shift-0` | Move the focused window to a slot |
-| `alt-tab` | Toggle between the last two windows, falling back to the last two slots |
-| `alt-j` / `alt-k` | Cycle windows within a slot |
-| `alt-/` | Split the current slot side by side, and back |
+| `alt` + arrows | Focus left / down / up / right |
+| `alt-shift` + arrows | Move the focused window within the layout |
+| `alt--` / `alt-=` | Shrink / grow the focused window along its container's axis |
+| `alt-1`…`alt-9` | Switch to a workspace, creating it if needed; press again to bounce back |
+| `alt-shift-1`…`alt-shift-9` | Send the focused window to a workspace, without following it |
+| `alt-tab` | Previous workspace |
+| `ctrl-a` / `ctrl-d` | Previous / next *occupied* workspace, wrapping around |
+| `alt-f` | Fullscreen the focused window, and back |
+| `alt-t` | Pop the focused window out of tiling into floating, and back |
+| `alt-j` | Flip the container between side-by-side and stacked (Hyprland's togglesplit) |
+| `alt-/` | Collapse the workspace into an accordion stack, and back |
+| `alt-shift-\` | Rebuild the workspace's tree as one flat row |
 | `alt-shift-;` then `esc` | Service mode, then reload config |
-| `alt-shift-r` | Re-apply every routing rule — snaps drifted windows back to their slots |
+| `alt-shift-r` | Re-apply the window rules to every open window |
 | `alt-shift-e` | Disable AeroSpace entirely (see below) |
 
-### When a window drifts
+Binding `alt` + arrows costs macOS's Option+←/→ word navigation and Option+Shift+←/→ word
+selection, globally. That is a deliberate trade: arrow keys matching Hyprland were worth more than
+the two shortcuts they displace. `alt-shift-e` hands them back when it matters.
 
-Routing only runs when a window is first *detected*, so nothing puts a stray window back on its
-own. An accidental `alt-shift-N`, a window dragged across, or an app that was open before its rule
-existed will all sit in the wrong slot indefinitely. `alt-shift-r` re-applies every rule to every
-open window and fixes it.
+`alt--` / `alt-=` need at least two tiled windows in the workspace — with one there is nothing to
+resize against, and the command fails silently.
 
-That is also worth reaching for before concluding a rule is broken — a window in the wrong place is
-more often drift than a bad rule.
+### Window rules
+
+Only windows that need behaviour they cannot get on their own have a rule. Nothing routes to a
+workspace, and there is no catch-all.
+
+| App | Rule | Why |
+|---|---|---|
+| Slack | `layout tiling` | macOS reports a huddle as a utility panel, which AeroSpace auto-floats. This hands it back to tiling so a huddle sits beside the channel instead of on top of it. |
+| System Settings | `layout floating` | Glanced at, not worked in |
+| 1Password | `layout floating` | Same |
+| Cap | `layout floating` | Recording overlay — a control, not a window |
+| krisp | `layout floating` | Mic widget — same |
+
+The Slack rule deliberately does not match on the title. Slack sets the `Huddle:` title a moment
+*after* the window appears, so a `~= "^Huddle:"` pattern never matches at detection time — it works
+only when re-run afterwards, which is a good way to be fooled into thinking a rule is correct.
+Tiling every Slack window sidesteps the race.
+
+**Dialogs are exempt without needing a rule.** macOS reports a file picker or alert as a panel and
+AeroSpace floats it, so a "Save as…" sheet never wedges itself into the tiling. Worth knowing when
+testing a rule — `open -a TextEdit` with no argument opens TextEdit's *Open* dialog, which floats,
+while `open -a TextEdit somefile.txt` opens a document window, which tiles.
+
+`alt-shift-r` re-applies these rules to every open window. Since no rule moves anything between
+workspaces any more, its only job is picking up an app that was already running before its float
+rule existed.
+
+### Restoring the layout
+
+`restore-layout` is the one place a specific arrangement is written down:
+
+```
+1 Calendar   2 Slack   3 Orca   4 Chrome Work   5 Chrome Me
+```
+
+```
+restore-layout            reset to the plan
+restore-layout --dry-run  report what it would do, change nothing
+```
+
+It is a **reset**, not a policy. Nothing enforces the arrangement continuously — move a window
+afterwards and it stays moved. But every run ends in the same state regardless of what it started
+from:
+
+- A window in the wrong place is **moved** to its workspace. All of them, not just the first, so
+  three stray Chrome windows are gathered rather than one picked and the rest ignored.
+- A missing app is **launched** on its workspace. With no routing rules, the script focuses the
+  target workspace first and launches there — the window lands correctly because that is where you
+  were, not because a rule dragged it.
+- An app already in the right place is left untouched.
+
+So the end state depends only on the plan, never on how far things had drifted. It never closes
+anything and never opens a second window of an app already up, which is what makes it safe to run
+repeatedly. The workspace numbers live in that script and nowhere else — there is no
+`aerospace.toml` rule backing them up.
+
+Three details it depends on:
+
+- **Chrome is launched per profile.** One process serves every profile, so activating the bundle ID
+  cannot reach a specific one; the script passes `--profile-directory` (`Profile 1` for Work,
+  `Default` for Me) with `open -n`. That is only safe because the window check already established
+  the profile has no window. Renaming a Chrome profile breaks the title patterns it matches on.
+- **It waits for each launched window before moving on.** The window has to exist before focus
+  moves to the next workspace, or it would be born on the wrong one. Chrome also sets its profile
+  suffix a moment after the window appears.
+- **It flattens every workspace it added to.** Moving several windows in can leave nesting from the
+  order they arrived, so without this two runs could produce the same windows in different shapes —
+  the opposite of a reset.
+
+VS Code is deliberately absent: launching it with no project gives an empty window, which is worse
+than an empty workspace.
 
 ### Turning it off
 
 `alt-shift-e` disables AeroSpace: hidden workspaces come back on screen and key events stop being
-intercepted, which hands `ctrl-a` and `ctrl-d` back to the terminal. Useful for screen sharing, or
-for an app that fights the window manager.
+intercepted, which hands `ctrl-a`, `ctrl-d` and Option+arrow back to the terminal. Useful for
+screen sharing, or for an app that fights the window manager.
 
 It is one-way. While disabled the server rejects every command except `aerospace enable on`, and
 no binding fires, so the key cannot undo itself — re-enable from the menu bar icon or that
-command. Windows return to their original slots afterwards.
+command.
 
-### Seeing the whole layout
+### Seeing what is where
 
 AeroSpace has no overview GUI — its tray icon shows only the active workspace — and it parks
 inactive windows off-screen rather than using native macOS Spaces, so Mission Control shows
-everything jumbled into one Space. Run `spaces` (alias for `aerospace-track overview`) instead:
+everything jumbled into one Space. Run `spaces`:
 
 ```
-   1 Desktop  2 Calendar  3 Slack  4 Orca  5 Chrome Work [6 Chrome Me] 7 VS Code
-   0 Warp, krisp
+$ spaces
+1  Calendar  Calendar
+3  Slack     analysts (Channel) - dotCMS - Slack
+3  krisp     Krisp Notification
+4  Orca      Orca
+5  Google Chrome  New Tab - Google Chrome - Freddy (dotcms.com)
 ```
 
-The focused slot is bracketed and coloured, occupied slots are bold, and empty ones are dimmed.
-Brackets rather than colour alone mark the focus, so the output still reads correctly when piped
-into something else. The overflow row only appears when something is in it.
+It is a plain `aerospace list-windows` piped through `sort`, defined in
+[`home/.config/zsh/aliases.zsh`](home/.config/zsh/aliases.zsh). With generic workspaces there is
+nothing to label, so there is nothing to keep in sync.
 
-`ctrl-a` / `ctrl-d` loop around the ends — right off VS Code returns to the empty desktop, left
-off the desktop goes to VS Code. Overflow is not on the loop; reach it with `alt-0`.
+### Monitors
 
-**Empty slots are skipped.** An app that is not running would otherwise present a blank screen
-indistinguishable from the desktop, and you would have to count keypresses to know where you
-were. Slot 1 is exempt, being the intentional desktop. The trade-off is that the number of
-presses between two apps changes as apps open and close — the slots themselves never move, and
-`alt-N` always jumps straight to one.
+Every workspace is pinned to the main display via `workspace-to-monitor-force-assignment`, so
+behaviour is identical on the MacBook screen alone and with an external monitor attached:
+everything follows whichever display macOS calls main (System Settings → Displays). That is what
+stops a workspace turning up on a monitor you did not expect.
 
-Both navigation keys are global grabs, so they shadow the terminal's readline bindings —
-`ctrl-a` (beginning of line) and `ctrl-d` (EOF). If that bites inside Warp, prefix both with
-`alt-` in `aerospace.toml` to hand them back to the shell.
+The cost is that the non-main display holds nothing, so `alt` + arrows has no second monitor to
+cross into even though the bindings are set up for it
+(`--boundaries all-monitors-outer-frame`). Delete the whole block to let AeroSpace spread
+workspaces across both displays.
 
-### Splitting Chrome by profile
+### Chrome and window titles
 
-Most rules match on bundle ID, which cannot tell two windows of the same app apart. Chrome is the
-exception: once more than one profile is running it appends the profile name to every window
-title, so the title becomes a usable discriminator.
+Nothing routes by title any more, but `restore-layout` still has to tell two Chrome profiles apart,
+and Chrome is the one app where that is possible. Once more than one profile is running it appends
+the profile name to every window title:
 
-```toml
-if = 'test %{app-bundle-id} = com.google.Chrome && test %{window-title} ~= "Freddy \(dotcms\.com\)$"'
+```
+… - Google Chrome - Freddy              → the Default profile
+… - Google Chrome - Freddy (dotcms.com) → Profile 1
 ```
 
 Three things this depends on:
 
 - **Anchor the pattern.** Bare `Freddy` is a prefix of `Freddy (dotcms.com)` and matches both
-  profiles. `~=` is a case-insensitive regex, so `$` works.
-- **Renaming a Chrome profile silently breaks the rule.** The profile name is hardcoded.
-- **With one profile running, Chrome drops the suffix.** A third rule matching bundle ID alone
-  catches that case and sends the window to slot 5, so it never falls through to overflow.
-
-Note that a regex beginning with `-` is parsed as a CLI flag and silently fails to match — write
-`Chrome - Freddy$` rather than `- Freddy$`.
+  profiles.
+- **Renaming a Chrome profile silently breaks it.** The profile name is hardcoded.
+- **With one profile running, Chrome drops the suffix entirely**, so neither pattern matches.
 
 Other identifiers do not work for this: `window-id` is reassigned at runtime, and both profiles
-share one `app-pid` and one bundle path. Everywhere else in the layout, an app owns exactly one
-slot and extra windows stack full-screen on top (`alt-j` / `alt-k` cycles them).
+share one `app-pid` and one bundle path.
 
-### Changing the layout
+### Changing things
 
-Adding or reordering an app means two edits that must stay in sync:
-
-1. The `[[on-window-detected]]` rule in `aerospace.toml` that maps a bundle ID to a slot.
-2. The `TRACK` and `LABELS` arrays at the top of `aerospace-track`, which must stay
-   positionally aligned with each other.
+Adding an app to `restore-layout` is one edit: an entry in its `PLAN` array, plus a `launch()` case
+if it needs more than `open -b <bundle-id>`. Nothing else has to stay in sync — that is the payoff
+of dropping the per-app model.
 
 Find a bundle ID with:
 
@@ -308,20 +395,16 @@ Config reloads on save (`auto-reload-config = true`). To check it before trustin
 aerospace reload-config --dry-run
 ```
 
-Reloading does not re-place windows that are already open — routing only fires when a window is
-detected. Rather than restarting AeroSpace, apply new rules retroactively:
+Reloading does not re-apply rules to windows that are already open — a rule only fires when a
+window is first detected. Rather than restarting AeroSpace, apply it retroactively:
 
 ```bash
-aerospace run-callback --for-every-window on-window-detected   # re-route everything
+aerospace run-callback --for-every-window on-window-detected   # re-apply to everything
 aerospace run-callback --window-id <id> on-window-detected     # test one rule
 ```
 
 The second form is the way to check a rule against a live window; it forwards the output of every
 command in the callback.
-
-Every slot is pinned to the main display, so the layout is identical on the MacBook screen and
-on an external monitor. To push some slots onto a second display instead, change their rows in
-`[workspace-to-monitor-force-assignment]` from `main` to `secondary`.
 
 AeroSpace needs Accessibility access (System Settings → Privacy & Security → Accessibility)
 before it can move any windows.
@@ -384,10 +467,10 @@ dotfiles/
     ├── .gitconfig
     ├── chai.toml             # AI config sync manifest (~/chai.toml)
     ├── .local/bin/
-    │   └── aerospace-track   # WASD track navigation for the desktop layout
+    │   └── restore-layout    # Reset apps onto workspaces 1-5
     └── .config/
         ├── aerospace/
-        │   └── aerospace.toml # Desktop layout: slots, routing, keys
+        │   └── aerospace.toml # Tiling, window rules, keys
         ├── zsh/
         │   └── aliases.zsh   # Git + misc aliases
         └── starship.toml     # Starship prompt config
