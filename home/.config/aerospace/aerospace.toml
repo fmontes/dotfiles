@@ -125,6 +125,27 @@ run = ['layout floating']
 if = 'test %{app-bundle-id} = com.1password.1password'
 run = ['layout floating']
 
+[[on-window-detected]]
+if = 'test %{app-bundle-id} = com.apple.Notes'
+run = ['layout floating']
+
+# Messages is com.apple.MobileSMS, not com.apple.Messages — the bundle ID still
+# carries the name it shipped with on iPhone OS.
+[[on-window-detected]]
+if = 'test %{app-bundle-id} = com.apple.MobileSMS'
+run = ['layout floating']
+
+# Cap's recording overlay and krisp's mic widget are transient controls, not
+# windows worth a slot. Without these they hit the catch-all below and get
+# dragged to overflow mid-recording.
+[[on-window-detected]]
+if = 'test %{app-bundle-id} = so.cap.desktop'
+run = ['layout floating']
+
+[[on-window-detected]]
+if = 'test %{app-bundle-id} = ai.krisp.krispMac'
+run = ['layout floating']
+
 # Everything else goes to the overflow slot and takes focus with it, so a
 # stray app is never silently swallowed and never lands in a track slot.
 [[on-window-detected]]
