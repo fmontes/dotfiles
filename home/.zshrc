@@ -8,6 +8,17 @@ plugins=()
 fpath+=("/opt/homebrew/share/zsh/site-functions")
 source $ZSH/oh-my-zsh.sh
 
+# ─── Completions ────────────────────────────────────────────────────────────
+# Tab-complete *remote* paths for scp/ssh (`scp f.zip mac2:/var/ww<TAB>`). zsh
+# shells out to ssh to list the remote dir, so the host must log in without a
+# prompt — key in the agent, `BatchMode=yes` clean. _remote_files reads this
+# zstyle with `zstyle -T`, so remote access is already on unless something sets
+# it to false; the line is here to say so out loud and to survive a plugin that
+# turns it off. The speed comes from the `Host *` ControlMaster block in
+# ~/.ssh/config (not committed): without multiplexing every Tab pays for a
+# fresh TCP + auth handshake.
+zstyle ':completion:*' remote-access yes
+
 # ─── Editor ─────────────────────────────────────────────────────────────────
 export EDITOR="nano"
 export VISUAL="nano"
