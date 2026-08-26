@@ -236,6 +236,7 @@ which carries a control character, so the terminal keeps every readline and tmux
 | `Ctrl` + `1`…`9` | Switch to a workspace, creating it if needed; press again to bounce back |
 | `Ctrl+Shift` + `1`…`9` | Send the focused window to a workspace, without following it |
 | `Ctrl+Shift` + `,` / `.` | Send the focused window to the previous / next workspace |
+| `Ctrl+Shift` + `[` / `]` | Previous / next occupied workspace, wrapping |
 | `Ctrl+Shift` + `b` | Former workspace (back and forth) |
 | `Ctrl+Shift` + `f` | Fullscreen the focused window, and back |
 | `Ctrl+Shift` + `t` | Pop the focused window out of tiling into floating, and back |
@@ -250,6 +251,9 @@ which carries a control character, so the terminal keeps every readline and tmux
 `Ctrl+Shift` + `-` / `=` need at least two tiled windows in the workspace — with one there is
 nothing to resize against. `Ctrl+Shift` + arrows likewise refuses, non-zero, when the window is
 already at the edge of its container: it declines rather than wrapping, which is correct.
+
+Brackets take *you* to a workspace; `,` / `.` take the *window* there. Plain `Ctrl+[` is the ESC
+control character, which is why the cycling keys are bound only with Shift.
 
 #### The macOS shortcuts this collides with
 

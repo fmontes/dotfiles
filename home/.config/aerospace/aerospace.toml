@@ -247,10 +247,20 @@ ctrl-shift-9 = 'move-node-to-workspace 9'
 ctrl-shift-comma = 'move-node-to-workspace --wrap-around prev'
 ctrl-shift-period = 'move-node-to-workspace --wrap-around next'
 
-# Former workspace. The next/previous-workspace cycling from the Hyper layout
-# is deliberately not carried over: Ctrl+Tab belongs to browsers and editors,
-# and Ctrl+backtick is VS Code's integrated terminal. Nothing else was clean
-# enough to be worth inventing.
+# Walk to the previous/next workspace. Brackets because prev/next is what
+# brackets mean nearly everywhere, and they pair with ctrl-shift-comma/period
+# above: brackets take *you* there, comma/period take the *window* there.
+#
+# Ctrl+Tab was ruled out (browsers, editors) and Ctrl+backtick is VS Code's
+# integrated terminal. Note that plain ctrl-[ is the ESC control character, so
+# these are deliberately only bound with Shift.
+#
+# Because no workspace is persistent, these visit only workspaces that hold a
+# window — you never land somewhere blank.
+ctrl-shift-leftSquareBracket = 'workspace --wrap-around prev'
+ctrl-shift-rightSquareBracket = 'workspace --wrap-around next'
+
+# Former workspace.
 ctrl-shift-b = 'workspace-back-and-forth'
 
 # ── Window actions: Ctrl + Shift + key ───────────────────────────────────────
