@@ -13,17 +13,19 @@
 # their own: four utilities that should float, plus Slack and MacWhisper, whose
 # windows macOS mislabels as panels. No rule moves a window to a workspace.
 #
-# Caps Lock is the modifier, via Raycast's Hyper Key. Option, Ctrl and Cmd are
-# deliberately left alone — see the Keys section at the bottom.
+# Ctrl is the modifier. Option, Cmd and Ctrl+letter are deliberately left
+# alone — see the Keys section at the bottom.
 #
-#   Caps + arrows         focus          Caps + h j k l  move window
-#   Caps + 1..9           workspace      Caps + , / .    send window to
-#   Caps + tab            next workspace                 prev / next workspace
-#   Caps + backtick       prev workspace Caps + b        former workspace
-#   Caps + - / =          resize         Caps + o        split orientation
-#   Caps + f  fullscreen  Caps + t  float toggle   Caps + /  accordion stack
+#   Ctrl + arrows          focus         Ctrl+Shift + arrows  move window
+#   Ctrl + 1..9            workspace     Ctrl+Shift + 1..9    send window there
+#   Ctrl+Shift + , / .     send to prev / next workspace
+#   Ctrl+Shift + b         former workspace
+#   Ctrl+Shift + - / =     resize        Ctrl+Shift + j       split orientation
+#   Ctrl+Shift + f  fullscreen           Ctrl+Shift + t  float toggle
+#   Ctrl+Shift + /  accordion stack
 #
-# Everything is a held chord. There is no mode to be in or out of.
+# Plain Ctrl is used only with arrows and digits, so no terminal control
+# character is taken.
 
 config-version = 2
 
@@ -160,127 +162,128 @@ inherit-env-vars = true
 PATH = '${HOME}/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:${PATH}'
 
 # ─── Keys ────────────────────────────────────────────────────────────────────
-# Caps Lock is the window-manager modifier. Raycast's Hyper Key makes Caps Lock
-# emit ctrl+alt+shift+cmd — verified on this machine by polling
-# CGEventSource.flagsState while it was held, not assumed — so every binding
-# below is written against that literal four-modifier sequence. Read
-# `ctrl-alt-shift-cmd-` as "Caps".
+# Ctrl is the window-manager modifier, and the split is by modifier depth:
 #
-# The point of routing everything through Caps is that the individual modifiers
-# stay free for what they are for:
+#   Ctrl            window navigation  — arrows and numbers only
+#   Ctrl + Shift    window manipulation — everything else
+#   Option          text navigation — Option+arrow word jump is untouched
+#   Cmd             macOS and app shortcuts
+#   Ctrl + letter   terminal — ctrl-a, ctrl-c, ctrl-d, ctrl-r, ctrl-w untouched
 #
-#   Caps    window management
-#   Option  text navigation — Option+arrow word jump is untouched
-#   Ctrl    terminal — ctrl-a and ctrl-d are untouched
-#   Cmd     macOS and app shortcuts
+# Nothing here binds a plain Ctrl+letter. Plain Ctrl is used *only* with arrows
+# and digits, neither of which carries a control character, so the terminal
+# keeps every readline and tmux binding it had.
 #
-# ── Why move is hjkl and not Caps+Shift+arrows ───────────────────────────────
-# Raycast's Hyper includes Shift, so holding Shift alongside Caps sets a bit
-# that is already set: Caps+Shift+Left is byte-identical to Caps+Left, and
-# AeroSpace cannot tell them apart. The same applies to Ctrl and Cmd — Hyper
-# consumes all four modifiers AeroSpace supports, and `fn` is not one it
-# accepts. There is no second chord level at all.
+# This replaced a Caps Lock/Hyper setup, which in turn replaced plain Option.
+# Option was abandoned because it ate Option+arrow word navigation; Hyper was
+# abandoned because Raycast's Hyper contains Shift, leaving no second chord
+# level and forcing moves into a mode. Ctrl has neither problem: Shift is free,
+# so move is a plain chord again.
 #
-# So the second level becomes a different key rather than a different modifier:
-# arrows focus, hjkl moves. Everything stays a held chord, which is the point —
-# AeroSpace cannot do hold-to-activate modes, and a toggled mode is worse than
-# a chord for something you do this often.
-#
-# Raycast's Hyper modifier set is fixed at ctrl+alt+shift+cmd and cannot be
-# narrowed, so Caps+Shift is not recoverable without a different remapper.
+# ── macOS conflict to be aware of ────────────────────────────────────────────
+# System Settings → Keyboard → Keyboard Shortcuts → Mission Control owns some
+# Ctrl combinations. Ctrl+arrows and Ctrl+1 are already disabled. The two
+# *Shift* variants of "Move left/right a space" (symbolic hotkey ids 80 and 82)
+# are still enabled at the time of writing and will swallow Ctrl+Shift+Left and
+# Ctrl+Shift+Right before AeroSpace sees them — system shortcuts win over
+# app-registered hotkeys. Turn those two off in the same settings pane.
 [mode.main.binding]
 
-# ── Focus ────────────────────────────────────────────────────────────────────
+# ── Focus: plain Ctrl + arrows ───────────────────────────────────────────────
 # all-monitors-outer-frame lets focus cross onto a second display instead of
 # stopping at the workspace edge; 'stop' at the outer frame means the far edge
 # is a dead end rather than wrapping you to the opposite side of the screen,
 # which is what Hyprland's movefocus does.
-ctrl-alt-shift-cmd-left = 'focus --boundaries all-monitors-outer-frame --boundaries-action stop left'
-ctrl-alt-shift-cmd-down = 'focus --boundaries all-monitors-outer-frame --boundaries-action stop down'
-ctrl-alt-shift-cmd-up = 'focus --boundaries all-monitors-outer-frame --boundaries-action stop up'
-ctrl-alt-shift-cmd-right = 'focus --boundaries all-monitors-outer-frame --boundaries-action stop right'
+ctrl-left = 'focus --boundaries all-monitors-outer-frame --boundaries-action stop left'
+ctrl-down = 'focus --boundaries all-monitors-outer-frame --boundaries-action stop down'
+ctrl-up = 'focus --boundaries all-monitors-outer-frame --boundaries-action stop up'
+ctrl-right = 'focus --boundaries all-monitors-outer-frame --boundaries-action stop right'
 
-# ── Resize ───────────────────────────────────────────────────────────────────
-# 'smart' resizes along whichever axis the focused window's container runs, so
-# one pair of keys covers both directions. Needs at least two tiled windows in
-# the workspace — there is nothing to resize against otherwise.
-ctrl-alt-shift-cmd-minus = 'resize smart -50'
-ctrl-alt-shift-cmd-equal = 'resize smart +50'
+# ── Move: Ctrl + Shift + arrows ──────────────────────────────────────────────
+# Defaults are deliberate: moving a window against the grain of its container
+# creates the container it needs, so pushing a window up out of a side-by-side
+# split turns that half into a stack. Same behaviour as i3/sway move.
+#
+# `move` exits non-zero and does nothing when the window is already at the edge
+# of its container — it refuses rather than wrapping, which is correct, not a
+# failure.
+ctrl-shift-left = 'move left'
+ctrl-shift-down = 'move down'
+ctrl-shift-up = 'move up'
+ctrl-shift-right = 'move right'
 
-# ── Workspaces ───────────────────────────────────────────────────────────────
+# ── Workspaces: plain Ctrl + digits ──────────────────────────────────────────
 # Generic contexts, created on demand. --auto-back-and-forth makes each key a
 # toggle: pressing the key for the workspace you are already on returns you to
 # the previous one.
 #
-# 1-9 rather than 1-4: the workspace model is unchanged by this migration, and
-# shrinking it would have been a change of its own.
-ctrl-alt-shift-cmd-1 = 'workspace --auto-back-and-forth 1'
-ctrl-alt-shift-cmd-2 = 'workspace --auto-back-and-forth 2'
-ctrl-alt-shift-cmd-3 = 'workspace --auto-back-and-forth 3'
-ctrl-alt-shift-cmd-4 = 'workspace --auto-back-and-forth 4'
-ctrl-alt-shift-cmd-5 = 'workspace --auto-back-and-forth 5'
-ctrl-alt-shift-cmd-6 = 'workspace --auto-back-and-forth 6'
-ctrl-alt-shift-cmd-7 = 'workspace --auto-back-and-forth 7'
-ctrl-alt-shift-cmd-8 = 'workspace --auto-back-and-forth 8'
-ctrl-alt-shift-cmd-9 = 'workspace --auto-back-and-forth 9'
+# 1-9 rather than 1-4 because the workspace model is not part of this migration
+# and shrinking it would have been a change of its own.
+ctrl-1 = 'workspace --auto-back-and-forth 1'
+ctrl-2 = 'workspace --auto-back-and-forth 2'
+ctrl-3 = 'workspace --auto-back-and-forth 3'
+ctrl-4 = 'workspace --auto-back-and-forth 4'
+ctrl-5 = 'workspace --auto-back-and-forth 5'
+ctrl-6 = 'workspace --auto-back-and-forth 6'
+ctrl-7 = 'workspace --auto-back-and-forth 7'
+ctrl-8 = 'workspace --auto-back-and-forth 8'
+ctrl-9 = 'workspace --auto-back-and-forth 9'
 
-# Cycling. Caps+Shift+Tab is unavailable — Hyper already contains Shift — so
-# prev lives on backtick, which sits directly above Tab and reads as its
-# reverse. Both visit only workspaces that hold a window, because no workspace
-# is persistent.
-ctrl-alt-shift-cmd-tab = 'workspace --wrap-around next'
-ctrl-alt-shift-cmd-backtick = 'workspace --wrap-around prev'
+# ── Send window to a workspace: Ctrl + Shift + digits ────────────────────────
+# Direct targeting, which the Hyper layout could not express at all. The window
+# does not follow; ctrl-N after it if you want to go too.
+ctrl-shift-1 = 'move-node-to-workspace 1'
+ctrl-shift-2 = 'move-node-to-workspace 2'
+ctrl-shift-3 = 'move-node-to-workspace 3'
+ctrl-shift-4 = 'move-node-to-workspace 4'
+ctrl-shift-5 = 'move-node-to-workspace 5'
+ctrl-shift-6 = 'move-node-to-workspace 6'
+ctrl-shift-7 = 'move-node-to-workspace 7'
+ctrl-shift-8 = 'move-node-to-workspace 8'
+ctrl-shift-9 = 'move-node-to-workspace 9'
 
-# Former workspace. Caps+Ctrl+Tab was the requested spelling but Ctrl is inside
-# Hyper too, so this is on B for "back".
-ctrl-alt-shift-cmd-b = 'workspace-back-and-forth'
+# Relative send, kept from the previous layout because it stays useful when you
+# do not care which number the workspace has. Wraps around.
+ctrl-shift-comma = 'move-node-to-workspace --wrap-around prev'
+ctrl-shift-period = 'move-node-to-workspace --wrap-around next'
 
-# ── Move ─────────────────────────────────────────────────────────────────────
-# Held, not modal. AeroSpace fires hotkeys on key *down* only — its config has
-# no key-up option and its binary has no hotkey-release event — so a
-# hold-to-activate mode is not something it can express. The only thing that
-# behaves like "hold" is a modifier chord, which is what this is: keep Caps
-# down, tap a direction.
-#
-# hjkl rather than the arrows because the arrows are focus, and Caps+Shift is
-# unavailable to separate them — Raycast's Hyper already contains Shift. Same
-# direction set as Hyprland and vim.
-ctrl-alt-shift-cmd-h = 'move left'
-ctrl-alt-shift-cmd-j = 'move down'
-ctrl-alt-shift-cmd-k = 'move up'
-ctrl-alt-shift-cmd-l = 'move right'
+# Former workspace. The next/previous-workspace cycling from the Hyper layout
+# is deliberately not carried over: Ctrl+Tab belongs to browsers and editors,
+# and Ctrl+backtick is VS Code's integrated terminal. Nothing else was clean
+# enough to be worth inventing.
+ctrl-shift-b = 'workspace-back-and-forth'
 
-# Send the window to the next or previous workspace, wrapping. Relative rather
-# than direct: addressing a workspace by number would need Caps+Shift+N, which
-# does not exist, and no other single key set maps cleanly to 1-9.
-ctrl-alt-shift-cmd-comma = 'move-node-to-workspace --wrap-around prev'
-ctrl-alt-shift-cmd-period = 'move-node-to-workspace --wrap-around next'
+# ── Window actions: Ctrl + Shift + key ───────────────────────────────────────
+# Fullscreen the focused window, and back. Gaps stay, so it still reads as a
+# managed window rather than a macOS native fullscreen space.
+ctrl-shift-f = 'fullscreen'
 
-# ── Layout ───────────────────────────────────────────────────────────────────
+# Pop the focused window out of the tiling tree and back.
+ctrl-shift-t = 'layout floating tiling'
+
 # Flip the focused window's container between side-by-side and stacked — the
-# equivalent of Hyprland's togglesplit. On O because J is a direction now.
-ctrl-alt-shift-cmd-o = 'layout horizontal vertical'
+# equivalent of Hyprland's togglesplit.
+ctrl-shift-j = 'layout horizontal vertical'
+
+# 'smart' resizes along whichever axis the focused window's container runs, so
+# one pair of keys covers both directions. Needs at least two tiled windows in
+# the workspace — there is nothing to resize against otherwise.
+ctrl-shift-minus = 'resize smart -50'
+ctrl-shift-equal = 'resize smart +50'
 
 # Collapse the workspace into an accordion stack and back, for when three
 # windows tiled is two too many.
-ctrl-alt-shift-cmd-slash = 'layout tiles accordion'
-
-# Fullscreen the focused window, and back. Gaps stay, so it still reads as a
-# managed window rather than a macOS native fullscreen space.
-ctrl-alt-shift-cmd-f = 'fullscreen'
-
-# Pop the focused window out of the tiling tree and back.
-ctrl-alt-shift-cmd-t = 'layout floating tiling'
+ctrl-shift-slash = 'layout tiles accordion'
 
 # Rebuild the current workspace's tree as one flat row. The escape hatch when a
 # sequence of moves has produced nesting you no longer want to reason about.
-ctrl-alt-shift-cmd-backslash = 'flatten-workspace-tree'
+ctrl-shift-backslash = 'flatten-workspace-tree'
 
 # ── Maintenance ──────────────────────────────────────────────────────────────
 # Re-apply the window rules to every open window. Rules normally run only when
 # a window is first detected, so this is what picks up an app that was already
 # running before its float rule existed.
-ctrl-alt-shift-cmd-r = 'exec-and-forget aerospace run-callback --for-every-window on-window-detected'
+ctrl-shift-r = 'exec-and-forget aerospace run-callback --for-every-window on-window-detected'
 
 # Escape hatch. Disabling stops AeroSpace intercepting keys and brings hidden
 # workspaces back on screen — for screen sharing, or for an app that fights the
@@ -289,9 +292,9 @@ ctrl-alt-shift-cmd-r = 'exec-and-forget aerospace run-callback --for-every-windo
 # One-way: while disabled the server rejects every command except
 # `aerospace enable on`, and no binding fires, so this key cannot undo itself.
 # Re-enable from the menu bar icon or that command.
-ctrl-alt-shift-cmd-e = 'enable toggle'
+ctrl-shift-e = 'enable toggle'
 
-ctrl-alt-shift-cmd-semicolon = 'mode service'
+ctrl-shift-semicolon = 'mode service'
 
 [mode.service.binding]
 esc = ['reload-config', 'mode main']
