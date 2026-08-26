@@ -251,6 +251,7 @@ workspace, and there is no catch-all.
 | App | Rule | Why |
 |---|---|---|
 | Slack | `layout tiling` | macOS reports a huddle as a utility panel, which AeroSpace auto-floats. This hands it back to tiling so a huddle sits beside the channel instead of on top of it. |
+| MacWhisper | `layout tiling` | Auto-floated the same way — macOS does not report its window as an ordinary resizable one — but it tiles fine when told to |
 | System Settings | `layout floating` | Glanced at, not worked in |
 | 1Password | `layout floating` | Same |
 | Cap | `layout floating` | Recording overlay — a control, not a window |
