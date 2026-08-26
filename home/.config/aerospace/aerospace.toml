@@ -97,6 +97,13 @@ key-mapping.preset = 'qwerty'
 if = 'test %{app-bundle-id} = com.tinyspeck.slackmacgap'
 run = ['layout tiling']
 
+# MacWhisper gets auto-floated the same way — macOS does not report its window
+# as an ordinary resizable one — but it tiles perfectly well when told to, so
+# it should share a workspace rather than hover over it.
+[[on-window-detected]]
+if = 'test %{app-bundle-id} = com.goodsnooze.MacWhisper'
+run = ['layout tiling']
+
 # These two float on whatever workspace is in front instead of splitting it.
 # They are things you glance at, not windows you work in.
 [[on-window-detected]]
