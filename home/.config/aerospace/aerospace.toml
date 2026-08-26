@@ -16,14 +16,14 @@
 # Caps Lock is the modifier, via Raycast's Hyper Key. Option, Ctrl and Cmd are
 # deliberately left alone — see the Keys section at the bottom.
 #
-#   Caps + arrows         focus          Caps + - / =   resize
-#   Caps + 1..9           workspace      Caps + tab     next workspace
-#   Caps + backtick       prev workspace Caps + b       former workspace
-#   Caps + f  fullscreen  Caps + t  float toggle
-#   Caps + j  split orientation          Caps + /  accordion stack
+#   Caps + arrows         focus          Caps + h j k l  move window
+#   Caps + 1..9           workspace      Caps + , / .    send window to
+#   Caps + tab            next workspace                 prev / next workspace
+#   Caps + backtick       prev workspace Caps + b        former workspace
+#   Caps + - / =          resize         Caps + o        split orientation
+#   Caps + f  fullscreen  Caps + t  float toggle   Caps + /  accordion stack
 #
-#   Caps + a              move mode: arrows nudge the window, 1..9 send it
-#                         to a workspace, esc leaves
+# Everything is a held chord. There is no mode to be in or out of.
 
 config-version = 2
 
@@ -174,21 +174,20 @@ PATH = '${HOME}/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:${PATH}'
 #   Ctrl    terminal — ctrl-a and ctrl-d are untouched
 #   Cmd     macOS and app shortcuts
 #
-# ── Why there is a move *mode* rather than Caps+Shift ─────────────────────────
+# ── Why move is hjkl and not Caps+Shift+arrows ───────────────────────────────
 # Raycast's Hyper includes Shift, so holding Shift alongside Caps sets a bit
 # that is already set: Caps+Shift+Left is byte-identical to Caps+Left, and
 # AeroSpace cannot tell them apart. The same applies to Ctrl and Cmd — Hyper
-# consumes all four modifiers AeroSpace supports, and `fn` is not a modifier it
-# accepts. So there is no second chord level available at all.
+# consumes all four modifiers AeroSpace supports, and `fn` is not one it
+# accepts. There is no second chord level at all.
 #
-# Rather than scatter the move commands onto unrelated letters, they live in a
-# mode: Caps+A enters it, plain arrows move the window, plain numbers send it to
-# a workspace, esc or Caps+A leaves. This is how i3 and sway have always done
-# resize mode. A is used because it is next to Caps Lock.
+# So the second level becomes a different key rather than a different modifier:
+# arrows focus, hjkl moves. Everything stays a held chord, which is the point —
+# AeroSpace cannot do hold-to-activate modes, and a toggled mode is worse than
+# a chord for something you do this often.
 #
-# Restoring the literal Caps+Shift model needs one change outside this file:
-# set Raycast's Hyper Key to ctrl+alt+cmd without Shift. Then Caps+Shift
-# becomes a distinct combination and these could become plain chords again.
+# Raycast's Hyper modifier set is fixed at ctrl+alt+shift+cmd and cannot be
+# narrowed, so Caps+Shift is not recoverable without a different remapper.
 [mode.main.binding]
 
 # ── Focus ────────────────────────────────────────────────────────────────────
@@ -236,10 +235,31 @@ ctrl-alt-shift-cmd-backtick = 'workspace --wrap-around prev'
 # Hyper too, so this is on B for "back".
 ctrl-alt-shift-cmd-b = 'workspace-back-and-forth'
 
+# ── Move ─────────────────────────────────────────────────────────────────────
+# Held, not modal. AeroSpace fires hotkeys on key *down* only — its config has
+# no key-up option and its binary has no hotkey-release event — so a
+# hold-to-activate mode is not something it can express. The only thing that
+# behaves like "hold" is a modifier chord, which is what this is: keep Caps
+# down, tap a direction.
+#
+# hjkl rather than the arrows because the arrows are focus, and Caps+Shift is
+# unavailable to separate them — Raycast's Hyper already contains Shift. Same
+# direction set as Hyprland and vim.
+ctrl-alt-shift-cmd-h = 'move left'
+ctrl-alt-shift-cmd-j = 'move down'
+ctrl-alt-shift-cmd-k = 'move up'
+ctrl-alt-shift-cmd-l = 'move right'
+
+# Send the window to the next or previous workspace, wrapping. Relative rather
+# than direct: addressing a workspace by number would need Caps+Shift+N, which
+# does not exist, and no other single key set maps cleanly to 1-9.
+ctrl-alt-shift-cmd-comma = 'move-node-to-workspace --wrap-around prev'
+ctrl-alt-shift-cmd-period = 'move-node-to-workspace --wrap-around next'
+
 # ── Layout ───────────────────────────────────────────────────────────────────
 # Flip the focused window's container between side-by-side and stacked — the
-# equivalent of Hyprland's togglesplit.
-ctrl-alt-shift-cmd-j = 'layout horizontal vertical'
+# equivalent of Hyprland's togglesplit. On O because J is a direction now.
+ctrl-alt-shift-cmd-o = 'layout horizontal vertical'
 
 # Collapse the workspace into an accordion stack and back, for when three
 # windows tiled is two too many.
@@ -255,10 +275,6 @@ ctrl-alt-shift-cmd-t = 'layout floating tiling'
 # Rebuild the current workspace's tree as one flat row. The escape hatch when a
 # sequence of moves has produced nesting you no longer want to reason about.
 ctrl-alt-shift-cmd-backslash = 'flatten-workspace-tree'
-
-# ── Move mode ────────────────────────────────────────────────────────────────
-# See the note at the top of this section for why moving is a mode.
-ctrl-alt-shift-cmd-a = 'mode move'
 
 # ── Maintenance ──────────────────────────────────────────────────────────────
 # Re-apply the window rules to every open window. Rules normally run only when
@@ -276,36 +292,6 @@ ctrl-alt-shift-cmd-r = 'exec-and-forget aerospace run-callback --for-every-windo
 ctrl-alt-shift-cmd-e = 'enable toggle'
 
 ctrl-alt-shift-cmd-semicolon = 'mode service'
-
-# ─── Move mode ───────────────────────────────────────────────────────────────
-# Entered with Caps+A, left with esc or Caps+A again. Caps is released once you
-# are in here, so the keys are plain.
-#
-# Arrows keep you in the mode, because moving a window is usually several nudges
-# in a row. Sending a window to another workspace leaves the mode, because the
-# window is no longer in front of you and there is nothing left to nudge.
-#
-# Unbound keys pass through to the focused app, so the mode is not a keyboard
-# trap — but it is also not visually obvious you are in it. esc is the way out.
-[mode.move.binding]
-left = 'move left'
-down = 'move down'
-up = 'move up'
-right = 'move right'
-
-1 = ['move-node-to-workspace 1', 'mode main']
-2 = ['move-node-to-workspace 2', 'mode main']
-3 = ['move-node-to-workspace 3', 'mode main']
-4 = ['move-node-to-workspace 4', 'mode main']
-5 = ['move-node-to-workspace 5', 'mode main']
-6 = ['move-node-to-workspace 6', 'mode main']
-7 = ['move-node-to-workspace 7', 'mode main']
-8 = ['move-node-to-workspace 8', 'mode main']
-9 = ['move-node-to-workspace 9', 'mode main']
-
-esc = 'mode main'
-enter = 'mode main'
-ctrl-alt-shift-cmd-a = 'mode main'
 
 [mode.service.binding]
 esc = ['reload-config', 'mode main']

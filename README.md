@@ -232,6 +232,8 @@ sequence — read `ctrl-alt-shift-cmd-` in the config as "Caps".
 | Keys | Action |
 |---|---|
 | `Caps` + arrows | Focus left / down / up / right |
+| `Caps` + `h` `j` `k` `l` | Move the focused window left / down / up / right |
+| `Caps` + `,` / `.` | Send the focused window to the previous / next workspace |
 | `Caps` + `-` / `=` | Shrink / grow the focused window along its container's axis |
 | `Caps` + `1`…`9` | Switch to a workspace, creating it if needed; press again to bounce back |
 | `Caps` + `tab` | Next occupied workspace |
@@ -239,10 +241,9 @@ sequence — read `ctrl-alt-shift-cmd-` in the config as "Caps".
 | `Caps` + `b` | Former workspace (back and forth) |
 | `Caps` + `f` | Fullscreen the focused window, and back |
 | `Caps` + `t` | Pop the focused window out of tiling into floating, and back |
-| `Caps` + `j` | Flip the container between side-by-side and stacked (Hyprland's togglesplit) |
+| `Caps` + `o` | Flip the container between side-by-side and stacked (Hyprland's togglesplit) |
 | `Caps` + `/` | Collapse the workspace into an accordion stack, and back |
 | `Caps` + `\` | Rebuild the workspace's tree as one flat row |
-| `Caps` + `a` | Enter move mode (below) |
 | `Caps` + `;` then `esc` | Service mode, then reload config |
 | `Caps` + `r` | Re-apply the window rules to every open window |
 | `Caps` + `e` | Disable AeroSpace entirely (see below) |
@@ -250,29 +251,26 @@ sequence — read `ctrl-alt-shift-cmd-` in the config as "Caps".
 `Caps` + `-` / `=` need at least two tiled windows in the workspace — with one there is nothing to
 resize against, and the command fails silently.
 
-#### Move mode
+#### Why move is `hjkl`, not `Caps+Shift+arrows`
 
-Moving a window is a mode rather than a chord, and that is forced rather than chosen. Raycast's
-Hyper **includes Shift**, so holding Shift alongside Caps sets a bit that is already set:
+Raycast's Hyper **includes Shift**, so holding Shift alongside Caps sets a bit that is already set:
 `Caps+Shift+←` is byte-identical to `Caps+←` and AeroSpace cannot tell them apart. The same goes
 for Ctrl and Cmd — Hyper consumes all four modifiers AeroSpace supports, and `fn` is not one it
-accepts. There is no second chord level to use.
+accepts. There is no second chord level.
 
-So the move commands live in a mode, the way i3 and sway have always done resize mode:
+So the second level is a different *key* rather than a different modifier: arrows focus, `hjkl`
+moves. Same direction set as Hyprland and vim.
 
-| Keys | Action |
-|---|---|
-| `Caps` + `a` | Enter move mode (`a` is next to Caps Lock) |
-| then arrows | Move the focused window; stays in the mode for repeated nudges |
-| then `1`…`9` | Send the window to that workspace, and leave the mode |
-| `esc`, `enter`, or `Caps` + `a` | Leave the mode |
+This was briefly a toggled mode instead, and a chord is better: AeroSpace fires hotkeys on key
+*down* only — its config has no key-up option and its binary contains no hotkey-release event — so
+hold-to-activate is not something it can express. A mode you toggle into has no visual indicator,
+which makes "am I in move mode?" indistinguishable from "is this broken?".
 
-Unbound keys pass through to the focused app, so the mode is not a keyboard trap — but it is not
-visually obvious you are in it either. `esc` is the way out.
+Sending a window to a workspace is relative (`Caps` + `,` / `.`) rather than by number, because
+by-number would need `Caps+Shift+N`, and no other single key set maps cleanly to 1-9.
 
-To get the literal `Caps+Shift` model instead, set Raycast's Hyper Key to `ctrl+alt+cmd` **without**
-Shift. `Caps+Shift` then becomes a distinct combination and these could go back to being plain
-chords.
+Raycast's Hyper modifier set is fixed and cannot be narrowed to `ctrl+alt+cmd`, so `Caps+Shift` is
+not recoverable without a different remapper.
 
 ### Window rules
 
