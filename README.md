@@ -179,10 +179,10 @@ whichever workspace has focus and tiles into it, and you arrange work by moving 
 no rule that sends Slack to workspace 3 — if you want it there, you put it there.
 
 Workspaces exist only while they hold a window. There is deliberately no `persistent-workspaces`
-list, so `Caps` + `5` creates workspace 5 on demand and it disappears when you close its last
+list, so `Ctrl` + `5` creates workspace 5 on demand and it disappears when you close its last
 window.
-That is also what makes `Caps` + `tab` / `` ` `` useful: they cycle only workspaces that currently
-hold something, so you never land somewhere blank.
+A workspace you have emptied therefore stops existing, and `Ctrl` + its number is how you get back
+to it — it is recreated on arrival.
 
 ### Tiling
 
@@ -195,9 +195,9 @@ Hyprland's dwindle: new windows land somewhere predictable with no manual split 
 Gaps are 6px, uniform inside and out. AeroSpace has no animations, so there is nothing to disable
 for latency.
 
-`Caps` + `/` collapses a workspace into an `accordion` stack and back, for when three windows tiled
-is two too many. Floating is the exception rather than the default: granted per app in the window
-rules, or per window with `Caps` + `t`.
+`Ctrl+Shift` + `/` collapses a workspace into an `accordion` stack and back, for when three windows
+tiled is two too many. Floating is the exception rather than the default: granted per app in the
+window rules, or per window with `Ctrl+Shift` + `t`.
 
 **The cursor is the focus indicator.** AeroSpace draws nothing around the focused window — its
 author left borders out on purpose — so `on-focus-changed = ['move-mouse window-lazy-center']`
@@ -216,61 +216,64 @@ releases tend to break, and the cursor cue costs nothing and cannot break.
 
 ### Navigation
 
-**Caps Lock is the modifier**, standing in for Omarchy's `Super`, via Raycast's Hyper Key. Each
-modifier keeps one job:
+**`Ctrl` is the modifier**, split by modifier depth. Each key keeps one job:
 
 | Key | Belongs to |
 |---|---|
-| Caps | Window management |
-| Option | Text navigation — Option+←/→ word jump is untouched |
-| Ctrl | Terminal — `ctrl-a` and `ctrl-d` are untouched |
-| Cmd | macOS and app shortcuts |
+| `Ctrl` + arrows/digits | Window navigation |
+| `Ctrl+Shift` | Window manipulation |
+| `Option` | Text navigation — Option+←/→ word jump is untouched |
+| `Ctrl` + letter | Terminal — `ctrl-a`, `ctrl-c`, `ctrl-d`, `ctrl-r`, `ctrl-w` untouched |
+| `Cmd` | macOS and app shortcuts |
 
-Raycast makes Caps Lock emit `ctrl+alt+shift+cmd`, so every binding is written against that literal
-sequence — read `ctrl-alt-shift-cmd-` in the config as "Caps".
+Nothing binds a plain `Ctrl`+letter. Plain `Ctrl` is used *only* with arrows and digits, neither of
+which carries a control character, so the terminal keeps every readline and tmux binding it had.
 
 | Keys | Action |
 |---|---|
-| `Caps` + arrows | Focus left / down / up / right |
-| `Caps` + `h` `j` `k` `l` | Move the focused window left / down / up / right |
-| `Caps` + `,` / `.` | Send the focused window to the previous / next workspace |
-| `Caps` + `-` / `=` | Shrink / grow the focused window along its container's axis |
-| `Caps` + `1`…`9` | Switch to a workspace, creating it if needed; press again to bounce back |
-| `Caps` + `tab` | Next occupied workspace |
-| `Caps` + `` ` `` | Previous occupied workspace |
-| `Caps` + `b` | Former workspace (back and forth) |
-| `Caps` + `f` | Fullscreen the focused window, and back |
-| `Caps` + `t` | Pop the focused window out of tiling into floating, and back |
-| `Caps` + `o` | Flip the container between side-by-side and stacked (Hyprland's togglesplit) |
-| `Caps` + `/` | Collapse the workspace into an accordion stack, and back |
-| `Caps` + `\` | Rebuild the workspace's tree as one flat row |
-| `Caps` + `;` then `esc` | Service mode, then reload config |
-| `Caps` + `r` | Re-apply the window rules to every open window |
-| `Caps` + `e` | Disable AeroSpace entirely (see below) |
+| `Ctrl` + arrows | Focus left / down / up / right |
+| `Ctrl+Shift` + arrows | Move the focused window |
+| `Ctrl` + `1`…`9` | Switch to a workspace, creating it if needed; press again to bounce back |
+| `Ctrl+Shift` + `1`…`9` | Send the focused window to a workspace, without following it |
+| `Ctrl+Shift` + `,` / `.` | Send the focused window to the previous / next workspace |
+| `Ctrl+Shift` + `b` | Former workspace (back and forth) |
+| `Ctrl+Shift` + `f` | Fullscreen the focused window, and back |
+| `Ctrl+Shift` + `t` | Pop the focused window out of tiling into floating, and back |
+| `Ctrl+Shift` + `j` | Flip the container between side-by-side and stacked |
+| `Ctrl+Shift` + `-` / `=` | Shrink / grow the focused window along its container's axis |
+| `Ctrl+Shift` + `/` | Collapse the workspace into an accordion stack, and back |
+| `Ctrl+Shift` + `\` | Rebuild the workspace's tree as one flat row |
+| `Ctrl+Shift` + `;` then `esc` | Service mode, then reload config |
+| `Ctrl+Shift` + `r` | Re-apply the window rules to every open window |
+| `Ctrl+Shift` + `e` | Disable AeroSpace entirely (see below) |
 
-`Caps` + `-` / `=` need at least two tiled windows in the workspace — with one there is nothing to
-resize against, and the command fails silently.
+`Ctrl+Shift` + `-` / `=` need at least two tiled windows in the workspace — with one there is
+nothing to resize against. `Ctrl+Shift` + arrows likewise refuses, non-zero, when the window is
+already at the edge of its container: it declines rather than wrapping, which is correct.
 
-#### Why move is `hjkl`, not `Caps+Shift+arrows`
+#### The macOS shortcuts this collides with
 
-Raycast's Hyper **includes Shift**, so holding Shift alongside Caps sets a bit that is already set:
-`Caps+Shift+←` is byte-identical to `Caps+←` and AeroSpace cannot tell them apart. The same goes
-for Ctrl and Cmd — Hyper consumes all four modifiers AeroSpace supports, and `fn` is not one it
-accepts. There is no second chord level.
+System Settings → Keyboard → Keyboard Shortcuts → **Mission Control** owns several `Ctrl`
+combinations, and system shortcuts win over app-registered ones. These must be off:
 
-So the second level is a different *key* rather than a different modifier: arrows focus, `hjkl`
-moves. Same direction set as Hyprland and vim.
+| Shortcut | Needed for |
+|---|---|
+| `Ctrl+←` / `Ctrl+→` (move a space) | focus left/right |
+| `Ctrl+↑` (Mission Control) / `Ctrl+↓` (App windows) | focus up/down |
+| **`Ctrl+Shift+←` / `Ctrl+Shift+→`** | move window left/right |
+| `Ctrl+1`…`Ctrl+9` (Switch to Desktop N) | workspace switching |
 
-This was briefly a toggled mode instead, and a chord is better: AeroSpace fires hotkeys on key
-*down* only — its config has no key-up option and its binary contains no hotkey-release event — so
-hold-to-activate is not something it can express. A mode you toggle into has no visual indicator,
-which makes "am I in move mode?" indistinguishable from "is this broken?".
+The `Shift` variants of "Move left/right a space" are a separate pair of checkboxes from the plain
+ones and are easy to miss — they were still enabled here after the plain ones had been turned off.
 
-Sending a window to a workspace is relative (`Caps` + `,` / `.`) rather than by number, because
-by-number would need `Caps+Shift+N`, and no other single key set maps cleanly to 1-9.
+#### Why not Option, Caps, or Hyper
 
-Raycast's Hyper modifier set is fixed and cannot be narrowed to `ctrl+alt+cmd`, so `Caps+Shift` is
-not recoverable without a different remapper.
+Plain `Option` was the modifier first, and it cost `Option`+←/→ word navigation, which is used
+constantly. Caps Lock via Raycast's Hyper Key came next; Raycast's Hyper is fixed at
+`ctrl+alt+shift+cmd`, which consumes all four modifiers AeroSpace supports, so `Caps+Shift` was
+byte-identical to `Caps` and there was no second chord level — moving a window had to become a
+toggled mode. `Ctrl` has neither problem: `Shift` is free, so move is a plain chord, and the
+terminal keeps its control characters because plain `Ctrl` is confined to arrows and digits.
 
 ### Window rules
 
@@ -296,7 +299,7 @@ AeroSpace floats it, so a "Save as…" sheet never wedges itself into the tiling
 testing a rule — `open -a TextEdit` with no argument opens TextEdit's *Open* dialog, which floats,
 while `open -a TextEdit somefile.txt` opens a document window, which tiles.
 
-`Caps` + `r` re-applies these rules to every open window. Since no rule moves anything between
+`Ctrl+Shift` + `r` re-applies these rules to every open window. Since no rule moves anything between
 workspaces any more, its only job is picking up an app that was already running before its float
 rule existed.
 
@@ -347,7 +350,7 @@ than an empty workspace.
 
 ### Turning it off
 
-`Caps` + `e` disables AeroSpace: hidden workspaces come back on screen and key events stop being
+`Ctrl+Shift` + `e` disables AeroSpace: hidden workspaces come back on screen and key events stop being
 intercepted. Useful for screen sharing, or for an app that fights the window manager. Option,
 Ctrl and Cmd are untouched either way, so there is nothing to hand back.
 
