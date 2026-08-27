@@ -8,6 +8,17 @@ plugins=()
 fpath+=("/opt/homebrew/share/zsh/site-functions")
 source $ZSH/oh-my-zsh.sh
 
+# ─── Completions ────────────────────────────────────────────────────────────
+# Tab-complete *remote* paths for scp/ssh (`scp f.zip mac2:/var/ww<TAB>`). zsh
+# shells out to ssh to list the remote dir, so the host must log in without a
+# prompt — key in the agent, `BatchMode=yes` clean. _remote_files reads this
+# zstyle with `zstyle -T`, so remote access is already on unless something sets
+# it to false; the line is here to say so out loud and to survive a plugin that
+# turns it off. The speed comes from the `Host *` ControlMaster block in
+# ~/.ssh/config (not committed): without multiplexing every Tab pays for a
+# fresh TCP + auth handshake.
+zstyle ':completion:*' remote-access yes
+
 # ─── Editor ─────────────────────────────────────────────────────────────────
 export EDITOR="nano"
 export VISUAL="nano"
@@ -41,7 +52,10 @@ export PATH="~/.console-ninja/.bin:$PATH"
 source "$HOME/.docker/init-zsh.sh" 2>/dev/null || true
 
 # mise (replaces nvm, pyenv, sdkman)
-export MISE_TRUSTED_CONFIG_PATHS="$HOME/Developers:$HOME/orca"
+# Auto-trust mise configs under these roots, so a fresh clone does not need a
+# manual `mise trust`. Note this trusts any .mise.toml found there, including
+# in repos cloned from elsewhere — mise configs can set env vars and run hooks.
+export MISE_TRUSTED_CONFIG_PATHS="$HOME/Developer:$HOME/orca"
 eval "$(mise activate zsh)"
 
 # OrbStack
@@ -70,7 +84,20 @@ source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 eval "$(starship init zsh)"
 
 # try-cli (tobi/try) — ephemeral workspace manager
-command -v try &>/dev/null && eval "$(try init ~/src/tries)"
+#
+# Both halves must name the *binary*, not the function. The eval below defines a
+# shell function called `try`, so on a re-source that function shadows the
+# binary: `try init ~/src/tries` then reaches try.rb as `exec ... init`, which
+# reads `init` as a search query and opens the interactive selector instead of
+# printing anything. `command -v try` finds the function too, so it is no guard.
+# `whence -p` searches only $PATH, and `command try` skips the function.
+whence -p try &>/dev/null && eval "$(command try init ~/src/tries)"
 
 # direnv hook
 command -v direnv &>/dev/null && eval "$(direnv hook zsh)"
+
+# >>> railway initialize >>>
+# Guarded: the Railway CLI writes this file on first `railway login`, so it is
+# absent on a fresh machine and an unguarded source errors on every new shell.
+source "$HOME/.railway/env" 2>/dev/null || true
+# <<< railway initialize <<<

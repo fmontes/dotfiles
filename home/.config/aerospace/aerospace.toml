@@ -1,0 +1,314 @@
+# AeroSpace — Omarchy/Hyprland-style tiling
+#
+# Workspaces are generic contexts, not app slots. Nothing is assigned to a
+# workspace: an app opens on whichever workspace has focus and tiles into it,
+# and you arrange work by moving windows, exactly as in Omarchy.
+#
+# Workspaces exist only while they hold a window. There is deliberately no
+# persistent-workspaces list, so Caps+5 creates workspace 5 on demand and it
+# disappears when you close the last window on it — which also means the
+# cycling keys visit only workspaces that actually have something in them.
+#
+# Routing rules exist only for windows that need behaviour they cannot get on
+# their own: four utilities that should float, plus Slack and MacWhisper, whose
+# windows macOS mislabels as panels. No rule moves a window to a workspace.
+#
+# Ctrl is the modifier. Option, Cmd and Ctrl+letter are deliberately left
+# alone — see the Keys section at the bottom.
+#
+#   Ctrl + arrows          focus         Ctrl+Shift + arrows  move window
+#   Ctrl + 1..9            workspace     Ctrl+Shift + 1..9    send window there
+#   Ctrl+Shift + , / .     send to prev / next workspace
+#   Ctrl+Shift + b         former workspace
+#   Ctrl+Shift + - / =     resize        Ctrl+Shift + j       split orientation
+#   Ctrl+Shift + f  fullscreen           Ctrl+Shift + t  float toggle
+#   Ctrl+Shift + /  accordion stack
+#
+# Plain Ctrl is used only with arrows and digits, so no terminal control
+# character is taken.
+
+config-version = 2
+
+start-at-login = true
+auto-reload-config = true
+
+# Land on workspace 1 after login/restart so startup is reproducible.
+after-startup-command = ['workspace 1']
+
+# ─── Tiling ──────────────────────────────────────────────────────────────────
+# Every new window joins the tiling tree of the focused workspace. 'auto' picks
+# the split axis from the container's aspect ratio, so a wide container splits
+# side by side and a tall one stacks — the same instinct as Hyprland's dwindle.
+#
+# Floating is the exception, granted per app in the rules below or per window
+# with alt-t. AeroSpace has no animations, so there is nothing to turn off.
+default-root-container-layout = 'tiles'
+default-root-container-orientation = 'auto'
+
+# Accordion is the opt-in stack mode on alt-slash, not the default. It needs
+# visible padding to read as a stack rather than as a single window.
+accordion-padding = 30
+
+# flatten-containers removes a container as soon as it holds one window, so the
+# tree never keeps invisible nesting from a window you closed. The opposite-
+# orientation rule makes each nested split alternate axis automatically, which
+# is what makes new windows land somewhere predictable without any manual
+# split-direction bookkeeping.
+enable-normalization-flatten-containers = true
+enable-normalization-opposite-orientation-for-nested-containers = true
+
+# Small and uniform: enough to see the seam between windows, not enough to
+# waste screen. Same value inside and out so the grid reads as even.
+gaps.inner.horizontal = 6
+gaps.inner.vertical = 6
+gaps.outer.left = 6
+gaps.outer.right = 6
+gaps.outer.top = 6
+gaps.outer.bottom = 6
+
+# ─── Focus ───────────────────────────────────────────────────────────────────
+# There is deliberately no on-focus-changed hook here.
+#
+# Moving the cursor to each newly focused window sounds useful — AeroSpace
+# draws no borders, so the cursor is the only focus indicator available — but
+# it reacts to *every* focus change, including ones you did not ask for. A
+# transient window that appears, takes focus and disappears again, like an
+# unarchiving progress dialog, drags the cursor across the screen and leaves it
+# there. That is worse than having no indicator.
+#
+# on-focused-monitor-changed below is kept: it fires only when the focused
+# display changes, which no short-lived window on the current display can
+# trigger.
+focus-follows-mouse.enabled = false
+on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
+
+automatically-unhide-macos-hidden-apps = false
+key-mapping.preset = 'qwerty'
+
+# ─── Window rules ────────────────────────────────────────────────────────────
+# Only windows needing special behaviour appear here. Everything else gets the
+# default — open on the focused workspace, join its tiling tree — which is the
+# whole point of generic workspaces. There is no catch-all rule and no rule
+# that moves a window to a workspace.
+#
+# Matched by bundle ID, first match wins (check-further-callbacks defaults to
+# false).
+
+# macOS reports a Slack huddle as a utility panel, which AeroSpace auto-floats.
+# `layout tiling` hands it back to the normal tiling rules so a huddle sits
+# beside the channel rather than on top of it.
+#
+# This deliberately does not match on the title. Slack sets the "Huddle:" title
+# a moment *after* the window appears, so a `~= "^Huddle:"` pattern never
+# matches at detection time — it only works when re-run later. Tiling every
+# Slack window sidesteps the race: the huddle is effectively the only second
+# window Slack opens, and a popped-out thread tiling too is no loss.
+[[on-window-detected]]
+if = 'test %{app-bundle-id} = com.tinyspeck.slackmacgap'
+run = ['layout tiling']
+
+# MacWhisper gets auto-floated the same way — macOS does not report its window
+# as an ordinary resizable one — but it tiles perfectly well when told to, so
+# it should share a workspace rather than hover over it.
+[[on-window-detected]]
+if = 'test %{app-bundle-id} = com.goodsnooze.MacWhisper'
+run = ['layout tiling']
+
+# These two float on whatever workspace is in front instead of splitting it.
+# They are things you glance at, not windows you work in.
+[[on-window-detected]]
+if = 'test %{app-bundle-id} = com.apple.systempreferences'
+run = ['layout floating']
+
+[[on-window-detected]]
+if = 'test %{app-bundle-id} = com.1password.1password'
+run = ['layout floating']
+
+# Cap's recording overlay and krisp's mic widget are transient controls, not
+# windows worth tiling. Without these they would split whatever workspace is
+# focused, mid-recording.
+[[on-window-detected]]
+if = 'test %{app-bundle-id} = so.cap.desktop'
+run = ['layout floating']
+
+[[on-window-detected]]
+if = 'test %{app-bundle-id} = ai.krisp.krispMac'
+run = ['layout floating']
+
+# ─── Monitors ────────────────────────────────────────────────────────────────
+# Every workspace is pinned to the main display, so behaviour is identical on
+# the MacBook screen alone and with an external monitor attached: everything
+# follows whichever display macOS calls main (System Settings → Displays).
+#
+# This is carried over deliberately rather than reconsidered — it is what stops
+# a workspace turning up on a monitor you did not expect. The cost is that the
+# non-main display holds nothing, so alt+arrows has no second monitor to cross
+# into. Delete this whole block to let AeroSpace spread workspaces across both.
+[workspace-to-monitor-force-assignment]
+1 = 'main'
+2 = 'main'
+3 = 'main'
+4 = 'main'
+5 = 'main'
+6 = 'main'
+7 = 'main'
+8 = 'main'
+9 = 'main'
+
+# ─── Exec environment ────────────────────────────────────────────────────────
+# AeroSpace launches from macOS login with a bare environment, so spell out
+# where the aerospace binary and restore-layout live.
+[exec]
+inherit-env-vars = true
+
+[exec.env-vars]
+PATH = '${HOME}/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:${PATH}'
+
+# ─── Keys ────────────────────────────────────────────────────────────────────
+# Ctrl is the window-manager modifier, and the split is by modifier depth:
+#
+#   Ctrl            window navigation  — arrows and numbers only
+#   Ctrl + Shift    window manipulation — everything else
+#   Option          text navigation — Option+arrow word jump is untouched
+#   Cmd             macOS and app shortcuts
+#   Ctrl + letter   terminal — ctrl-a, ctrl-c, ctrl-d, ctrl-r, ctrl-w untouched
+#
+# Nothing here binds a plain Ctrl+letter. Plain Ctrl is used *only* with arrows
+# and digits, neither of which carries a control character, so the terminal
+# keeps every readline and tmux binding it had.
+#
+# This replaced a Caps Lock/Hyper setup, which in turn replaced plain Option.
+# Option was abandoned because it ate Option+arrow word navigation; Hyper was
+# abandoned because Raycast's Hyper contains Shift, leaving no second chord
+# level and forcing moves into a mode. Ctrl has neither problem: Shift is free,
+# so move is a plain chord again.
+#
+# ── macOS conflict to be aware of ────────────────────────────────────────────
+# System Settings → Keyboard → Keyboard Shortcuts → Mission Control owns some
+# Ctrl combinations. Ctrl+arrows and Ctrl+1 are already disabled. The two
+# *Shift* variants of "Move left/right a space" (symbolic hotkey ids 80 and 82)
+# are still enabled at the time of writing and will swallow Ctrl+Shift+Left and
+# Ctrl+Shift+Right before AeroSpace sees them — system shortcuts win over
+# app-registered hotkeys. Turn those two off in the same settings pane.
+[mode.main.binding]
+
+# ── Focus: plain Ctrl + arrows ───────────────────────────────────────────────
+# all-monitors-outer-frame lets focus cross onto a second display instead of
+# stopping at the workspace edge; 'stop' at the outer frame means the far edge
+# is a dead end rather than wrapping you to the opposite side of the screen,
+# which is what Hyprland's movefocus does.
+ctrl-left = 'focus --boundaries all-monitors-outer-frame --boundaries-action stop left'
+ctrl-down = 'focus --boundaries all-monitors-outer-frame --boundaries-action stop down'
+ctrl-up = 'focus --boundaries all-monitors-outer-frame --boundaries-action stop up'
+ctrl-right = 'focus --boundaries all-monitors-outer-frame --boundaries-action stop right'
+
+# ── Move: Ctrl + Shift + arrows ──────────────────────────────────────────────
+# Defaults are deliberate: moving a window against the grain of its container
+# creates the container it needs, so pushing a window up out of a side-by-side
+# split turns that half into a stack. Same behaviour as i3/sway move.
+#
+# `move` exits non-zero and does nothing when the window is already at the edge
+# of its container — it refuses rather than wrapping, which is correct, not a
+# failure.
+ctrl-shift-left = 'move left'
+ctrl-shift-down = 'move down'
+ctrl-shift-up = 'move up'
+ctrl-shift-right = 'move right'
+
+# ── Workspaces: plain Ctrl + digits ──────────────────────────────────────────
+# Generic contexts, created on demand. --auto-back-and-forth makes each key a
+# toggle: pressing the key for the workspace you are already on returns you to
+# the previous one.
+#
+# 1-9 rather than 1-4 because the workspace model is not part of this migration
+# and shrinking it would have been a change of its own.
+ctrl-1 = 'workspace --auto-back-and-forth 1'
+ctrl-2 = 'workspace --auto-back-and-forth 2'
+ctrl-3 = 'workspace --auto-back-and-forth 3'
+ctrl-4 = 'workspace --auto-back-and-forth 4'
+ctrl-5 = 'workspace --auto-back-and-forth 5'
+ctrl-6 = 'workspace --auto-back-and-forth 6'
+ctrl-7 = 'workspace --auto-back-and-forth 7'
+ctrl-8 = 'workspace --auto-back-and-forth 8'
+ctrl-9 = 'workspace --auto-back-and-forth 9'
+
+# ── Send window to a workspace: Ctrl + Shift + digits ────────────────────────
+# Direct targeting, which the Hyper layout could not express at all. The window
+# does not follow; ctrl-N after it if you want to go too.
+ctrl-shift-1 = 'move-node-to-workspace 1'
+ctrl-shift-2 = 'move-node-to-workspace 2'
+ctrl-shift-3 = 'move-node-to-workspace 3'
+ctrl-shift-4 = 'move-node-to-workspace 4'
+ctrl-shift-5 = 'move-node-to-workspace 5'
+ctrl-shift-6 = 'move-node-to-workspace 6'
+ctrl-shift-7 = 'move-node-to-workspace 7'
+ctrl-shift-8 = 'move-node-to-workspace 8'
+ctrl-shift-9 = 'move-node-to-workspace 9'
+
+# Relative send, kept from the previous layout because it stays useful when you
+# do not care which number the workspace has. Wraps around.
+ctrl-shift-comma = 'move-node-to-workspace --wrap-around prev'
+ctrl-shift-period = 'move-node-to-workspace --wrap-around next'
+
+# Walk to the previous/next workspace. Brackets because prev/next is what
+# brackets mean nearly everywhere, and they pair with ctrl-shift-comma/period
+# above: brackets take *you* there, comma/period take the *window* there.
+#
+# Ctrl+Tab was ruled out (browsers, editors) and Ctrl+backtick is VS Code's
+# integrated terminal. Note that plain ctrl-[ is the ESC control character, so
+# these are deliberately only bound with Shift.
+#
+# Because no workspace is persistent, these visit only workspaces that hold a
+# window — you never land somewhere blank.
+ctrl-shift-leftSquareBracket = 'workspace --wrap-around prev'
+ctrl-shift-rightSquareBracket = 'workspace --wrap-around next'
+
+# Former workspace.
+ctrl-shift-b = 'workspace-back-and-forth'
+
+# ── Window actions: Ctrl + Shift + key ───────────────────────────────────────
+# Fullscreen the focused window, and back. Gaps stay, so it still reads as a
+# managed window rather than a macOS native fullscreen space.
+ctrl-shift-f = 'fullscreen'
+
+# Pop the focused window out of the tiling tree and back.
+ctrl-shift-t = 'layout floating tiling'
+
+# Flip the focused window's container between side-by-side and stacked — the
+# equivalent of Hyprland's togglesplit.
+ctrl-shift-j = 'layout horizontal vertical'
+
+# 'smart' resizes along whichever axis the focused window's container runs, so
+# one pair of keys covers both directions. Needs at least two tiled windows in
+# the workspace — there is nothing to resize against otherwise.
+ctrl-shift-minus = 'resize smart -50'
+ctrl-shift-equal = 'resize smart +50'
+
+# Collapse the workspace into an accordion stack and back, for when three
+# windows tiled is two too many.
+ctrl-shift-slash = 'layout tiles accordion'
+
+# Rebuild the current workspace's tree as one flat row. The escape hatch when a
+# sequence of moves has produced nesting you no longer want to reason about.
+ctrl-shift-backslash = 'flatten-workspace-tree'
+
+# ── Maintenance ──────────────────────────────────────────────────────────────
+# Re-apply the window rules to every open window. Rules normally run only when
+# a window is first detected, so this is what picks up an app that was already
+# running before its float rule existed.
+ctrl-shift-r = 'exec-and-forget aerospace run-callback --for-every-window on-window-detected'
+
+# Escape hatch. Disabling stops AeroSpace intercepting keys and brings hidden
+# workspaces back on screen — for screen sharing, or for an app that fights the
+# window manager.
+#
+# One-way: while disabled the server rejects every command except
+# `aerospace enable on`, and no binding fires, so this key cannot undo itself.
+# Re-enable from the menu bar icon or that command.
+ctrl-shift-e = 'enable toggle'
+
+ctrl-shift-semicolon = 'mode service'
+
+[mode.service.binding]
+esc = ['reload-config', 'mode main']
+r = ['flatten-workspace-tree', 'mode main']
