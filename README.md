@@ -199,20 +199,25 @@ for latency.
 tiled is two too many. Floating is the exception rather than the default: granted per app in the
 window rules, or per window with `Ctrl+Shift` + `t`.
 
-**The cursor is the focus indicator.** AeroSpace draws nothing around the focused window — its
-author left borders out on purpose — so `on-focus-changed = ['move-mouse window-lazy-center']`
-sends the pointer to the centre of whatever you focus. That doubles as a fix for the cursor being
-orphaned over a window that no longer has focus, which is easy to do when navigating by keyboard.
-`lazy` means it only moves when the cursor is not already inside that window, so it never fights
-you mid-drag.
+**There is no focus indicator**, and that is a reluctant choice. AeroSpace draws nothing around the
+focused window — its author left borders out on purpose.
 
-`focus-follows-mouse` stays off deliberately: the two together form a loop, the cursor landing on a
-window and that landing re-triggering focus.
+Moving the cursor to each newly focused window (`on-focus-changed = ['move-mouse
+window-lazy-center']`) was tried and removed. It reacts to *every* focus change, including ones you
+did not ask for: a transient window that appears, takes focus and vanishes — an unarchiving
+progress dialog, say — drags the cursor across the screen and abandons it there. Worse than no
+indicator.
 
-If you want a real border instead, [JankyBorders](https://github.com/FelixKratz/JankyBorders)
+`on-focused-monitor-changed` is kept, because it fires only when the focused *display* changes,
+which no short-lived window on the current display can trigger.
+
+`focus-follows-mouse` stays off deliberately: paired with a cursor-moving hook it forms a loop, the
+cursor landing on a window and that landing re-triggering focus.
+
+For a real border, [JankyBorders](https://github.com/FelixKratz/JankyBorders)
 (`brew install felixkratz/formulae/borders`) is the usual companion, launched from
-`after-startup-command`. It is not installed here — it leans on private macOS APIs that major
-releases tend to break, and the cursor cue costs nothing and cannot break.
+`after-startup-command`. Not installed here — it leans on private macOS APIs that major releases
+tend to break — but it is the only option that marks focus without reacting to focus.
 
 ### Navigation
 

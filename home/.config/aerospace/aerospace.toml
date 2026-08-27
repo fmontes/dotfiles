@@ -67,16 +67,19 @@ gaps.outer.top = 6
 gaps.outer.bottom = 6
 
 # ─── Focus ───────────────────────────────────────────────────────────────────
-# AeroSpace draws nothing around the focused window — its author left borders
-# out on purpose — so the cursor is the focus indicator. It jumps to the centre
-# of whatever window you focus, which also stops it being orphaned over a
-# window that no longer has focus. 'lazy' means it only moves when the cursor
-# is not already inside that window, so it never fights you mid-drag.
+# There is deliberately no on-focus-changed hook here.
 #
-# focus-follows-mouse stays off: these two would form a loop, the cursor
-# landing on a window and that landing re-triggering focus.
+# Moving the cursor to each newly focused window sounds useful — AeroSpace
+# draws no borders, so the cursor is the only focus indicator available — but
+# it reacts to *every* focus change, including ones you did not ask for. A
+# transient window that appears, takes focus and disappears again, like an
+# unarchiving progress dialog, drags the cursor across the screen and leaves it
+# there. That is worse than having no indicator.
+#
+# on-focused-monitor-changed below is kept: it fires only when the focused
+# display changes, which no short-lived window on the current display can
+# trigger.
 focus-follows-mouse.enabled = false
-on-focus-changed = ['move-mouse window-lazy-center']
 on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
 
 automatically-unhide-macos-hidden-apps = false
