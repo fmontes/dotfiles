@@ -70,17 +70,50 @@ raw = subprocess.run(["defaults", "export", DOMAIN, "-"],
 dom = plistlib.loads(raw) if raw.strip() else {}
 hk = dom.get("AppleSymbolicHotKeys", {})
 
+CTRL, SHIFT, OPTION, COMMAND = 262144, 131072, 524288, 1048576
+
+# Keycodes AeroSpace binds: digits 1-9, the four arrows, and the legacy 0/2
+# encoding ids 79-82 use for left/right.
+CLAIMED = {18, 19, 20, 21, 23, 22, 26, 28, 25, 123, 124, 125, 126, 0, 2}
+
+
+def collides(entry):
+    """True when an existing entry is a bare Ctrl or Ctrl+Shift chord on a key
+    AeroSpace binds. Excluding Cmd and Option matters: it keeps this away from
+    the Ctrl+Shift+Cmd+3/4 screenshot shortcuts, which share the digit keys."""
+    par = (entry.get("value") or {}).get("parameters") or []
+    if len(par) < 3:
+        return False
+    mods = par[2]
+    return (mods & CTRL) and not (mods & COMMAND) and not (mods & OPTION) \
+        and par[1] in CLAIMED
+
+
+def disable(hid, entry):
+    if entry.get("enabled") is False:
+        return 0
+    entry["enabled"] = False          # keep whatever parameters it already had
+    return 1
+
+
 changed = 0
+
+# Anything already in the table that collides, whether or not it is listed
+# below. macOS adds "Switch to Desktop 5".."9" entries as you create Spaces,
+# and their ids are not documented — this catches them without guessing.
+for hid, entry in hk.items():
+    if isinstance(entry, dict) and collides(entry):
+        changed += disable(hid, entry)
+
+# Then the known ids, so the ones macOS has not created yet are pre-disabled.
 for hid, params in TARGETS.items():
     cur = hk.get(hid)
-    if isinstance(cur, dict) and cur.get("enabled") is False:
-        continue                      # already off, leave its parameters alone
     if isinstance(cur, dict) and "value" in cur:
-        cur["enabled"] = False        # keep whatever parameters it already had
+        changed += disable(hid, cur)
     else:
         hk[hid] = {"enabled": False,
                    "value": {"parameters": list(params), "type": "standard"}}
-    changed += 1
+        changed += 1
 
 if changed:
     dom["AppleSymbolicHotKeys"] = hk

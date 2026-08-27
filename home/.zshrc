@@ -97,5 +97,7 @@ whence -p try &>/dev/null && eval "$(command try init ~/src/tries)"
 command -v direnv &>/dev/null && eval "$(direnv hook zsh)"
 
 # >>> railway initialize >>>
-source "$HOME/.railway/env"
+# Guarded: the Railway CLI writes this file on first `railway login`, so it is
+# absent on a fresh machine and an unguarded source errors on every new shell.
+source "$HOME/.railway/env" 2>/dev/null || true
 # <<< railway initialize <<<
