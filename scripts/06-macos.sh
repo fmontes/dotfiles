@@ -29,6 +29,71 @@ defaults write NSGlobalDomain AppleShowAllExtensions -bool true
 defaults write NSGlobalDomain KeyRepeat -int 2
 defaults write NSGlobalDomain InitialKeyRepeat -int 15
 
+# Mission Control keyboard shortcuts — free up Ctrl for AeroSpace
+#
+# AeroSpace uses plain Ctrl+arrows for focus, Ctrl+Shift+arrows to move a
+# window, and Ctrl+1..9 for workspaces. macOS claims all of those for Spaces
+# and Mission Control, and system shortcuts win over app-registered hotkeys, so
+# they have to be off or the bindings silently do nothing.
+#
+# The Shift variants (ids 80 and 82) are the trap: System Settings shows one
+# checkbox per "Move left/right a space" row, but macOS registers two hotkeys
+# behind it — Ctrl+arrow and Ctrl+Shift+arrow. Ids 80 and 82 have no UI control
+# at all, so they survive turning the visible ones off.
+#
+# Written through `defaults import` rather than `defaults write -dict-add`
+# because the old-style syntax stores the parameters as strings, and this table
+# wants integers. Idempotent: existing entries keep their parameters and only
+# get enabled=false; missing ones are created disabled.
+echo "  disabling Mission Control shortcuts that collide with AeroSpace..."
+/usr/bin/python3 - <<'PYEOF'
+import plistlib, subprocess
+
+# id: (ascii, keycode, modifiers) — modifiers 262144=Ctrl, 393216=Ctrl+Shift,
+# 8650752=Ctrl plus the 0x800000 flag arrows carry.
+TARGETS = {
+    "32":  (65535, 126, 8650752),   # Ctrl+Up        Mission Control
+    "33":  (65535, 125, 8650752),   # Ctrl+Down      Application windows
+    "79":  (97,      0,  262144),   # Ctrl+Left      Move left a space
+    "80":  (97,      0,  393216),   # Ctrl+Shift+Left    (no UI checkbox)
+    "81":  (100,     2,  262144),   # Ctrl+Right     Move right a space
+    "82":  (100,     2,  393216),   # Ctrl+Shift+Right   (no UI checkbox)
+    "118": (65535,  18,  262144),   # Ctrl+1         Switch to Desktop 1
+    "119": (65535,  19,  262144),   # Ctrl+2         Switch to Desktop 2
+    "120": (65535,  20,  262144),   # Ctrl+3         Switch to Desktop 3
+    "121": (65535,  21,  262144),   # Ctrl+4         Switch to Desktop 4
+}
+
+DOMAIN = "com.apple.symbolichotkeys"
+raw = subprocess.run(["defaults", "export", DOMAIN, "-"],
+                     capture_output=True).stdout
+dom = plistlib.loads(raw) if raw.strip() else {}
+hk = dom.get("AppleSymbolicHotKeys", {})
+
+changed = 0
+for hid, params in TARGETS.items():
+    cur = hk.get(hid)
+    if isinstance(cur, dict) and cur.get("enabled") is False:
+        continue                      # already off, leave its parameters alone
+    if isinstance(cur, dict) and "value" in cur:
+        cur["enabled"] = False        # keep whatever parameters it already had
+    else:
+        hk[hid] = {"enabled": False,
+                   "value": {"parameters": list(params), "type": "standard"}}
+    changed += 1
+
+if changed:
+    dom["AppleSymbolicHotKeys"] = hk
+    subprocess.run(["defaults", "import", DOMAIN, "-"],
+                   input=plistlib.dumps(dom, fmt=plistlib.FMT_XML), check=True)
+    print(f"    {changed} shortcut(s) disabled")
+else:
+    print("    already disabled")
+PYEOF
+
+# Apply the hotkey table without needing a logout.
+/System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u
+
 # Screenshots
 defaults write com.apple.screencapture type -string "png"
 defaults write com.apple.screencapture disable-shadow -bool true
