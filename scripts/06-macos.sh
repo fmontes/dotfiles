@@ -6,17 +6,28 @@ defaults write com.apple.dock autohide -bool true
 defaults write com.apple.dock tilesize -int 48
 defaults write com.apple.dock show-recents -bool false
 
-# Dock apps — reset to just the ones I keep pinned
+# Dock contents — a new Mac ships with a Dock full of Apple apps. Deleting
+# persistent-apps clears every one of them, persistent-others clears the
+# Downloads stack on the right, and show-recents above stops macOS refilling
+# the middle with whatever was launched recently. Finder and Trash cannot be
+# removed; everything else goes.
+#
+# Then re-pin only what is wanted. Paths are checked first: Apps.app exists
+# only on macOS 26 and later (it replaced Launchpad.app), so pinning it blindly
+# on an older release leaves a broken "?" tile in the Dock.
 dock_app() {
   local app="$1"
-  printf '<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>%s</string><key>_CFURLStringType</key><integer>15</integer></dict></dict></dict>' "$app"
+  printf '<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>file://%s/</string><key>_CFURLStringType</key><integer>15</integer></dict></dict></dict>' "$app"
 }
 defaults delete com.apple.dock persistent-apps 2>/dev/null
 defaults delete com.apple.dock persistent-others 2>/dev/null
 for app in \
-  "file:///System/Applications/Apps.app/" \
-  "file:///System/Applications/iPhone Mirroring.app/"; do
-  defaults write com.apple.dock persistent-apps -array-add "$(dock_app "$app")"
+  "/System/Applications/Apps.app" \
+  "/System/Applications/Launchpad.app" \
+  "/System/Applications/iPhone Mirroring.app"; do
+  if [[ -e "$app" ]]; then
+    defaults write com.apple.dock persistent-apps -array-add "$(dock_app "$app")"
+  fi
 done
 
 # Finder
