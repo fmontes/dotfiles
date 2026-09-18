@@ -1,3 +1,50 @@
 shell-integration = none
+# left option = alt (opt+backspace deletes a word)
+# right option stays free for composing accented characters
+macos-option-as-alt = left
 tab-inherit-working-directory = true
 split-inherit-working-directory = true
+
+# Herdr owns tabs/panes/layout.
+# Ghostty should pass these through instead of handling them.
+
+# Tabs
+keybind = cmd+t=unbind
+keybind = cmd+w=unbind
+
+# Splits
+keybind = cmd+d=unbind
+keybind = cmd+shift+d=unbind
+
+# Tab switching
+keybind = cmd+1=unbind
+keybind = cmd+2=unbind
+keybind = cmd+3=unbind
+keybind = cmd+4=unbind
+keybind = cmd+5=unbind
+keybind = cmd+6=unbind
+keybind = cmd+7=unbind
+keybind = cmd+8=unbind
+keybind = cmd+9=unbind
+
+# Previous / next tab
+keybind = cmd+[=unbind
+keybind = cmd+]=unbind
+
+# Zoom pane
+keybind = cmd+shift+enter=unbind
+
+# Pane movement (Ghostty binds these to prev/next tab by default)
+keybind = cmd+alt+left=unbind
+keybind = cmd+alt+right=unbind
+
+# Previous / next space
+keybind = cmd+shift+[=unbind
+keybind = cmd+shift+]=unbind
+
+# fresh ignores the super modifier in CSI-u, so its whole macOS keymap is dead
+# in a terminal. Translate cmd+c into F13, which fresh binds to copy and every
+# other pane ignores. Ctrl+Shift+C would have worked too, but it degrades to
+# ^C (SIGINT) in panes that do not speak the Kitty keyboard protocol.
+# Cost: Ghostty's and herdr's own cmd+c selection copy. Both copy on select anyway.
+keybind = cmd+c=csi:25~
