@@ -1,0 +1,20 @@
+{
+  "keybindings": [
+    {
+      "comment": "Cmd+C. fresh ignores the super modifier in CSI-u, so Ghostty rewrites cmd+c into F13 (keybind = cmd+c=csi:25~).",
+      "key": "f13",
+      "modifiers": [],
+      "action": "copy",
+      "args": {},
+      "when": "normal"
+    },
+    {
+      "comment": "Select all. Cmd+A is dead for the same reason, ctrl+shift+a is swallowed, and ctrl+a is line-start in this keymap.",
+      "key": "a",
+      "modifiers": ["alt"],
+      "action": "select_all",
+      "args": {},
+      "when": "normal"
+    }
+  ]
+}
