@@ -35,7 +35,7 @@ The script will:
 
 1. Install Xcode Command Line Tools
 2. Install Homebrew and all packages from `Brewfile`
-3. Symlink all dotfiles to `~/`
+3. Symlink all dotfiles to `~/` and enable the repo's git hooks
 4. Install Oh My Zsh
 5. Set up mise and install Node and Python
 6. Apply macOS defaults
@@ -477,6 +477,8 @@ herdr comes from the Brewfile as a formula. Its plugins do not — they install 
 ./scripts/tinycast-export.sh   # after changing hotkeys, aliases, or custom commands
 ```
 
+A `pre-commit` hook in [`.githooks/`](.githooks/) runs that for you and stages the result, so hotkey changes travel without being remembered. It never blocks a commit — on a machine with no Tinycast the export bails and the tracked copy is left alone. `install.sh` points `core.hooksPath` at the directory; in an existing clone, run `git config core.hooksPath .githooks` once.
+
 `07-post-install.sh` imports the result with `defaults import` on a new machine, before Tinycast first launches. Window positions, file bookmarks, and calendar UUIDs are stripped on export; hotkeys, launcher aliases, custom commands, and the hyper key travel.
 
 ## AI
@@ -524,6 +526,7 @@ dotfiles/
 ├── bootstrap.sh              # Remote entry point (curl | bash)
 ├── install.sh                # Local installer
 ├── scripts/                  # Individual setup steps
+├── .githooks/                # pre-commit: re-exports Tinycast settings
 ├── ai/                       # AI tooling
 │   ├── skills/               # Agent skills (any agentic harness)
 │   ├── instructions/         # Reusable prompt instructions
