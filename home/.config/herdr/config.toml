@@ -57,13 +57,14 @@ zoom = "cmd+shift+enter"
 # Keep prefix around only as an escape hatch
 prefix = "ctrl+b"
 
-# Plugin actions
-[[keys.command]]
-key = "cmd+p"
-type = "shell"
-command = "herdr plugin action invoke quick-open --plugin herdr-sidebar"
-
+# File explorer and editing: the Fresh editor in a pane, toggled by the
+# `sidebar` tool. This replaced the herdr-sidebar plugin, whose viewer was
+# read-only and handed off to an editor anyway.
+#
+# There is no cmd+p here any more. The plugin's quick-open was a file picker
+# of its own; Fresh has one built in, on ctrl+p — and a cmd chord could not
+# reach it regardless, since Fresh ignores the super modifier.
 [[keys.command]]
 key = "cmd+b"
 type = "shell"
-command = "herdr plugin action invoke open-sidebar --plugin herdr-sidebar"
+command = "sidebar"

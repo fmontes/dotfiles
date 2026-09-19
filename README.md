@@ -39,7 +39,7 @@ The script will:
 4. Install Oh My Zsh
 5. Set up mise and install Node and Python
 6. Apply macOS defaults
-7. Install gh-dash and the herdr sidebar plugin, global npm packages, restore Tinycast settings, fix permissions, set up the VS Code CLI
+7. Install gh-dash, global npm packages, restore Tinycast settings, fix permissions, set up the VS Code CLI
 8. Sync AI agent config to every platform with `chai`
 
 ## After running install.sh
@@ -467,7 +467,7 @@ The cost is Ghostty's and herdr's own `Cmd+C` selection copy. Both copy on selec
 
 [Ghostty](https://ghostty.org/) is the outer window and [herdr](https://herdr.dev) runs inside it, owning tabs, panes, and agent workspaces. Ghostty's config unbinds the chords herdr wants ([`home/.config/ghostty/config`](home/.config/ghostty/config)) so they pass through instead of being handled twice.
 
-herdr comes from the Brewfile as a formula. Its plugins do not — they install at runtime, so `07-post-install.sh` fetches [herdr-sidebar](https://github.com/alexarthurs/herdr-sidebar) if it is missing. `version_check` is off in [`home/.config/herdr/config.toml`](home/.config/herdr/config.toml): herdr's self-updater would fetch its own build into `~/.local/bin` and shadow the brew binary on `PATH`. Upgrade with `brew upgrade herdr`, never `herdr update`.
+herdr comes from the Brewfile as a formula. `version_check` is off in [`home/.config/herdr/config.toml`](home/.config/herdr/config.toml): herdr's self-updater would fetch its own build into `~/.local/bin` and shadow the brew binary on `PATH`. Upgrade with `brew upgrade herdr`, never `herdr update`.
 
 ## Warp
 
@@ -477,6 +477,12 @@ Warp is still installed but no longer the daily terminal — it has no AeroSpace
 - [`home/.warp/tab_configs/startup_config.toml`](home/.warp/tab_configs/startup_config.toml) — what a new tab opens with
 
 `~/.warp/remote-server/` is deliberately left alone: it is a 300 MB bundled binary plus SQLite state, not config. Note that `is_settings_sync_enabled = true` means Warp also syncs settings to its own account, so the cloud copy can win — if a setting mysteriously reverts, that is why.
+
+### Files and editing
+
+`Cmd+B` runs the `sidebar` tool, which toggles a [Fresh](https://getfresh.dev/) pane at the git root. Fresh's own file explorer does the listing and editing happens in the same pane.
+
+This replaced the herdr-sidebar plugin. Its viewer was read-only and handed off to an editor anyway, so the pane was a detour; Fresh does both. The plugin's source-control view has no replacement — `gh dash` covers PRs, and git itself is at the prompt.
 
 ## Tinycast
 
