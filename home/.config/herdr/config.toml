@@ -1,0 +1,69 @@
+onboarding = false
+
+[update]
+# herdr is installed with Homebrew now, so its self-updater would fetch its own
+# build into ~/.local/bin and shadow the brew binary on PATH. Upgrade with
+# `brew upgrade herdr` instead of `herdr update`.
+version_check = false
+
+# Layered on the default catppuccin base
+[theme.custom]
+sidebar_bg    = "#181825"   # mantle - sidebar sits darker than the pane area
+active_row_bg = "#313244"   # surface0 - the focused space reads as selected
+
+[ui]
+status_indicators = "symbols"
+hide_tab_bar_when_single_tab = true
+show_agent_labels_on_pane_borders = true
+
+[ui.toast]
+delivery = "terminal"
+
+# Separate space entries by weight, not blank rows
+[ui.sidebar.spaces]
+row_gap = 1
+rows = [
+  [{ token = "state_icon" }, { token = "workspace", bold = true }],
+  [{ token = "branch", dim = true }, { token = "git_status", dim = true }],
+]
+
+[keys]
+
+# Warp-style tabs
+new_tab      = "cmd+t"
+close_tab    = ""   # unbound - close tabs via right-click menu
+previous_tab = "cmd+["
+next_tab     = "cmd+]"
+switch_tab   = "cmd+1..9"
+
+# Spaces
+switch_workspace   = "cmd+shift+1..9"
+previous_workspace = "cmd+shift+["
+next_workspace     = "cmd+shift+]"
+
+# Warp-style splits
+split_vertical   = "cmd+d"
+split_horizontal = "cmd+shift+d"
+
+# Pane movement
+focus_pane_left  = "cmd+alt+left"
+focus_pane_down  = "cmd+alt+down"
+focus_pane_up    = "cmd+alt+up"
+focus_pane_right = "cmd+alt+right"
+
+# Pane controls
+zoom = "cmd+shift+enter"
+
+# Keep prefix around only as an escape hatch
+prefix = "ctrl+b"
+
+# Plugin actions
+[[keys.command]]
+key = "cmd+p"
+type = "shell"
+command = "herdr plugin action invoke quick-open --plugin herdr-sidebar"
+
+[[keys.command]]
+key = "cmd+b"
+type = "shell"
+command = "herdr plugin action invoke open-sidebar --plugin herdr-sidebar"

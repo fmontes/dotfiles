@@ -27,6 +27,21 @@ else
   fi
 fi
 
+# ─── herdr sidebar plugin ────────────────────────────────────────────────────
+# herdr itself comes from the Brewfile, but its plugins are installed at
+# runtime — the manifest in ~/.config/herdr/plugins.json points at a checkout
+# that gets built on install, so a fresh machine has to fetch it again.
+if command -v herdr &>/dev/null; then
+  if herdr plugin list 2>/dev/null | grep -q herdr-sidebar; then
+    echo "herdr-sidebar already installed."
+  else
+    echo "Installing herdr-sidebar plugin..."
+    herdr plugin install -y alexarthurs/herdr-sidebar/plugins/herdr-sidebar || echo "herdr-sidebar install failed — run 'herdr plugin install alexarthurs/herdr-sidebar/plugins/herdr-sidebar' manually."
+  fi
+else
+  echo "herdr not available yet — install the Brewfile first, then run 'herdr plugin install alexarthurs/herdr-sidebar/plugins/herdr-sidebar'."
+fi
+
 # ─── Global npm packages ─────────────────────────────────────────────────────
 if command -v npm &>/dev/null; then
   echo "Installing global npm packages..."
