@@ -39,7 +39,7 @@ The script will:
 4. Install Oh My Zsh
 5. Set up mise and install Node and Python
 6. Apply macOS defaults
-7. Install gh-dash and the herdr sidebar plugin, global npm packages, fix permissions, set up the VS Code CLI
+7. Install gh-dash and the herdr sidebar plugin, global npm packages, restore Tinycast settings, fix permissions, set up the VS Code CLI
 8. Sync AI agent config to every platform with `chai`
 
 ## After running install.sh
@@ -51,7 +51,7 @@ These steps require human interaction and can't be automated:
 - Update `~/.gitconfig` with your name and email
 - Run `gh auth login`
 - Run `atuin login` (optional, for cross-machine history sync)
-- Sign in to Tinycast and set up its hotkeys
+- Launch Tinycast — its hotkeys and aliases are restored by the installer, but grant it Accessibility access so the hyper key works
 
 ## Aliases
 
@@ -132,6 +132,7 @@ These steps require human interaction and can't be automated:
 | `eza` | Modern `ls` with icons and git status |
 | `fd` | Faster `find` |
 | `ffmpeg` | Audio/video processing |
+| `ffmpeg@7` | ffmpeg 7, force-linked over 8 — `ffmpeg` on `PATH` is this one |
 | `flyctl` | Fly.io CLI |
 | `fresh-editor` | [Fresh](https://getfresh.dev/) — terminal editor for code editing and browsing |
 | `fzf` | Fuzzy finder (used by proj, atuin, zsh history) |
@@ -142,10 +143,14 @@ These steps require human interaction and can't be automated:
 | `jq` | JSON processor |
 | `just` | Task runner (used in dotCMS project) |
 | `lazydocker` | Terminal UI for Docker containers |
+| `librsvg` | SVG rendering — used by terminal image previews |
 | `mise` | Version manager for Node, Python, Java |
 | `mkcert` | Local SSL certificates |
 | `mole` | SSH tunnel manager |
 | `mprocs` | Run multiple processes in split panes |
+| `opencode` | AI coding agent for the terminal |
+| `poppler` | PDF rendering — used by terminal file previews |
+| `railway` | Railway CLI — deploys and service management |
 | `ripgrep` | Fast grep replacement |
 | `starship` | Cross-shell prompt |
 | `tlrc` | `tldr` client — simplified man pages |
@@ -452,7 +457,27 @@ before it can move any windows.
 
 ## Fresh
 
-[Fresh](https://getfresh.dev/) is the terminal editor used for code editing and browsing. Launch with `fresh .` from any project. No config file fiddling required.
+[Fresh](https://getfresh.dev/) is the terminal editor used for code editing and browsing. Launch with `fresh .` from any project.
+
+Copy is the one thing that needs help. fresh ships a macOS keymap built on `Cmd`, but it drops the super modifier when decoding CSI-u, so none of those bindings can fire inside a terminal. Ghostty therefore rewrites `Cmd+C` into `F13` (`keybind = cmd+c=csi:25~`) and [`home/.config/fresh/config.json`](home/.config/fresh/config.json) binds `F13` to copy. `Ctrl+Shift+C` would have been the obvious translation, but herdr encodes it as `^C` for panes that do not speak the Kitty keyboard protocol, which would have made `Cmd+C` send SIGINT to every shell. `Option+A` covers select all, since `Cmd+A` is dead for the same reason.
+
+The cost is Ghostty's and herdr's own `Cmd+C` selection copy. Both copy on select, so dragging a selection still lands it on the clipboard.
+
+## Terminal
+
+[Ghostty](https://ghostty.org/) is the outer window and [herdr](https://herdr.dev) runs inside it, owning tabs, panes, and agent workspaces. Ghostty's config unbinds the chords herdr wants ([`home/.config/ghostty/config`](home/.config/ghostty/config)) so they pass through instead of being handled twice.
+
+herdr comes from the Brewfile as a formula. Its plugins do not — they install at runtime, so `07-post-install.sh` fetches [herdr-sidebar](https://github.com/alexarthurs/herdr-sidebar) if it is missing. `version_check` is off in [`home/.config/herdr/config.toml`](home/.config/herdr/config.toml): herdr's self-updater would fetch its own build into `~/.local/bin` and shadow the brew binary on `PATH`. Upgrade with `brew upgrade herdr`, never `herdr update`.
+
+## Tinycast
+
+[Tinycast](https://github.com/abue-ammar/tinycast) is the launcher, and it also owns the Caps Lock hyper key. Its settings live in a cfprefsd-managed plist, which cannot be symlinked — the app rewrites it from memory — so they are exported into the repo instead:
+
+```bash
+./scripts/tinycast-export.sh   # after changing hotkeys, aliases, or custom commands
+```
+
+`07-post-install.sh` imports the result with `defaults import` on a new machine, before Tinycast first launches. Window positions, file bookmarks, and calendar UUIDs are stripped on export; hotkeys, launcher aliases, custom commands, and the hyper key travel.
 
 ## AI
 
@@ -512,6 +537,14 @@ dotfiles/
     └── .config/
         ├── aerospace/
         │   └── aerospace.toml # Tiling, window rules, keys
+        ├── fresh/
+        │   └── config.json   # Editor keybindings
+        ├── ghostty/
+        │   └── config        # Terminal, keys passed through to herdr
+        ├── herdr/
+        │   └── config.toml   # Panes, tabs, workspaces, theme
+        ├── tinycast/
+        │   └── com.tinycast.app.plist  # Exported, imported by post-install
         ├── zsh/
         │   └── aliases.zsh   # Git + misc aliases
         └── starship.toml     # Starship prompt config

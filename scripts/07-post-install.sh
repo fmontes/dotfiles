@@ -61,6 +61,21 @@ else
   echo "chai not available yet — run 'chai update && chai sync' after Homebrew finishes."
 fi
 
+# ─── Tinycast settings ───────────────────────────────────────────────────────
+# Hotkeys, the Caps Lock hyper key, launcher aliases, and custom commands live
+# in a cfprefsd-owned plist, so they are imported rather than symlinked. Do this
+# before launching Tinycast for the first time — a running app overwrites the
+# domain from memory. Re-capture with scripts/tinycast-export.sh.
+tinycast_plist="$HOME/.config/tinycast/com.tinycast.app.plist"
+if [[ -f "$tinycast_plist" ]]; then
+  if pgrep -qx Tinycast; then
+    echo "Tinycast is running — quit it and run 'defaults import com.tinycast.app $tinycast_plist' to restore its settings."
+  else
+    defaults import com.tinycast.app "$tinycast_plist"
+    echo "Tinycast settings imported."
+  fi
+fi
+
 # ─── Fix .netrc permissions ──────────────────────────────────────────────────
 if [[ -f "$HOME/.netrc" ]]; then
   chmod 600 "$HOME/.netrc"
@@ -92,7 +107,7 @@ echo "   https://github.com/settings/keys"
 echo "3. Update name and email in ~/.gitconfig"
 echo "4. gh auth login"
 echo "5. atuin login  (optional, for cross-machine history sync)"
-echo "6. Open Tinycast and set up its launcher hotkey"
+echo "6. Launch Tinycast and grant it Accessibility access (hotkeys are already restored)"
 echo "7. Grant AeroSpace Accessibility access, then relaunch it:"
 echo "   System Settings > Privacy & Security > Accessibility"
 echo "   Without it AeroSpace cannot move windows into their slots."
