@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+#
+# dotfiles — open the dotfiles repo in a new editor window.
+#
+# Usage:
+#   dotfiles
+set -euo pipefail
+
+usage() { awk 'NR>2 && /^#/ { sub(/^# ?/, ""); print; next } NR>2 { exit }' "$0"; }
+[[ ${1:-} == "-h" || ${1:-} == "--help" ]] && { usage; exit 0; }
+
+# ~/.dotfiles is the anchor the installer creates, so this works wherever the
+# repo was actually cloned.
+code --new-window "$HOME/.dotfiles"

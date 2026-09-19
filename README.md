@@ -490,6 +490,42 @@ A `pre-commit` hook in [`.githooks/`](.githooks/) runs that for you and stages t
 
 `07-post-install.sh` imports the result with `defaults import` on a new machine, before Tinycast first launches. Window positions, file bookmarks, and calendar UUIDs are stripped on export; hotkeys, launcher aliases, custom commands, and the hyper key travel.
 
+## CLI tools
+
+Standalone commands live in [`home/.local/bin/`](home/.local/bin/) and are symlinked onto `PATH` by `03-symlinks.sh`. Run `tools` to see what is installed:
+
+```
+$ tools
+Tools (~/.dotfiles/home/.local/bin)
+  aliases            show the shell aliases and functions this machine defines.
+  dotfiles           open the dotfiles repo in a new editor window.
+  gcleanbranches     delete local branches whose remote is gone.
+  ...
+Also on PATH here, installed elsewhere: claude test-sdk yellit
+```
+
+`tools` resolves each symlink and only claims the ones pointing into this repo, so anything a native installer drops into `~/.local/bin` is listed separately rather than mixed in.
+
+### Adding one
+
+```bash
+new-tool my-thing "what it does"
+```
+
+That writes the script, makes it executable, and symlinks it so it works immediately — no installer re-run. The convention it scaffolds:
+
+- `#!/usr/bin/env bash` and `set -euo pipefail`
+- line 3 is `# <name> — <one-line description>`, which is what `tools` reads, so documenting a tool and registering it are the same act
+- `--help` prints the header block
+
+### What stays a shell function
+
+A script runs in a child process, so anything that has to change the *calling* shell cannot be a tool. That is `proj` (it `cd`s) and `zreload` (it sources `.zshrc`). Plain aliases stay too — `gs` as a script would be slower and lose completion.
+
+### When a tool outgrows this
+
+Small, personal, bash, machine-shaped tools belong here. A tool that needs dependencies, a build step, tests, or its own versioning — or that someone else would install on its own — gets its own repo and a real distribution channel, then comes back as a line in the `Brewfile` or the npm list in `07-post-install.sh`. That is how `chai` and `yellit` already work.
+
 ## AI
 
 All AI agent config lives in [`ai/`](ai/) as a single source of truth:
@@ -544,8 +580,10 @@ dotfiles/
     ├── .zshrc
     ├── .gitconfig
     ├── chai.toml             # AI config sync manifest (~/chai.toml)
-    ├── .local/bin/
-    │   └── restore-layout    # Reset apps onto workspaces 1-5
+    ├── .local/bin/          # Standalone commands — run `tools` to list them
+    │   ├── new-tool          # Scaffold a new one
+    │   ├── restore-layout    # Reset apps onto workspaces 1-5
+    │   └── tools             # List what is installed
     ├── .warp/
     │   ├── settings.toml     # Agent profiles, redaction, appearance
     │   └── tab_configs/      # What a new tab opens with
