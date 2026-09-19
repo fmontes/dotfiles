@@ -480,9 +480,9 @@ Warp is still installed but no longer the daily terminal — it has no AeroSpace
 
 ### Files and editing
 
-`Cmd+B` runs the `sidebar` tool, which toggles a [Fresh](https://getfresh.dev/) pane at the git root. Fresh's own file explorer does the listing and editing happens in the same pane.
+`Cmd+B` runs the `sidebar` tool, which toggles a [Fresh](https://getfresh.dev/) tab at the git root — one per workspace, labelled `Fresh`. It opens the tab if it is missing, focuses it if it is open elsewhere, and closes it if you are already looking at it. Fresh's own file explorer does the listing and editing happens in the same window.
 
-This replaced the herdr-sidebar plugin. Its viewer was read-only and handed off to an editor anyway, so the pane was a detour; Fresh does both. The plugin's source-control view has no replacement — `gh dash` covers PRs, and git itself is at the prompt.
+This replaced the herdr-sidebar plugin. Its viewer was read-only and handed off to an editor anyway, so browsing a file meant a pane that could not edit it; Fresh does both. The plugin's source-control view has no replacement — `gh dash` covers PRs, and git itself is at the prompt.
 
 ## Tinycast
 

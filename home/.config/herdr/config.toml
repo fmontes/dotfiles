@@ -57,7 +57,7 @@ zoom = "cmd+shift+enter"
 # Keep prefix around only as an escape hatch
 prefix = "ctrl+b"
 
-# File explorer and editing: the Fresh editor in a pane, toggled by the
+# File explorer and editing: the Fresh editor in a tab, toggled by the
 # `sidebar` tool. This replaced the herdr-sidebar plugin, whose viewer was
 # read-only and handed off to an editor anyway.
 #

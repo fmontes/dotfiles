@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 #
-# sidebar — toggle a Fresh editor pane for browsing and editing files.
+# sidebar — toggle a Fresh editor tab for browsing and editing files.
 #
 # Replaces the herdr-sidebar plugin. Fresh's own file explorer does the
-# listing and editing happens in the same pane, instead of a read-only viewer
-# that hands off to an editor. Press again to close it — Fresh keeps unsaved
-# buffers and restores them next time.
+# listing and editing happens in the same window, instead of a read-only
+# viewer that hands off to an editor.
+#
+# One tab per workspace, labelled Fresh: open it if missing, focus it if it
+# is open elsewhere, close it if you are already looking at it.
 #
 # Opens at the git root when there is one, otherwise the pane's directory.
 #
@@ -23,39 +25,46 @@ command -v herdr >/dev/null 2>&1 || { echo "herdr is not installed" >&2; exit 1;
 # HERDR_PANE_ID is set inside a pane, but a herdr keybinding runs its command
 # detached without it — and `pane current` needs it too. So resolve the pane
 # from the list, which carries `focused`, and address every call by id.
-read -r pane tab < <(
+read -r pane workspace cwd < <(
   herdr pane list | HERDR_WANT="${HERDR_PANE_ID:-}" python3 -c '
 import sys, json, os
 panes = json.load(sys.stdin)["result"]["panes"]
 want = os.environ.get("HERDR_WANT") or ""
 p = next((x for x in panes if x["pane_id"] == want), None) \
     or next((x for x in panes if x.get("focused")), None)
-print(p["pane_id"], p["tab_id"]) if p else sys.exit(1)
+if not p:
+    sys.exit(1)
+print(p["pane_id"], p["workspace_id"], p.get("foreground_cwd") or p.get("cwd") or "")
 '
 ) || { echo "No herdr pane to work from" >&2; exit 1; }
 
-existing=$(herdr pane list | python3 -c '
+read -r tab focused < <(
+  herdr tab list --workspace "$workspace" | python3 -c '
 import sys, json
-tab, label = sys.argv[1], sys.argv[2]
-panes = json.load(sys.stdin)["result"]["panes"]
-print(next((p["pane_id"] for p in panes
-            if p.get("tab_id") == tab and p.get("label") == label), ""))
-' "$tab" "$LABEL")
+label = sys.argv[1]
+t = next((t for t in json.load(sys.stdin)["result"]["tabs"]
+          if t.get("label") == label), None)
+print(t["tab_id"], str(bool(t.get("focused"))).lower()) if t else print("", "")
+' "$LABEL"
+)
 
-if [[ -n $existing ]]; then
-  herdr pane close "$existing" >/dev/null
-  echo "Closed $existing"
+if [[ -n $tab ]]; then
+  if [[ $focused == true ]]; then
+    herdr tab close "$tab" >/dev/null
+    echo "Closed $tab"
+  else
+    herdr tab focus "$tab" >/dev/null
+    echo "Focused $tab"
+  fi
   exit 0
 fi
 
-cwd=$(herdr pane get "$pane" | python3 -c 'import sys,json; print(json.load(sys.stdin)["result"]["pane"].get("foreground_cwd") or "")')
 root=$(git -C "${cwd:-$PWD}" rev-parse --show-toplevel 2>/dev/null || echo "${cwd:-$PWD}")
 
-new=$(herdr pane split "$pane" --direction right --ratio 0.4 --cwd "$root" \
-  | python3 -c 'import sys,json; print(json.load(sys.stdin)["result"]["pane"]["pane_id"])')
+new=$(herdr tab create --workspace "$workspace" --label "$LABEL" --cwd "$root" --focus \
+  | python3 -c 'import sys,json; d=json.load(sys.stdin)["result"]; print(d["root_pane"]["pane_id"])')
 
-herdr pane rename "$new" "$LABEL" >/dev/null
 # --no-restore so it opens on the directory rather than whatever buffers were
 # last open; unsaved work is recovered either way.
 herdr pane run "$new" fresh --no-restore . >/dev/null
-echo "Opened $new at $root"
+echo "Opened $LABEL tab at $root"
