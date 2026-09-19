@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+#
+# new-tool — scaffold a new CLI tool in the dotfiles repo.
+#
+# Writes the script with the header convention `tools` reads, makes it
+# executable, and symlinks it onto PATH so it works immediately — no need to
+# re-run the installer.
+#
+# Usage:
+#   new-tool <name> [description]
+set -euo pipefail
+
+usage() { awk 'NR>2 && /^#/ { sub(/^# ?/, ""); print; next } NR>2 { exit }' "$0"; }
+[[ ${1:-} == "-h" || ${1:-} == "--help" || -z ${1:-} ]] && { usage; exit 0; }
+
+name="$1"
+desc="${2:-what this tool does}"
+
+if [[ ! $name =~ ^[a-z][a-z0-9-]*$ ]]; then
+  echo "Name must be lowercase letters, digits and dashes: got '$name'" >&2
+  exit 1
+fi
+
+self="$(cd "$(dirname "$(readlink "$0" || echo "$0")")" && pwd -P)"
+dest="$self/$name"
+link="$HOME/.local/bin/$name"
+
+[[ -e $dest ]] && { echo "$dest already exists" >&2; exit 1; }
+if command -v "$name" >/dev/null 2>&1; then
+  echo "Warning: '$name' already resolves to $(command -v "$name")" >&2
+fi
+
+cat > "$dest" <<EOF
+#!/usr/bin/env bash
+#
+# $name — $desc
+#
+# Usage:
+#   $name
+set -euo pipefail
+
+usage() { awk 'NR>2 && /^#/ { sub(/^# ?/, ""); print; next } NR>2 { exit }' "\$0"; }
+[[ \${1:-} == "-h" || \${1:-} == "--help" ]] && { usage; exit 0; }
+
+echo "TODO: write $name"
+EOF
+
+chmod +x "$dest"
+ln -sfn "$dest" "$link"
+
+echo "Created $dest"
+echo "Linked  $link"
+echo
+echo "Edit it, then commit. Keep the '# $name — ...' line: that is what \`tools\` lists."

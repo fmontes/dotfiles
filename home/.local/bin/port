@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+#
+# port — show what is listening on a port.
+#
+# Usage:
+#   port 3000
+set -euo pipefail
+
+usage() { awk 'NR>2 && /^#/ { sub(/^# ?/, ""); print; next } NR>2 { exit }' "$0"; }
+[[ ${1:-} == "-h" || ${1:-} == "--help" || -z ${1:-} ]] && { usage; exit 0; }
+
+# grep exits 1 with no match, which under `set -e` would kill the script before
+# it could say anything useful.
+found=$(lsof -i ":$1" | grep LISTEN || true)
+if [[ -z $found ]]; then
+  echo "Nothing listening on port $1"
+  exit 1
+fi
+echo "$found"

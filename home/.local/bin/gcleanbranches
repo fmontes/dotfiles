@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+#
+# gcleanbranches — delete local branches whose remote is gone.
+#
+# Usage:
+#   gcleanbranches
+set -euo pipefail
+
+usage() { awk 'NR>2 && /^#/ { sub(/^# ?/, ""); print; next } NR>2 { exit }' "$0"; }
+[[ ${1:-} == "-h" || ${1:-} == "--help" ]] && { usage; exit 0; }
+
+git rev-parse --git-dir >/dev/null 2>&1 || { echo "Not a git repository"; exit 1; }
+
+git fetch -p
+gone=$(git branch -vv | grep ': gone]' | awk '{print $1}' || true)
+if [[ -z $gone ]]; then
+  echo "No branches to clean"
+  exit 0
+fi
+echo "$gone" | xargs git branch -d
