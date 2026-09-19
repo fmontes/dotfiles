@@ -17,4 +17,14 @@ if ! git diff --quiet -- "$plist" 2>/dev/null; then
   echo "pre-commit: Tinycast settings changed, staged $plist"
 fi
 
+# Apps sometimes replace a config rather than writing through it, which turns a
+# symlink back into a regular file and silently ends tracking — Warp syncs its
+# settings from its own cloud, so it is the likeliest to do this. Warn, never
+# block: a missing destination just means that file is not installed here.
+git ls-files home/ | while read -r f; do
+  dest="$HOME/${f#home/}"
+  [[ -e "$dest" ]] || continue
+  [[ -L "$dest" ]] || echo "pre-commit: warning — $dest is a real file, no longer linked to $f"
+done
+
 exit 0
