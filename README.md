@@ -39,7 +39,7 @@ The script will:
 4. Install Oh My Zsh
 5. Set up mise and install Node and Python
 6. Apply macOS defaults
-7. Install gh-dash, global npm packages, fix permissions, set up the VS Code CLI
+7. Install gh-dash and the herdr sidebar plugin, global npm packages, fix permissions, set up the VS Code CLI
 8. Sync AI agent config to every platform with `chai`
 
 ## After running install.sh
@@ -125,6 +125,7 @@ These steps require human interaction and can't be automated:
 | `atuin` | Shell history with search and optional sync |
 | `bat` | `cat` with syntax highlighting |
 | `btop` | Resource monitor (CPU, memory, processes) |
+| `chai` | Sync AI agent config across platforms — `charliesbot/tap`, not the unrelated `chai` cask |
 | `cloudflared` | Cloudflare tunnel client |
 | `deno` | JavaScript/TypeScript runtime |
 | `dust` | Visual `du` — disk usage by directory |
@@ -159,7 +160,6 @@ These steps require human interaction and can't be automated:
 |---|---|
 | `1password-cli` | 1Password CLI |
 | `aerospace` | Tiling window manager, drives the desktop layout |
-| `chai` | Sync AI agent config across platforms |
 | `chromedriver` | Headless driver for Puppeteer |
 | `chromium` | Puppeteer's browser (cask disabled 2026-09-01) |
 | `codex` | OpenAI Codex CLI |
