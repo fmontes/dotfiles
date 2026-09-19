@@ -19,6 +19,7 @@ This clones the repo to `~/.dotfiles` and runs the installer.
 - **mise** for managing Node, Python, and Java versions
 - **[AeroSpace](https://nikitabobko.github.io/AeroSpace/)** for an Omarchy-style tiling desktop with generic workspaces
 - **[Fresh](https://getfresh.dev/)** for terminal code editing and browsing
+- **[Ghostty](https://ghostty.org/)** as the terminal, running **[herdr](https://herdr.dev)** for panes, tabs, and agent workspaces
 - **[AI](ai/)** skills, instructions, and subagents for agentic coding harnesses
 - **macOS defaults** for Dock, Finder, keyboard
 
@@ -50,7 +51,7 @@ These steps require human interaction and can't be automated:
 - Update `~/.gitconfig` with your name and email
 - Run `gh auth login`
 - Run `atuin login` (optional, for cross-machine history sync)
-- Sign in to Raycast to restore extensions
+- Sign in to Tinycast and set up its hotkeys
 
 ## Aliases
 
@@ -134,6 +135,7 @@ These steps require human interaction and can't be automated:
 | `fresh-editor` | [Fresh](https://getfresh.dev/) — terminal editor for code editing and browsing |
 | `fzf` | Fuzzy finder (used by proj, atuin, zsh history) |
 | `gh` | GitHub CLI |
+| `herdr` | [herdr](https://herdr.dev) — agent multiplexer that owns terminal tabs, panes, and workspaces |
 | `git-delta` | Syntax-highlighted git diffs |
 | `imagemagick` | Image processing |
 | `jq` | JSON processor |
@@ -161,9 +163,10 @@ These steps require human interaction and can't be automated:
 | `chromedriver` | Headless driver for Puppeteer |
 | `chromium` | Puppeteer's browser (cask disabled 2026-09-01) |
 | `codex` | OpenAI Codex CLI |
+| `ghostty` | Terminal — the outer window herdr runs in |
 | `google-chrome` | Browser — two profiles, Work and personal |
 | `orbstack` | Lightweight Docker alternative |
-| `raycast` | Command launcher, still handles ad-hoc window resizing |
+| `tinycast` | Command launcher, hotkeys, and clipboard history |
 | `slack` | Chat |
 | `visual-studio-code` | Code editor |
 | `warp` | Terminal — tiles into whichever workspace has focus |

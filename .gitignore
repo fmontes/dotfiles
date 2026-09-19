@@ -5,7 +5,6 @@ home/.netrc
 
 # Auth tokens
 home/.config/gh/hosts.yml
-home/.config/raycast/
 
 # Client-specific aliases
 home/.config/zsh/aliases.clients.zsh

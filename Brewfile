@@ -1,3 +1,4 @@
+tap "abue-ammar/tinycast"
 tap "charliesbot/tap"
 tap "nikitabobko/tap"
 tap "tobi/try", "https://github.com/tobi/try"
@@ -17,6 +18,7 @@ brew "ffmpeg"
 brew "flyctl"
 brew "fzf"
 brew "gh"
+brew "herdr"
 brew "imagemagick"
 brew "jq"
 brew "just"
@@ -44,8 +46,9 @@ cask "1password-cli"
 cask "chai"
 cask "chromedriver"
 cask "codex"
+cask "ghostty"
 cask "orbstack"
-cask "raycast"
+cask "tinycast"
 
 # Puppeteer's headless browser (PUPPETEER_EXECUTABLE_PATH in .zshrc), not part
 # of the desktop layout. Heads up: this cask is deprecated for failing the macOS
