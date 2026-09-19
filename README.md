@@ -469,6 +469,15 @@ The cost is Ghostty's and herdr's own `Cmd+C` selection copy. Both copy on selec
 
 herdr comes from the Brewfile as a formula. Its plugins do not — they install at runtime, so `07-post-install.sh` fetches [herdr-sidebar](https://github.com/alexarthurs/herdr-sidebar) if it is missing. `version_check` is off in [`home/.config/herdr/config.toml`](home/.config/herdr/config.toml): herdr's self-updater would fetch its own build into `~/.local/bin` and shadow the brew binary on `PATH`. Upgrade with `brew upgrade herdr`, never `herdr update`.
 
+## Warp
+
+Warp is still installed but no longer the daily terminal — it has no AeroSpace slot and lands in overflow. Its config is tracked anyway, because rebuilding those agent permission lists by hand would be miserable:
+
+- [`home/.warp/settings.toml`](home/.warp/settings.toml) — agent execution profiles and command denylist, the secret-redaction regexes, appearance, the `Ctrl+'` dedicated-window hotkey
+- [`home/.warp/tab_configs/startup_config.toml`](home/.warp/tab_configs/startup_config.toml) — what a new tab opens with
+
+`~/.warp/remote-server/` is deliberately left alone: it is a 300 MB bundled binary plus SQLite state, not config. Note that `is_settings_sync_enabled = true` means Warp also syncs settings to its own account, so the cloud copy can win — if a setting mysteriously reverts, that is why.
+
 ## Tinycast
 
 [Tinycast](https://github.com/abue-ammar/tinycast) is the launcher, and it also owns the Caps Lock hyper key. Its settings live in a cfprefsd-managed plist, which cannot be symlinked — the app rewrites it from memory — so they are exported into the repo instead:
@@ -537,6 +546,9 @@ dotfiles/
     ├── chai.toml             # AI config sync manifest (~/chai.toml)
     ├── .local/bin/
     │   └── restore-layout    # Reset apps onto workspaces 1-5
+    ├── .warp/
+    │   ├── settings.toml     # Agent profiles, redaction, appearance
+    │   └── tab_configs/      # What a new tab opens with
     └── .config/
         ├── aerospace/
         │   └── aerospace.toml # Tiling, window rules, keys
