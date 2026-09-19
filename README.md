@@ -280,12 +280,7 @@ ones and are easy to miss — they were still enabled here after the plain ones 
 
 #### Why not Option, Caps, or Hyper
 
-Plain `Option` was the modifier first, and it cost `Option`+←/→ word navigation, which is used
-constantly. Caps Lock via Raycast's Hyper Key came next; Raycast's Hyper is fixed at
-`ctrl+alt+shift+cmd`, which consumes all four modifiers AeroSpace supports, so `Caps+Shift` was
-byte-identical to `Caps` and there was no second chord level — moving a window had to become a
-toggled mode. `Ctrl` has neither problem: `Shift` is free, so move is a plain chord, and the
-terminal keeps its control characters because plain `Ctrl` is confined to arrows and digits.
+Plain `Option` was the modifier first, and it cost `Option`+←/→ word navigation, which is used constantly. Caps Lock via a launcher's Hyper Key came next — Raycast was the launcher at the time, and its Hyper is fixed at `ctrl+alt+shift+cmd`, which consumes all four modifiers AeroSpace supports, so `Caps+Shift` was byte-identical to `Caps` and there was no second chord level, forcing moves into a toggled mode. `Ctrl` has neither problem: `Shift` is free, so move is a plain chord, and the terminal keeps its control characters because plain `Ctrl` is confined to arrows and digits. Tinycast is the launcher now and its hotkeys are freely assignable, but `Ctrl` has earned its place and there is no reason to revisit it.
 
 ### Window rules
 
@@ -294,6 +289,7 @@ workspace, and there is no catch-all.
 
 | App | Rule | Why |
 |---|---|---|
+| Ghostty | `layout tiling` | AeroSpace auto-floats it otherwise — [Ghostty's own docs](https://ghostty.org/docs/help/macos-tiling-wms#workarounds) recommend this for macOS tiling window managers |
 | Slack | `layout tiling` | macOS reports a huddle as a utility panel, which AeroSpace auto-floats. This hands it back to tiling so a huddle sits beside the channel instead of on top of it. |
 | MacWhisper | `layout tiling` | Auto-floated the same way — macOS does not report its window as an ordinary resizable one — but it tiles fine when told to |
 | System Settings | `layout floating` | Glanced at, not worked in |

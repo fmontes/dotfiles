@@ -179,9 +179,10 @@ PATH = '${HOME}/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:${PATH}'
 #
 # This replaced a Caps Lock/Hyper setup, which in turn replaced plain Option.
 # Option was abandoned because it ate Option+arrow word navigation; Hyper was
-# abandoned because Raycast's Hyper contains Shift, leaving no second chord
-# level and forcing moves into a mode. Ctrl has neither problem: Shift is free,
-# so move is a plain chord again.
+# abandoned because the launcher's Hyper contains Shift, leaving no second
+# chord level and forcing moves into a mode. That launcher was Raycast, since
+# replaced by Tinycast, but Ctrl had already won on its own merits: Shift is
+# free, so move is a plain chord again.
 #
 # ── macOS conflict to be aware of ────────────────────────────────────────────
 # System Settings → Keyboard → Keyboard Shortcuts → Mission Control owns some
@@ -312,3 +313,10 @@ ctrl-shift-semicolon = 'mode service'
 [mode.service.binding]
 esc = ['reload-config', 'mode main']
 r = ['flatten-workspace-tree', 'mode main']
+
+# https://ghostty.org/docs/help/macos-tiling-wms#workarounds
+[[on-window-detected]]
+if.app-id="com.mitchellh.ghostty"
+run= [
+  "layout tiling",
+]
