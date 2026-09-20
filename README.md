@@ -469,6 +469,8 @@ The cost is Ghostty's and herdr's own `Cmd+C` selection copy. Both copy on selec
 
 herdr comes from the Brewfile as a formula, but its plugins install at runtime, so `07-post-install.sh` fetches [annotate](https://github.com/plannotator/herdr-annotate) if it is missing. [automatic-rename](https://github.com/qu8n/herdr-automatic-rename) names tabs after their directory, git branch and running program — `[2] api › feat/oauth › nvim` — which is why `prompt_new_tab_name` is off: there is nothing to type. It renames on herdr events, plus a `.zshrc` hook so a tab also renames the moment a command starts.
 
+`Cmd+L` toggles [reviewr](https://github.com/persiyanov/herdr-reviewr): diffs with comments on a line *or a range*, a changed-file browser, and a read-only mirror of the branch's PR through `gh`. That covers the two things Fresh's own review cannot — its comments anchor to a single line, and its Git Log is per-commit with no branch-level file list.
+
 `Cmd+Option+A` opens annotate's review UI over the focused pane's folder. It also registers a link handler for `^file://.*\.(md|markdown|mdx)$`, so **Ctrl-clicking any Markdown path in any pane** opens it in plannotator-tui. The rest of its actions stay on the CLI — `herdr plugin action invoke capture --plugin annotate` comments on a terminal selection, which is how a remark can cover a block of lines at all, since Fresh's review comments anchor to a single one. `version_check` is off in [`home/.config/herdr/config.toml`](home/.config/herdr/config.toml): herdr's self-updater would fetch its own build into `~/.local/bin` and shadow the brew binary on `PATH`. Upgrade with `brew upgrade herdr`, never `herdr update`.
 
 ## Warp
