@@ -55,5 +55,10 @@ else
   echo "overwrite an app it does not track. Hand it over with"
   echo "  brew install --cask --adopt <name>"
   echo "(--adopt only works as a flag; HOMEBREW_CASK_OPTS does not carry it.)"
+  echo ""
+  echo "If that adopt then fails with 'chgrp: ... Operation not permitted', macOS is"
+  echo "blocking it, not sudo: modifying another app's bundle needs App Management."
+  echo "Grant it to this terminal under System Settings > Privacy & Security >"
+  echo "App Management, or just delete the app and let Homebrew install it fresh."
   echo "Continuing with the rest of the install."
 fi
