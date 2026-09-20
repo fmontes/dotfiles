@@ -26,12 +26,14 @@ delivery = "terminal"
 # Separate space entries by weight, not blank rows
 [ui.sidebar.spaces]
 row_gap = 1
+# Explicit catppuccin greys rather than dim: dim multiplies the theme's own
+# muted colour and the second and third rows came out barely legible.
 rows = [
   [{ token = "state_icon" }, { token = "workspace", bold = true }],
-  [{ token = "branch", dim = true }, { token = "git_status", dim = true }],
+  [{ token = "branch", fg = "#7f849c" }, { token = "git_status", fg = "#7f849c" }],
   # Reported by the pr-watch LaunchAgent; absent on workspaces with no PR.
   # #number, then checks (✓ green / ✗ failing / ⋯ running) and review (● approved / ○ not).
-  [{ token = "$pr", dim = true }],
+  [{ token = "$pr", fg = "#a6adc8" }],
 ]
 
 [keys]
