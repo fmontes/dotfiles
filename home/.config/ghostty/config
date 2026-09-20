@@ -3,6 +3,11 @@ shell-integration = none
 # right option stays free for composing accented characters
 macos-option-as-alt = left
 
+# No title bar. It showed "Mac5.local: [1] dot/a11y" — the host, and a
+# workspace herdr already names in its sidebar and tab bar — for a whole row
+# of vertical space.
+macos-titlebar-style = hidden
+
 # Ghostty rewrites opt+arrows into esc:b / esc:f — the old readline word-motion
 # convention. Fresh reads esc+f as alt+f, which is its File menu mnemonic, so
 # opt+right opened a menu instead of moving a word. Unbound, the real
