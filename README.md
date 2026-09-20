@@ -165,8 +165,6 @@ These steps require human interaction and can't be automated:
 |---|---|
 | `1password-cli` | 1Password CLI |
 | `aerospace` | Tiling window manager, drives the desktop layout |
-| `chromedriver` | Headless driver for Puppeteer |
-| `chromium` | Puppeteer's browser (cask disabled 2026-09-01) |
 | `codex` | OpenAI Codex CLI |
 | `ghostty` | Terminal — the outer window herdr runs in |
 | `google-chrome` | Browser — two profiles, Work and personal |
