@@ -38,8 +38,14 @@ if command -v herdr &>/dev/null; then
     echo "Installing herdr annotate plugin..."
     herdr plugin install plannotator/herdr-annotate -y || echo "annotate install failed — run 'herdr plugin install plannotator/herdr-annotate' manually."
   fi
+  if herdr plugin list 2>/dev/null | grep -q herdr-automatic-rename; then
+    echo "herdr automatic-rename plugin already installed."
+  else
+    echo "Installing herdr automatic-rename plugin..."
+    herdr plugin install qu8n/herdr-automatic-rename --yes || echo "automatic-rename install failed — run 'herdr plugin install qu8n/herdr-automatic-rename --yes' manually."
+  fi
 else
-  echo "herdr not available yet — install the Brewfile first, then run 'herdr plugin install plannotator/herdr-annotate'."
+  echo "herdr not available yet — install the Brewfile first, then run 'herdr plugin install plannotator/herdr-annotate' and 'herdr plugin install qu8n/herdr-automatic-rename'."
 fi
 
 # ─── Global npm packages ─────────────────────────────────────────────────────

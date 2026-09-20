@@ -43,6 +43,14 @@ bindkey '^[[1;3C' forward-word
 bindkey '^[[H' beginning-of-line
 bindkey '^[[F' end-of-line
 
+# ─── herdr automatic tab naming ─────────────────────────────────────────────
+# The plugin renames tabs on herdr events, but a tab should also rename the
+# moment a command starts, which only the shell can see. The glob carries the
+# plugin's install hash, so (N) keeps a reinstall from erroring on no match.
+for _f in ${HOME}/.config/herdr/plugins/github/herdr-automatic-rename-*/shell/hook.zsh(N); do
+  source $_f; break
+done
+
 # ─── PATH ───────────────────────────────────────────────────────────────────
 export PATH="$HOME/.local/bin:$PATH"   # claude and other native-installer bins
 export PATH="/opt/homebrew/opt/ruby/bin:$PATH"
