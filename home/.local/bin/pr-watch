@@ -47,18 +47,29 @@ def repo_root(path):
     return r.stdout.strip() if r.returncode == 0 else None
 
 
+NO_PR = "no-pr"
+LOOKUP_FAILED = "lookup-failed"
+
+
 def pr_for(root):
-    """The branch's PR, or None. gh exits non-zero when there is no PR."""
+    """The branch's PR, NO_PR, or LOOKUP_FAILED.
+
+    gh exits non-zero both when a branch genuinely has no PR and when the
+    network, auth or rate limit fails. Treating those the same wiped the
+    sidebar and the comparison baseline on a single bad poll, so the next
+    success looked like a fresh change.
+    """
     r = subprocess.run(
         ["gh", "pr", "view", "--json",
          "number,state,isDraft,reviewDecision,mergeable,statusCheckRollup,url"],
         cwd=root, capture_output=True, text=True)
     if r.returncode != 0:
-        return None
+        err = (r.stderr or "").lower()
+        return NO_PR if "no pull requests found" in err or "no open pull requests" in err else LOOKUP_FAILED
     try:
         return json.loads(r.stdout)
     except json.JSONDecodeError:
-        return None
+        return LOOKUP_FAILED
 
 
 PASS = {"SUCCESS", "NEUTRAL", "SKIPPED", "EXPECTED"}
@@ -106,18 +117,18 @@ def unresolved_threads(pr, cwd):
     url = pr.get("url") or ""
     parts = url.split("/")
     if len(parts) < 5:
-        return 0
+        return None
     owner, repo = parts[-4], parts[-3]
     r = subprocess.run(
         ["gh", "api", "graphql", "-f", f"query={THREADS_QUERY}",
          "-F", f"owner={owner}", "-F", f"repo={repo}", "-F", f"number={pr['number']}"],
         cwd=cwd, capture_output=True, text=True)
     if r.returncode != 0:
-        return 0
+        return None
     try:
         nodes = json.loads(r.stdout)["data"]["repository"]["pullRequest"]["reviewThreads"]["nodes"]
     except (json.JSONDecodeError, KeyError, TypeError):
-        return 0
+        return None
     return sum(1 for t in nodes if not t.get("isResolved"))
 
 
@@ -139,7 +150,12 @@ def summarise(pr, threads=0):
     pending = verdicts.count("pending")
     decision = (pr.get("reviewDecision") or "").lower()
 
-    if pr.get("mergeable") == "CONFLICTING":
+    state = (pr.get("state") or "").upper()
+    if state and state != "OPEN":
+        # Merged and closed PRs are not blockers; without this a merged PR sat
+        # in the sidebar reading "needs review" forever.
+        sev, word = READY, state.lower()
+    elif pr.get("mergeable") == "CONFLICTING":
         sev, word = BLOCKED, "conflicts"
     elif failed:
         sev, word = BLOCKED, f"{failed} failing"
@@ -181,7 +197,9 @@ def changed(old, new):
         return "comments resolved"
     if new.get("failed", 0) and not old.get("failed", 0):
         return f"{new['failed']} check(s) failing"
-    if old.get("failed", 0) and not new.get("failed", 0) and not new.get("pending", 0):
+    settled = not new.get("failed", 0) and not new.get("pending", 0)
+    was_unsettled = old.get("failed", 0) or old.get("pending", 0)
+    if settled and was_unsettled:
         return "checks green"
     if old.get("state") != new.get("state"):
         return f"{(new.get('state') or '').lower()}"
@@ -215,7 +233,13 @@ def main():
         if not root:
             continue
         pr = pr_for(root)
-        if not pr:
+        if pr == LOOKUP_FAILED:
+            # Carry the previous reading forward untouched: a failed poll is not
+            # evidence that anything changed.
+            if ws in previous:
+                current[ws] = previous[ws]
+            continue
+        if pr == NO_PR:
             herdr("workspace", "report-metadata", ws, "--source", SOURCE,
                   "--clear-token", TOKEN,
                   "--clear-token", f"{TOKEN}_{BLOCKED}",
@@ -223,7 +247,13 @@ def main():
                   "--clear-token", f"{TOKEN}_{READY}")
             continue
 
-        number, sev, word, state = summarise(pr, unresolved_threads(pr, root))
+        threads = unresolved_threads(pr, root)
+        if threads is None:
+            # Unknown, not zero — reporting zero would claim every thread was
+            # resolved and fire a false "comments resolved".
+            threads = previous.get(ws, {}).get("threads", 0)
+
+        number, sev, word, state = summarise(pr, threads)
         current[ws] = state
         args = ["workspace", "report-metadata", ws, "--source", SOURCE,
                 "--token", f"{TOKEN}={number}"]
