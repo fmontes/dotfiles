@@ -532,7 +532,9 @@ Warp is still installed but no longer the daily terminal — it has no AeroSpace
     #37582 ⋯ ○
 ```
 
-Marks, because a sidebar row has no width to spare: checks are `✓` green, `✗` failing, `⋯` still running, omitted when the repo has no CI; review is `●` approved or `◻` waiting; `≡n` counts unresolved review threads, which block merge on their own — an approved PR can still be waiting on them, and `gh pr view` does not expose them, so they come from a GraphQL query. `⚠` means the branch conflicts with its base.
+One word, coloured by severity, so there is no legend to learn: **red** is your problem, **yellow** is waiting on someone else, **green** can merge. Only the top blocker shows — `conflicts` → `n failing` → `changes requested` → `n comments` → `draft` → `running` → `needs review` → `ready`.
+
+`n comments` counts unresolved review threads, which block merge on their own: an approved PR with green checks can still be waiting on them. `gh pr view` has no field for these at all, so they come from a GraphQL query.
 
 It also fires a herdr notification when something actually changes — approved, changes requested, checks going red or green, a PR merging, a branch starting to conflict — so an approval or a failing run arrives rather than being discovered. State lives in `~/.local/state/pr-watch/state.json`; the first run is silent because there is nothing to compare against.
 

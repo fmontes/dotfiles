@@ -121,43 +121,49 @@ def unresolved_threads(pr, cwd):
     return sum(1 for t in nodes if not t.get("isResolved"))
 
 
+# One word, coloured by severity. Only the matching token is reported and the
+# other two are cleared, so the sidebar shows a single status with no legend to
+# remember: red is your problem, yellow is waiting on someone, green is done.
+BLOCKED, WAITING, READY = "blocked", "waiting", "ready"
+
+
 def summarise(pr, threads=0):
-    """Two marks and a number. Anything longer does not earn its width.
+    """Return (number, severity, word, state) — the top blocker only.
 
-    checks    ✓ green   ✗ failing   ⋯ still running   (omitted when no CI)
-    review    ● approved   ◻ waiting
-    comments  ≡n unresolved review threads   (omitted when none)
-
-    Glyphs are kept to ones that render at a single cell in a normal mono
-    font — ◷ was distorted and squeezed against the digit beside it.
+    Order matters: a PR with a conflict and a failing check is reported as
+    conflicting, because that is what you have to fix first.
     """
     checks = pr.get("statusCheckRollup") or []
     verdicts = [check_verdict(c) for c in checks]
     failed = verdicts.count("fail")
     pending = verdicts.count("pending")
-
-    bits = [f"#{pr['number']}"]
-    if pr.get("isDraft"):
-        bits.append("draft")
-    if checks:
-        bits.append("✗" if failed else "⋯" if pending else "✓")
     decision = (pr.get("reviewDecision") or "").lower()
-    bits.append("●" if decision == "approved" else "◻")
-    # Unresolved threads block merge on their own, so an approved PR can still
-    # be waiting on them.
-    if threads:
-        bits.append(f"≡{threads}")
-    if pr.get("mergeable") == "CONFLICTING":
-        bits.append("⚠")
 
-    return " ".join(bits), {
+    if pr.get("mergeable") == "CONFLICTING":
+        sev, word = BLOCKED, "conflicts"
+    elif failed:
+        sev, word = BLOCKED, f"{failed} failing"
+    elif decision == "changes_requested":
+        sev, word = BLOCKED, "changes requested"
+    elif threads:
+        sev, word = WAITING, f"{threads} comment{'s' if threads > 1 else ''}"
+    elif pr.get("isDraft"):
+        sev, word = WAITING, "draft"
+    elif pending:
+        sev, word = WAITING, "running"
+    elif decision != "approved":
+        sev, word = WAITING, "needs review"
+    else:
+        sev, word = READY, "ready"
+
+    return f"#{pr['number']}", sev, word, {
         "number": pr["number"],
         "state": pr.get("state"),
         "decision": decision,
         "failed": failed,
         "pending": pending,
-        "mergeable": pr.get("mergeable"),
         "threads": threads,
+        "mergeable": pr.get("mergeable"),
     }
 
 
@@ -211,18 +217,27 @@ def main():
         pr = pr_for(root)
         if not pr:
             herdr("workspace", "report-metadata", ws, "--source", SOURCE,
-                  "--clear-token", TOKEN)
+                  "--clear-token", TOKEN,
+                  "--clear-token", f"{TOKEN}_{BLOCKED}",
+                  "--clear-token", f"{TOKEN}_{WAITING}",
+                  "--clear-token", f"{TOKEN}_{READY}")
             continue
 
-        token, state = summarise(pr, unresolved_threads(pr, root))
+        number, sev, word, state = summarise(pr, unresolved_threads(pr, root))
         current[ws] = state
-        herdr("workspace", "report-metadata", ws, "--source", SOURCE,
-              "--token", f"{TOKEN}={token}")
+        args = ["workspace", "report-metadata", ws, "--source", SOURCE,
+                "--token", f"{TOKEN}={number}"]
+        for name in (BLOCKED, WAITING, READY):
+            if name == sev:
+                args += ["--token", f"{TOKEN}_{name}={word}"]
+            else:
+                args += ["--clear-token", f"{TOKEN}_{name}"]
+        herdr(*args)
 
         note = changed(previous.get(ws), state)
         if note and not QUIET:
             herdr("notification", "show", f"PR #{state['number']} {note}",
-                  "--body", f"{labels.get(ws, ws)} — {token}")
+                  "--body", f"{labels.get(ws, ws)} — {number} {word}")
 
     STATE.parent.mkdir(parents=True, exist_ok=True)
     STATE.write_text(json.dumps(current, indent=1))
