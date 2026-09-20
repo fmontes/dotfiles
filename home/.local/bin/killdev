@@ -9,7 +9,7 @@ set -euo pipefail
 usage() { awk 'NR>2 && /^#/ { sub(/^# ?/, ""); print; next } NR>2 { exit }' "$0"; }
 [[ ${1:-} == "-h" || ${1:-} == "--help" ]] && { usage; exit 0; }
 
-pids=$(lsof -ti:3000,3001,4200,5173,8080,8443 || true)
+pids=$(lsof -ti:3000,3001,4200,5173,8080,8090,8443 || true)
 if [[ -z $pids ]]; then
   echo "Nothing listening on the dev ports"
   exit 0
