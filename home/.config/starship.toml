@@ -1,3 +1,8 @@
+# One column of breathing room: herdr has no pane padding, so the prompt puts
+# it in itself rather than sitting against the sidebar divider. Both lines need
+# it — the format indents the info line, [character] indents the ❯ below it.
+format = " $all"
+
 [gcloud]
 disabled = true
 
@@ -24,5 +29,6 @@ min_time = 5_000
 format = "took [$duration]($style) "
 
 [character]
+format = " $symbol "
 success_symbol = "[❯](green)"
 error_symbol = "[❯](red)"
