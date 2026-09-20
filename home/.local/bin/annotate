@@ -65,7 +65,12 @@ fi
 
 root=$(git -C "${cwd:-$PWD}" rev-parse --show-toplevel 2>/dev/null || echo "${cwd:-$PWD}")
 
+# PLANNOTATOR_TUI_DELIVER_TO is how the wrapper learns which pane's agent to
+# send the review back to. The plugin's own action passes --deliver-to, but
+# `herdr pane` mode takes no arguments, so without this the review has nowhere
+# to go: "no agent pane to read: not focused on one and no --deliver-to".
 new=$(herdr tab create --workspace "$workspace" --label "$LABEL" --cwd "$root" --focus \
+  --env "PLANNOTATOR_TUI_DELIVER_TO=$pane" \
   | python3 -c 'import sys,json; print(json.load(sys.stdin)["result"]["root_pane"]["pane_id"])')
 
 herdr pane run "$new" bash "$wrapper" herdr pane >/dev/null
