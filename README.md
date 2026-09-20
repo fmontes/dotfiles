@@ -467,6 +467,38 @@ The cost is Ghostty's and herdr's own `Cmd+C` selection copy. Both copy on selec
 
 [Ghostty](https://ghostty.org/) is the outer window and [herdr](https://herdr.dev) runs inside it, owning tabs, panes, and agent workspaces. Ghostty's config unbinds the chords herdr wants ([`home/.config/ghostty/config`](home/.config/ghostty/config)) so they pass through instead of being handled twice.
 
+### Keys
+
+| Key | Does |
+|---|---|
+| `Cmd+T` | New tab (no name prompt — automatic-rename supplies one) |
+| `Cmd+[` / `Cmd+]` | Previous / next tab |
+| `Cmd+1`…`9` | Switch tab |
+| `Cmd+Shift+[` / `]` | Previous / next workspace |
+| `Cmd+Shift+1`…`9` | Switch workspace |
+| `Cmd+D` / `Cmd+Shift+D` | Split vertical / horizontal |
+| `Cmd+Option+←` / `→` | Focus pane left / right |
+| `Ctrl+B` then `j` / `k` | Focus pane down / up |
+| `Cmd+Shift+Enter` | Zoom pane |
+| `Cmd+B` | Toggle herdr's sidebar |
+| `Cmd+E` | Toggle a Fresh editor tab (`editor`) |
+| `Cmd+L` | Toggle reviewr — diffs, comments, PR |
+| `Cmd+Shift+O` | Open the focused workspace's PR in the browser (`pr-open`) |
+| `Cmd+Option+A` | Toggle an annotate tab (`annotate`) |
+| `Ctrl+B` | Prefix, for everything else |
+
+Pane focus is left/right only on `Cmd+Option`: up and down went to Fresh's multi-cursor, since Ghostty's `goto_split` default had been swallowing that chord anyway and it did nothing.
+
+Three chords are rewritten by Ghostty on the way through, because Fresh drops the super modifier and cannot see a `Cmd` chord at all:
+
+| You press | Ghostty sends | Fresh does |
+|---|---|---|
+| `Cmd+C` | `ESC[25~` (F13) | Copy |
+| `Cmd+←` / `Cmd+→` | `ESC[H` / `ESC[F` | Line start / end |
+| `Cmd+Option+↑` / `↓` | `ESC[1;7A/B` | Add cursor above / below |
+
+Each one replaces a Ghostty default that sent an old readline escape — `\x01`, `\x05`, `esc:b`, `esc:f` — which Fresh reads as Select All, Focus File Explorer, and its Alt+letter menu mnemonics.
+
 herdr comes from the Brewfile as a formula, but its plugins install at runtime, so `07-post-install.sh` fetches [annotate](https://github.com/plannotator/herdr-annotate) if it is missing. [automatic-rename](https://github.com/qu8n/herdr-automatic-rename) names tabs after their directory, git branch and running program — `[2] api › feat/oauth › nvim` — which is why `prompt_new_tab_name` is off: there is nothing to type. It renames on herdr events, plus a `.zshrc` hook so a tab also renames the moment a command starts.
 
 `Cmd+L` toggles [reviewr](https://github.com/persiyanov/herdr-reviewr): diffs with comments on a line *or a range*, a changed-file browser, and a read-only mirror of the branch's PR through `gh`. That covers the two things Fresh's own review cannot — its comments anchor to a single line, and its Git Log is per-commit with no branch-level file list.
