@@ -1,31 +1,32 @@
 #!/usr/bin/env bash
 #
-# editor — toggle a Fresh editor tab for browsing and editing files.
+# annotate — toggle a plannotator-tui review tab.
 #
-# Replaces the herdr-sidebar plugin. Fresh's own file explorer does the
-# listing and editing happens in the same window, instead of a read-only
-# viewer that hands off to an editor.
+# The plugin's own placements are overlay, split and popup — there is no tab
+# among them — so this makes the tab and runs the plugin's pane wrapper in it,
+# which is exactly what its `doc` pane runs.
 #
-# One tab per workspace, labelled Fresh: open it if missing, focus it if it
-# is open elsewhere, close it if you are already looking at it. Not to be
-# confused with herdr's own sidebar, which is on cmd+b.
-#
-# Opens at the git root when there is one, otherwise the pane's directory.
+# One tab per workspace, labelled Annotate: open it if missing, focus it if it
+# is open elsewhere, close it if you are already looking at it.
 #
 # Usage:
-#   editor
+#   annotate
 set -euo pipefail
 
 usage() { awk 'NR>2 && /^#/ { sub(/^# ?/, ""); print; next } NR>2 { exit }' "$0"; }
 [[ ${1:-} == "-h" || ${1:-} == "--help" ]] && { usage; exit 0; }
 
-LABEL="Fresh"
+LABEL="Annotate"
 
 command -v herdr >/dev/null 2>&1 || { echo "herdr is not installed" >&2; exit 1; }
 
+# The install directory carries a hash, so glob for it rather than hardcoding.
+wrapper=$(echo "$HOME"/.config/herdr/plugins/github/annotate-*/scripts/plannotator-tui.sh)
+[[ -r $wrapper ]] || { echo "annotate plugin not installed" >&2; exit 1; }
+
 # HERDR_PANE_ID is set inside a pane, but a herdr keybinding runs its command
-# detached without it — and `pane current` needs it too. So resolve the pane
-# from the list, which carries `focused`, and address every call by id.
+# detached without it — and `pane current` needs it too. Resolve from the list,
+# which carries `focused`, and address every call by id.
 read -r pane workspace cwd < <(
   herdr pane list | HERDR_WANT="${HERDR_PANE_ID:-}" python3 -c '
 import sys, json, os
@@ -65,9 +66,7 @@ fi
 root=$(git -C "${cwd:-$PWD}" rev-parse --show-toplevel 2>/dev/null || echo "${cwd:-$PWD}")
 
 new=$(herdr tab create --workspace "$workspace" --label "$LABEL" --cwd "$root" --focus \
-  | python3 -c 'import sys,json; d=json.load(sys.stdin)["result"]; print(d["root_pane"]["pane_id"])')
+  | python3 -c 'import sys,json; print(json.load(sys.stdin)["result"]["root_pane"]["pane_id"])')
 
-# --no-restore so it opens on the directory rather than whatever buffers were
-# last open; unsaved work is recovered either way.
-herdr pane run "$new" fresh --no-restore . >/dev/null
+herdr pane run "$new" bash "$wrapper" herdr pane >/dev/null
 echo "Opened $LABEL tab at $root"

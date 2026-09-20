@@ -85,7 +85,7 @@ command = "editor"
 [[keys.command]]
 key = "cmd+alt+a"
 type = "shell"
-command = "herdr plugin action invoke open --plugin annotate"
+command = "annotate"
 
 # Code review: diffs with line and range comments, a changed-file browser, and
 # a read-only mirror of the branch's PR. Toggle, so the same key puts it away.
