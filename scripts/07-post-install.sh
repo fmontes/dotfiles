@@ -44,6 +44,12 @@ if command -v herdr &>/dev/null; then
     echo "Installing herdr automatic-rename plugin..."
     herdr plugin install qu8n/herdr-automatic-rename --yes || echo "automatic-rename install failed — run 'herdr plugin install qu8n/herdr-automatic-rename --yes' manually."
   fi
+  if herdr plugin list 2>/dev/null | grep -q persiyanov.reviewr; then
+    echo "herdr reviewr plugin already installed."
+  else
+    echo "Installing herdr reviewr plugin..."
+    herdr plugin install persiyanov/herdr-reviewr --yes || echo "reviewr install failed — run 'herdr plugin install persiyanov/herdr-reviewr --yes' manually."
+  fi
 else
   echo "herdr not available yet — install the Brewfile first, then run 'herdr plugin install plannotator/herdr-annotate' and 'herdr plugin install qu8n/herdr-automatic-rename'."
 fi
