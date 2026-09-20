@@ -69,10 +69,17 @@ key = "cmd+b"
 type = "shell"
 command = "sidebar"
 
-# Annotate the current terminal selection. Fresh's own review comments anchor
-# to a single diff line, so a remark about a block has nowhere to live; this
-# takes whatever is selected, however many lines that is.
+# Full review UI over the focused pane's folder: files, annotations, and
+# feedback back to the agent.
 [[keys.command]]
 key = "cmd+p"
+type = "shell"
+command = "herdr plugin action invoke open --plugin annotate"
+
+# The quick path: annotate whatever is selected right now. Fresh's own review
+# comments anchor to a single diff line, so a remark about a block has nowhere
+# to live; this takes however many lines you dragged.
+[[keys.command]]
+key = "cmd+shift+p"
 type = "shell"
 command = "herdr plugin action invoke capture --plugin annotate"
