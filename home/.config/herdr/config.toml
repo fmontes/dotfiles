@@ -96,3 +96,11 @@ command = "annotate"
 key = "cmd+l"
 type = "shell"
 command = "herdr plugin action invoke toggle --plugin persiyanov.reviewr"
+
+# Open the focused workspace's PR in the browser. The sidebar shows its number
+# but cannot make it clickable — workspace metadata is display-only, and
+# clicking the row switches workspace.
+[[keys.command]]
+key = "cmd+shift+o"
+type = "shell"
+command = "pr-open"

@@ -502,6 +502,8 @@ Two marks, because a sidebar row has no width to spare: checks are `✓` green, 
 
 It also fires a herdr notification when something actually changes — approved, changes requested, checks going red or green, a PR merging, a branch starting to conflict — so an approval or a failing run arrives rather than being discovered. State lives in `~/.local/state/pr-watch/state.json`; the first run is silent because there is nothing to compare against.
 
+`Cmd+Shift+O` opens the focused workspace's PR in the browser — the sidebar number itself cannot be clickable, since workspace metadata is display-only and clicking the row switches workspace.
+
 A LaunchAgent runs it every 5 minutes. launchd rather than cron: it survives reboots and runs inside the user session, which is what reaching herdr's socket needs. Run `pr-watch` by hand any time, or `pr-watch --quiet` to resync without notifications.
 
 ## Tinycast
