@@ -27,6 +27,15 @@ else
   fi
 fi
 
+# ─── herdr plugins ───────────────────────────────────────────────────────────
+# Pinned to the commits this setup was built against, so a new machine gets the
+# same plugin code rather than whatever shipped since. Bump a ref deliberately:
+#   herdr plugin install <owner/repo> --ref <sha> --yes
+# then record the new sha here.
+ANNOTATE_REF=7c8f5a177b8285dc56efc471ef04f7ab44a2b4b6
+RENAME_REF=081489b4d961d0d9c0c8b6a02d472e5cfe125ad5
+REVIEWR_REF=dca1fb88a56c0d6246a2e9004ecbe27fd11a4436
+
 # ─── herdr annotate plugin ───────────────────────────────────────────────────
 # herdr comes from the Brewfile but its plugins install at runtime, so a fresh
 # machine has to fetch this one again. The manifest is pinned to a commit, so
@@ -36,19 +45,19 @@ if command -v herdr &>/dev/null; then
     echo "herdr annotate plugin already installed."
   else
     echo "Installing herdr annotate plugin..."
-    herdr plugin install plannotator/herdr-annotate -y || echo "annotate install failed — run 'herdr plugin install plannotator/herdr-annotate' manually."
+    herdr plugin install plannotator/herdr-annotate --ref "$ANNOTATE_REF" -y || echo "annotate install failed — run 'herdr plugin install plannotator/herdr-annotate' manually."
   fi
   if herdr plugin list 2>/dev/null | grep -q herdr-automatic-rename; then
     echo "herdr automatic-rename plugin already installed."
   else
     echo "Installing herdr automatic-rename plugin..."
-    herdr plugin install qu8n/herdr-automatic-rename --yes || echo "automatic-rename install failed — run 'herdr plugin install qu8n/herdr-automatic-rename --yes' manually."
+    herdr plugin install qu8n/herdr-automatic-rename --ref "$RENAME_REF" --yes || echo "automatic-rename install failed — run 'herdr plugin install qu8n/herdr-automatic-rename --yes' manually."
   fi
   if herdr plugin list 2>/dev/null | grep -q persiyanov.reviewr; then
     echo "herdr reviewr plugin already installed."
   else
     echo "Installing herdr reviewr plugin..."
-    herdr plugin install persiyanov/herdr-reviewr --yes || echo "reviewr install failed — run 'herdr plugin install persiyanov/herdr-reviewr --yes' manually."
+    herdr plugin install persiyanov/herdr-reviewr --ref "$REVIEWR_REF" --yes || echo "reviewr install failed — run 'herdr plugin install persiyanov/herdr-reviewr --yes' manually."
   fi
 else
   echo "herdr not available yet — install the Brewfile first, then run 'herdr plugin install plannotator/herdr-annotate' and 'herdr plugin install qu8n/herdr-automatic-rename'."
@@ -90,10 +99,13 @@ fi
 
 # ─── pr-watch LaunchAgent ────────────────────────────────────────────────────
 # Polls each herdr workspace's PR into the sidebar and notifies on changes.
-# The plist is symlinked by 03-symlinks.sh; launchd still has to be told.
+# launchd needs absolute paths and does not expand ~, so this is generated from
+# a template rather than symlinked like the rest of the config.
+template="$DOTFILES_DIR/scripts/pr-watch.plist.template"
 agent="$HOME/Library/LaunchAgents/com.fmontes.pr-watch.plist"
-if [[ -e "$agent" ]]; then
-  mkdir -p "$HOME/.local/state/pr-watch"
+if [[ -f "$template" ]]; then
+  mkdir -p "$HOME/Library/LaunchAgents" "$HOME/.local/state/pr-watch"
+  sed "s|__HOME__|$HOME|g" "$template" > "$agent"
   launchctl unload "$agent" 2>/dev/null
   if launchctl load "$agent" 2>/dev/null; then
     echo "pr-watch LaunchAgent loaded."
