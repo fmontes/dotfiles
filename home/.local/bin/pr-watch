@@ -61,6 +61,30 @@ def pr_for(root):
         return None
 
 
+PASS = {"SUCCESS", "NEUTRAL", "SKIPPED", "EXPECTED"}
+FAIL = {"FAILURE", "TIMED_OUT", "CANCELLED", "ACTION_REQUIRED", "STARTUP_FAILURE", "ERROR"}
+
+
+def check_verdict(c):
+    """statusCheckRollup mixes two shapes and they do not share a field.
+
+    CheckRun carries `status` + `conclusion`; StatusContext carries `state`
+    and no conclusion at all. Reading only `conclusion` marks every
+    StatusContext pending, which showed green PRs as still running.
+    """
+    if c.get("__typename") == "StatusContext":
+        state = c.get("state")
+    else:
+        if c.get("status") and c.get("status") != "COMPLETED":
+            return "pending"
+        state = c.get("conclusion")
+    if state in PASS:
+        return "pass"
+    if state in FAIL:
+        return "fail"
+    return "pending"
+
+
 def summarise(pr):
     """Two marks and a number. Anything longer does not earn its width.
 
@@ -71,9 +95,9 @@ def summarise(pr):
     font — ◷ was distorted and squeezed against the digit beside it.
     """
     checks = pr.get("statusCheckRollup") or []
-    failed = sum(1 for c in checks
-                 if c.get("conclusion") in ("FAILURE", "TIMED_OUT", "CANCELLED", "ACTION_REQUIRED"))
-    pending = sum(1 for c in checks if not c.get("conclusion"))
+    verdicts = [check_verdict(c) for c in checks]
+    failed = verdicts.count("fail")
+    pending = verdicts.count("pending")
 
     bits = [f"#{pr['number']}"]
     if pr.get("isDraft"):
