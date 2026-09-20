@@ -2,7 +2,7 @@
 #
 # restore-layout — reset the desktop to its canonical arrangement.
 #
-#   1 Calendar   2 Slack   3 Orca   4 Chrome Work   5 Chrome Me
+#   1 Calendar   2 Slack   4 Chrome Work   5 Chrome Me
 #
 # Workspaces in this setup are generic contexts: no aerospace.toml rule assigns
 # any app to any workspace, and a new window opens on whatever workspace has
@@ -64,7 +64,6 @@ fi
 PLAN=(
   "1|Calendar|com.apple.iCal||calendar"
   "2|Slack|com.tinyspeck.slackmacgap||slack"
-  "3|Orca|com.stablyai.orca||orca"
   "4|Chrome Work|com.google.Chrome|Freddy \(dotcms\.com\)\$|chrome-work"
   "5|Chrome Me|com.google.Chrome|Chrome - Freddy\$|chrome-me"
 )
@@ -99,7 +98,6 @@ launch() {
   case "$1" in
     calendar)    open -b com.apple.iCal ;;
     slack)       open -b com.tinyspeck.slackmacgap ;;
-    orca)        open -b com.stablyai.orca ;;
     chrome-work) open -na "Google Chrome" --args --profile-directory="Profile 1" ;;
     chrome-me)   open -na "Google Chrome" --args --profile-directory="Default" ;;
     *)

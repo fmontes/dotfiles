@@ -166,5 +166,4 @@ echo "6. Launch Tinycast and grant it Accessibility access (hotkeys are already 
 echo "7. Grant AeroSpace Accessibility access, then relaunch it:"
 echo "   System Settings > Privacy & Security > Accessibility"
 echo "   Without it AeroSpace cannot move windows into their slots."
-echo "8. Install Orca (desktop slot 4) — no Homebrew cask: https://stably.ai"
 echo ""
