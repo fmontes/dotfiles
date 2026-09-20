@@ -14,6 +14,10 @@ active_row_bg = "#313244"   # surface0 - the focused space reads as selected
 [ui]
 status_indicators = "symbols"
 hide_tab_bar_when_single_tab = true
+
+# What the titlebar says. The default is "{hostname}: {workspace}", and the
+# hostname is the one thing on screen that never changes and never matters.
+window_title = "{workspace} › {tab}"
 show_agent_labels_on_pane_borders = true
 
 # Cmd+T opens a tab immediately instead of asking for a name first. Tabs get a

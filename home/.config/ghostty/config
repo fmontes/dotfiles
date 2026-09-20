@@ -3,10 +3,14 @@ shell-integration = none
 # right option stays free for composing accented characters
 macos-option-as-alt = left
 
-# No title bar. It showed "Mac5.local: [1] dot/a11y" — the host, and a
-# workspace herdr already names in its sidebar and tab bar — for a whole row
-# of vertical space.
-macos-titlebar-style = hidden
+# The title bar stays, but it has to disappear into the window. Ghostty's
+# default background is #282c34 while herdr paints catppuccin base, and a
+# transparent titlebar takes Ghostty's colour — which is why the bar read as a
+# lighter grey strip above everything.
+background = #1e1e2e
+
+# No folder proxy icon; herdr already says where it is.
+macos-titlebar-proxy-icon = hidden
 
 # With no title bar the content sat flush against the top edge. Top only:
 # the second value is the bottom, and 20 there just left an empty strip under
