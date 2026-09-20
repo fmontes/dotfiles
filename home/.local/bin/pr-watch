@@ -9,8 +9,9 @@
 # Run from a LaunchAgent every few minutes. Safe to run by hand any time.
 #
 # Usage:
-#   pr-watch            poll, update the sidebar, notify on change
-#   pr-watch --quiet    poll without notifications (first run, or catching up)
+#   pr-watch                  poll every workspace, notify on change
+#   pr-watch --quiet          poll without notifications (first run, catching up)
+#   pr-watch --workspace ID   poll one workspace, for the focus hook
 
 import json
 import os
@@ -29,6 +30,10 @@ if "--help" in sys.argv or "-h" in sys.argv:
     raise SystemExit(0)
 
 QUIET = "--quiet" in sys.argv
+ONLY = None
+if "--workspace" in sys.argv:
+    i = sys.argv.index("--workspace")
+    ONLY = sys.argv[i + 1] if i + 1 < len(sys.argv) else None
 
 
 def herdr(*args):
@@ -227,6 +232,12 @@ def main():
 
     current = {}
     for ws, path in dirs.items():
+        if ONLY and ws != ONLY:
+            # Keep every other workspace's reading; this is a targeted refresh,
+            # not a reason to forget the rest.
+            if ws in previous:
+                current[ws] = previous[ws]
+            continue
         if not path or not os.path.isdir(path):
             continue
         root = repo_root(path)
@@ -271,7 +282,7 @@ def main():
 
     STATE.parent.mkdir(parents=True, exist_ok=True)
     STATE.write_text(json.dumps(current, indent=1))
-    print(f"{len(current)} workspace(s) with a PR")
+    print(f"{len(current)} workspace(s) with a PR" + (f" (refreshed {ONLY})" if ONLY else ""))
     return 0
 
 

@@ -1,0 +1,16 @@
+id = "pr-refresh"
+name = "PR refresh"
+version = "0.1.0"
+# 0.8.0 is where plugin event hooks are dependable; a requirement above the
+# running herdr is a hard load failure, so this stays conservative.
+min_herdr_version = "0.8.0"
+description = "Refresh a workspace's PR status the moment you focus it, so the sidebar is current when you look at it rather than up to five minutes old."
+platforms = ["linux", "macos"]
+
+# tab.focused, not workspace.focused: the latter is a known event name in the
+# binary but nothing emits it — plugin logs show tab.focused and pane.focused
+# firing constantly and workspace.focused never once. Switching workspace
+# always switches tab, so this catches it, and the script debounces the rest.
+[[events]]
+on = "tab.focused"
+command = ["bash", "refresh.sh"]

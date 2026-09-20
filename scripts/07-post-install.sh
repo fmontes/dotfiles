@@ -97,6 +97,23 @@ if [[ -f "$tinycast_plist" ]]; then
   fi
 fi
 
+# ─── pr-refresh plugin ───────────────────────────────────────────────────────
+# Local plugin, linked from the repo rather than installed from GitHub. It
+# refreshes a workspace's PR status on focus so the sidebar is current when you
+# look at it. A newly linked plugin does not receive events until the server
+# reloads, which is easy to miss — the link alone looks like it worked.
+if command -v herdr &>/dev/null; then
+  if herdr plugin list 2>/dev/null | grep -q pr-refresh; then
+    echo "pr-refresh plugin already linked."
+  else
+    echo "Linking pr-refresh plugin..."
+    herdr plugin link "$DOTFILES_DIR/herdr-plugins/pr-refresh" >/dev/null \
+      && herdr server reload-config >/dev/null \
+      && echo "pr-refresh linked." \
+      || echo "pr-refresh link failed — run 'herdr plugin link $DOTFILES_DIR/herdr-plugins/pr-refresh' manually."
+  fi
+fi
+
 # ─── pr-watch LaunchAgent ────────────────────────────────────────────────────
 # Polls each herdr workspace's PR into the sidebar and notifies on changes.
 # launchd needs absolute paths and does not expand ~, so this is generated from
