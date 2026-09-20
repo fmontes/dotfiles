@@ -8,12 +8,24 @@ version_check = false
 
 # Layered on the default catppuccin base
 [theme.custom]
-sidebar_bg    = "#181825"   # mantle - sidebar sits darker than the pane area
+sidebar_bg    = "reset"     # no panel of its own - takes the terminal background
+panel_bg      = "reset"     # same, so borders are the only thing dividing regions
 active_row_bg = "#313244"   # surface0 - the focused space reads as selected
+accent        = "#cba6f7"   # mauve - the active tab and highlights read lavender
 
 [ui]
 status_indicators = "symbols"
 hide_tab_bar_when_single_tab = true
+
+# Frame every pane, not only splits, and keep the outside edge of the pane
+# area. With sidebar_bg at base there is no colour change left to separate the
+# sidebar from the panes, so the outer border is what draws that line.
+pane_borders = "always"
+pane_outer_borders = true
+
+# No scrollbar column beside panes. It is a vertical line the borders already
+# imply, and dropping it keeps the column out of terminal-native selections.
+pane_scrollbars = false
 
 # What the titlebar says. The default is "{hostname}: {workspace}", and the
 # hostname is the one thing on screen that never changes and never matters.

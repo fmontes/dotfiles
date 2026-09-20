@@ -12,10 +12,11 @@ background = #1e1e2e
 # No folder proxy icon; herdr already says where it is.
 macos-titlebar-proxy-icon = hidden
 
-# With no title bar the content sat flush against the top edge. Top only:
-# the second value is the bottom, and 20 there just left an empty strip under
-# herdr's status bar.
-window-padding-y = 20,0
+# Both zero. The top was 20 back when the title bar was hidden and content sat
+# flush against the top edge; with the bar visible that padding was only an
+# empty band. The second value is the bottom, and 20 there just left an empty
+# strip under herdr's status bar.
+window-padding-y = 0,0
 
 # Ghostty rewrites opt+arrows into esc:b / esc:f — the old readline word-motion
 # convention. Fresh reads esc+f as alt+f, which is its File menu mnemonic, so
