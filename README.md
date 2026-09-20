@@ -128,13 +128,10 @@ These steps require human interaction and can't be automated:
 | `btop` | Resource monitor (CPU, memory, processes) |
 | `chai` | Sync AI agent config across platforms. `charliesbot/tap`, not the unrelated `chai` cask |
 | `cloudflared` | Cloudflare tunnel client |
-| `deno` | JavaScript/TypeScript runtime |
-| `dust` | Visual `du`, disk usage by directory |
 | `eza` | Modern `ls` with icons and git status |
 | `fd` | Faster `find` |
 | `ffmpeg` | Audio/video processing |
 | `ffmpeg@7` | ffmpeg 7, force-linked over 8. `ffmpeg` on `PATH` is this one |
-| `flyctl` | Fly.io CLI |
 | `fresh-editor` | [Fresh](https://getfresh.dev/), terminal editor for code editing and browsing |
 | `fzf` | Fuzzy finder (used by proj, atuin, zsh history) |
 | `gh` | GitHub CLI |
@@ -143,21 +140,14 @@ These steps require human interaction and can't be automated:
 | `imagemagick` | Image processing |
 | `jq` | JSON processor |
 | `just` | Task runner (used in dotCMS project) |
-| `lazydocker` | Terminal UI for Docker containers |
-| `librsvg` | SVG rendering, used by terminal image previews |
 | `mise` | Version manager for Node, Python, Java |
 | `mkcert` | Local SSL certificates |
-| `mole` | SSH tunnel manager |
-| `mprocs` | Run multiple processes in split panes |
+| `mole` | Deep clean and optimize your Mac ([mole.fit](https://mole.fit)) |
 | `opencode` | AI coding agent for the terminal |
 | `poppler` | PDF rendering, used by terminal file previews |
 | `railway` | Railway CLI, deploys and service management |
 | `ripgrep` | Fast grep replacement |
 | `starship` | Cross-shell prompt |
-| `tlrc` | `tldr` client, simplified man pages |
-| `tree` | Directory tree viewer |
-| `wget` | File downloader |
-| `yazi` | Terminal file manager with preview |
 | `zoxide` | Smart `cd` replacement |
 
 ### Apps (Casks)
