@@ -24,21 +24,7 @@ command -v herdr >/dev/null 2>&1 || { echo "herdr is not installed" >&2; exit 1;
 wrapper=$(echo "$HOME"/.config/herdr/plugins/github/annotate-*/scripts/plannotator-tui.sh)
 [[ -r $wrapper ]] || { echo "annotate plugin not installed" >&2; exit 1; }
 
-# HERDR_PANE_ID is set inside a pane, but a herdr keybinding runs its command
-# detached without it — and `pane current` needs it too. Resolve from the list,
-# which carries `focused`, and address every call by id.
-read -r pane workspace cwd < <(
-  herdr pane list | HERDR_WANT="${HERDR_PANE_ID:-}" python3 -c '
-import sys, json, os
-panes = json.load(sys.stdin)["result"]["panes"]
-want = os.environ.get("HERDR_WANT") or ""
-p = next((x for x in panes if x["pane_id"] == want), None) \
-    or next((x for x in panes if x.get("focused")), None)
-if not p:
-    sys.exit(1)
-print(p["pane_id"], p["workspace_id"], p.get("foreground_cwd") or p.get("cwd") or "")
-'
-) || { echo "No herdr pane to work from" >&2; exit 1; }
+read -r pane workspace cwd < <(herdr-pane) || { echo "No herdr pane to work from" >&2; exit 1; }
 
 read -r tab focused < <(
   herdr tab list --workspace "$workspace" | python3 -c '

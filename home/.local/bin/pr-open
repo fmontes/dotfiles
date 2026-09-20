@@ -15,19 +15,7 @@ usage() { awk 'NR>2 && /^#/ { sub(/^# ?/, ""); print; next } NR>2 { exit }' "$0"
 
 command -v gh >/dev/null 2>&1 || { echo "gh is not installed" >&2; exit 1; }
 
-# HERDR_PANE_ID is set inside a pane, but a herdr keybinding runs its command
-# detached without it — and `pane current` needs it too. Resolve from the list,
-# which carries `focused`.
-cwd=$(
-  herdr pane list | HERDR_WANT="${HERDR_PANE_ID:-}" python3 -c '
-import sys, json, os
-panes = json.load(sys.stdin)["result"]["panes"]
-want = os.environ.get("HERDR_WANT") or ""
-p = next((x for x in panes if x["pane_id"] == want), None) \
-    or next((x for x in panes if x.get("focused")), None)
-print((p.get("foreground_cwd") or p.get("cwd") or "") if p else "")
-'
-) || cwd=""
+read -r _pane _workspace cwd < <(herdr-pane) || cwd=""
 
 [[ -d ${cwd:-} ]] || cwd=$PWD
 

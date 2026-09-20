@@ -41,5 +41,4 @@ alias zreload="source ~/.zshrc && echo 'Reloaded'"
 alias spaces="aerospace list-windows --all --format '%{workspace}  %{app-name}  %{window-title}' | sort -n"
 
 # ─── Misc ───────────────────────────────────────────────────────────────────
-alias run-help=man
 alias code="code --new-window"
