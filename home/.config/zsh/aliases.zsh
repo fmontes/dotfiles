@@ -18,9 +18,6 @@ alias ls="eza --icons --group-directories-first"
 alias ll="eza -l --icons --group-directories-first --git"
 alias lt="eza --tree --level=2 --icons"
 
-# ─── Ports ──────────────────────────────────────────────────────────────────
-alias devports='lsof -i :3000,3001,4200,5173,8080,8090,8443 | grep LISTEN'
-
 # ─── Projects ───────────────────────────────────────────────────────────────
 # Stays a function: a script runs in a child process and cannot cd this shell.
 proj() {

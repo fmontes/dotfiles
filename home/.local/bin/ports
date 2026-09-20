@@ -10,7 +10,7 @@ usage() { awk 'NR>2 && /^#/ { sub(/^# ?/, ""); print; next } NR>2 { exit }' "$0"
 [[ ${1:-} == "-h" || ${1:-} == "--help" ]] && { usage; exit 0; }
 
 echo "── Host processes ──"
-lsof -i -P | grep LISTEN | grep -E 'node|bun|deno|java|ruby' || echo "  none"
+lsof -i -P | grep LISTEN | grep -E 'node|bun|deno|java|ruby|python|php|go|rails|caddy|nginx' || echo "  none"
 
 echo "── Docker containers ──"
 if ! command -v docker >/dev/null 2>&1; then
