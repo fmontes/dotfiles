@@ -51,16 +51,10 @@ brew "zsh-syntax-highlighting"
 
 # ─── Casks ──────────────────────────────────────────────────────────────────
 cask "1password-cli"
-cask "chromedriver"
 cask "codex"
 cask "ghostty"
 cask "orbstack"
 cask "tinycast"
-
-# Puppeteer's headless browser (PUPPETEER_EXECUTABLE_PATH in .zshrc), not part
-# of the desktop layout. Heads up: this cask is deprecated for failing the macOS
-# Gatekeeper check and Homebrew disables it on 2026-09-01.
-cask "chromium"
 
 # ─── Desktop layout ─────────────────────────────────────────────────────────
 # AeroSpace tiles these in home/.config/aerospace/aerospace.toml. Workspaces

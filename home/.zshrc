@@ -24,8 +24,12 @@ export EDITOR="nano"
 export VISUAL="nano"
 
 # ─── Environment ────────────────────────────────────────────────────────────
+# The chromium cask was disabled on 2026-09-01 for failing the macOS Gatekeeper
+# check, so Puppeteer runs against the Google Chrome that is already installed.
+# Skipping the download only works while that path resolves — if Chrome ever
+# leaves the Brewfile, drop both of these and let Puppeteer fetch its own.
 export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-export PUPPETEER_EXECUTABLE_PATH=$(which chromium)
+export PUPPETEER_EXECUTABLE_PATH="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 
 export PNPM_HOME="$HOME/Library/pnpm"
 export BUN_INSTALL="$HOME/.bun"

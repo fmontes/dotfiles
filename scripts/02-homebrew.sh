@@ -22,6 +22,23 @@ fi
 # Runnable on its own, not just via install.sh which exports DOTFILES_DIR.
 : "${DOTFILES_DIR:="${0:a:h:h}"}"
 
+# Homebrew will not load a formula or cask from a third-party tap until that tap
+# is trusted, and `brew bundle` does not ask — it taps, prints one warning, and
+# skips every entry behind it. That silently cost a bootstrap tinycast,
+# aerospace and chai while the run still reported success. The Brewfile's own
+# `tap` lines are the list of taps this setup vouches for, so trust exactly
+# those and let the list stay in one place. Trust is per-machine
+# (~/.homebrew/trust.json), so a fresh machine needs this every time.
+#
+# This is whole-tap trust: broader than the per-item `brew trust --cask <name>`,
+# and it covers anything those taps add later. Narrow it by hand if that ever
+# stops being the trade you want.
+taps=("${(@f)$(sed -n 's/^tap "\([^"]*\)".*/\1/p' "$DOTFILES_DIR/Brewfile")}")
+if (( ${#taps} )); then
+  echo "Trusting third-party taps: ${taps[*]}"
+  brew trust "${taps[@]}" || echo "WARNING: brew trust failed; tap entries may be skipped."
+fi
+
 # `brew bundle` reports a non-zero exit if ANY entry fails, and install.sh runs
 # under `set -e` — so one bad cask used to abort the whole installer before
 # symlinks, oh-my-zsh, mise and the macOS defaults ever ran. Report and carry on:
