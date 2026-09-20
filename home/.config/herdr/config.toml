@@ -39,14 +39,14 @@ rows = [
 # Warp-style tabs
 new_tab      = "cmd+t"
 close_tab    = ""   # unbound - close tabs via right-click menu
-previous_tab = "cmd+["
-next_tab     = "cmd+]"
+previous_tab = "alt+["
+next_tab     = "alt+]"
 switch_tab   = "alt+1..9"   # left option only — right option composes
 
 # Spaces
 switch_workspace   = "alt+shift+1..9"
-previous_workspace = "cmd+shift+["
-next_workspace     = "cmd+shift+]"
+previous_workspace = "alt+shift+["
+next_workspace     = "alt+shift+]"
 
 # Warp-style splits
 split_vertical   = "cmd+d"
