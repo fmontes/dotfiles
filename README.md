@@ -20,7 +20,7 @@ This clones the repo to `~/.dotfiles` and runs the installer.
 - **[AeroSpace](https://nikitabobko.github.io/AeroSpace/)** for an Omarchy-style tiling desktop with generic workspaces
 - **[Fresh](https://getfresh.dev/)** for terminal code editing and browsing
 - **[Ghostty](https://ghostty.org/)** as the terminal, running **[herdr](https://herdr.dev)** for panes, tabs, and agent workspaces
-- **[AI](ai/)** skills, instructions, and subagents for agentic coding harnesses
+- **[AI](ai/)** skills and instructions for agentic coding harnesses
 - **macOS defaults** for Dock, Finder, keyboard
 
 ## Manual install
@@ -598,7 +598,6 @@ All AI agent config lives in [`ai/`](ai/) as a single source of truth:
 
 - [`ai/instructions/`](ai/instructions/) — shared instructions (`AGENTS.md`)
 - [`ai/skills/`](ai/skills/) — [agent skills](https://docs.claude.com/en/docs/claude-code/skills) (one folder per skill)
-- [`ai/subagents/`](ai/subagents/) — custom subagent definitions
 
 ### Syncing with chai
 
@@ -608,11 +607,11 @@ I author the config once and let [**chai**](https://github.com/charliesbot/chai)
 
 ```bash
 # 1. Edit the source of truth
-$EDITOR ai/instructions/AGENTS.md      # or add a skill/subagent under ai/
+$EDITOR ai/instructions/AGENTS.md      # or add a skill under ai/
 
 # 2. Distribute to every platform listed in chai.toml
 chai update   # clone/pull any external deps first (skills from other repos, etc.)
-chai sync     # copy instructions, skills, and subagents into each platform's config dir
+chai sync     # copy instructions and skills into each platform's config dir
 ```
 
 `chai sync` uses hash-based dirty detection: if an agent edited its copy, it prompts before overwriting. Add `--dry-run` to preview changes or `--force` to skip the dirty check. Because `ai/` is the only place you edit, every machine and every agent stays in sync from one commit.
@@ -641,7 +640,6 @@ dotfiles/
 ├── ai/                       # AI tooling
 │   ├── skills/               # Agent skills (any agentic harness)
 │   ├── instructions/         # Reusable prompt instructions
-│   └── subagents/            # Custom subagent definitions
 └── home/                     # Dotfiles (mirrored to ~/)
     ├── .zshrc
     ├── .gitconfig

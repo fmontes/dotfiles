@@ -72,7 +72,7 @@ else
 fi
 
 # ─── chai: sync AI agent config to all platforms ─────────────────────────────
-# Distributes ai/instructions, ai/skills, and ai/subagents (plus external deps
+# Distributes ai/instructions and ai/skills (plus external deps
 # declared in chai.toml) to every configured agent platform.
 if command -v chai &>/dev/null; then
   echo "Syncing AI agent config with chai..."
