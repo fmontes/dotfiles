@@ -47,9 +47,12 @@ split_horizontal = "cmd+shift+d"
 
 # Pane movement
 focus_pane_left  = "cmd+alt+left"
-focus_pane_down  = "cmd+alt+down"
-focus_pane_up    = "cmd+alt+up"
 focus_pane_right = "cmd+alt+right"
+# Up/down belong to Fresh's multi-cursor now — Ghostty rewrites cmd+alt+up/down
+# into ctrl+alt+up/down before herdr sees them. These never worked anyway:
+# Ghostty's goto_split default was swallowing the chord. On the prefix instead.
+focus_pane_down  = "prefix+j"
+focus_pane_up    = "prefix+k"
 
 # Pane controls
 zoom = "cmd+shift+enter"
