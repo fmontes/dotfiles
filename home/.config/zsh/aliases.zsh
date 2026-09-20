@@ -19,7 +19,6 @@ alias ll="eza -l --icons --group-directories-first --git"
 alias lt="eza --tree --level=2 --icons"
 
 # ─── Ports ──────────────────────────────────────────────────────────────────
-# port, ports, killport and killdev are tools now — see `tools`.
 alias devports='lsof -i :3000,3001,4200,5173,8080,8090,8443 | grep LISTEN'
 
 # ─── Projects ───────────────────────────────────────────────────────────────
@@ -34,8 +33,7 @@ proj() {
 alias prs="gh dash"
 
 # ─── Dotfiles ───────────────────────────────────────────────────────────────
-# `dotfiles` and `aliases` are tools now. zreload stays here: sourcing has to
-# happen in this shell, not a child.
+# Stays an alias: sourcing has to happen in this shell, not a child.
 alias zreload="source ~/.zshrc && echo 'Reloaded'"
 
 # ─── Desktop ────────────────────────────────────────────────────────────────
