@@ -30,6 +30,7 @@ rows = [
   [{ token = "state_icon" }, { token = "workspace", bold = true }],
   [{ token = "branch", dim = true }, { token = "git_status", dim = true }],
   # Reported by the pr-watch LaunchAgent; absent on workspaces with no PR.
+  # #number, then checks (✓ green / ✗ failing / ⋯ running) and review (● approved / ○ not).
   [{ token = "$pr", dim = true }],
 ]
 

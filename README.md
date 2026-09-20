@@ -495,8 +495,10 @@ Warp is still installed but no longer the daily terminal — it has no AeroSpace
 ```
 [3] 37571-sdk-performance
     sdk-components  +97 −32
-    #37582 ◷4 ✓45 review needed
+    #37582 ⋯ ○
 ```
+
+Two marks, because a sidebar row has no width to spare: checks are `✓` green, `✗` failing, `⋯` still running, omitted when the repo has no CI; review is `●` approved or `○` not approved yet. `⚠` means the branch conflicts with its base.
 
 It also fires a herdr notification when something actually changes — approved, changes requested, checks going red or green, a PR merging, a branch starting to conflict — so an approval or a failing run arrives rather than being discovered. State lives in `~/.local/state/pr-watch/state.json`; the first run is silent because there is nothing to compare against.
 
