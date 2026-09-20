@@ -321,7 +321,7 @@ rule existed.
 `restore-layout` is the one place a specific arrangement is written down:
 
 ```
-1 Calendar   2 Slack   4 Chrome Work   5 Chrome Me
+1 Calendar   2 Slack   3 Ghostty   4 Chrome Work   5 Chrome Me
 ```
 
 ```
