@@ -68,3 +68,11 @@ prefix = "ctrl+b"
 key = "cmd+b"
 type = "shell"
 command = "sidebar"
+
+# Annotate the current terminal selection. Fresh's own review comments anchor
+# to a single diff line, so a remark about a block has nowhere to live; this
+# takes whatever is selected, however many lines that is.
+[[keys.command]]
+key = "cmd+p"
+type = "shell"
+command = "herdr plugin action invoke capture --plugin annotate"

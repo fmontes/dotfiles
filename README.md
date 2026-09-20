@@ -39,7 +39,7 @@ The script will:
 4. Install Oh My Zsh
 5. Set up mise and install Node and Python
 6. Apply macOS defaults
-7. Install gh-dash, global npm packages, restore Tinycast settings, fix permissions, set up the VS Code CLI
+7. Install gh-dash and the herdr annotate plugin, global npm packages, restore Tinycast settings, fix permissions, set up the VS Code CLI
 8. Sync AI agent config to every platform with `chai`
 
 ## After running install.sh
@@ -467,7 +467,7 @@ The cost is Ghostty's and herdr's own `Cmd+C` selection copy. Both copy on selec
 
 [Ghostty](https://ghostty.org/) is the outer window and [herdr](https://herdr.dev) runs inside it, owning tabs, panes, and agent workspaces. Ghostty's config unbinds the chords herdr wants ([`home/.config/ghostty/config`](home/.config/ghostty/config)) so they pass through instead of being handled twice.
 
-herdr comes from the Brewfile as a formula. `version_check` is off in [`home/.config/herdr/config.toml`](home/.config/herdr/config.toml): herdr's self-updater would fetch its own build into `~/.local/bin` and shadow the brew binary on `PATH`. Upgrade with `brew upgrade herdr`, never `herdr update`.
+herdr comes from the Brewfile as a formula, but its plugins install at runtime, so `07-post-install.sh` fetches [annotate](https://github.com/plannotator/herdr-annotate) if it is missing — `Cmd+P` annotates the current terminal selection, which is how a remark about a block of lines gets written down at all, since Fresh's review comments anchor to a single line. `version_check` is off in [`home/.config/herdr/config.toml`](home/.config/herdr/config.toml): herdr's self-updater would fetch its own build into `~/.local/bin` and shadow the brew binary on `PATH`. Upgrade with `brew upgrade herdr`, never `herdr update`.
 
 ## Warp
 
