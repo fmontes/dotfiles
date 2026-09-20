@@ -62,32 +62,28 @@ def pr_for(root):
 
 
 def summarise(pr):
-    """A compact token plus the fields worth alerting on."""
-    checks = pr.get("statusCheckRollup") or []
-    passed = sum(1 for c in checks if c.get("conclusion") in ("SUCCESS", "NEUTRAL", "SKIPPED"))
-    failed = sum(1 for c in checks if c.get("conclusion") in ("FAILURE", "TIMED_OUT", "CANCELLED", "ACTION_REQUIRED"))
-    pending = sum(1 for c in checks if not c.get("conclusion"))
+    """Two marks and a number. Anything longer does not earn its width.
 
-    decision = (pr.get("reviewDecision") or "").lower()
-    mark = {"approved": "approved",
-            "changes_requested": "changes requested",
-            "review_required": "review needed"}.get(decision, decision)
+    checks   ✓ green   ✗ failing   ⋯ still running   (omitted when no CI)
+    review   ● approved   ○ not approved yet
+
+    Glyphs are kept to ones that render at a single cell in a normal mono
+    font — ◷ was distorted and squeezed against the digit beside it.
+    """
+    checks = pr.get("statusCheckRollup") or []
+    failed = sum(1 for c in checks
+                 if c.get("conclusion") in ("FAILURE", "TIMED_OUT", "CANCELLED", "ACTION_REQUIRED"))
+    pending = sum(1 for c in checks if not c.get("conclusion"))
 
     bits = [f"#{pr['number']}"]
     if pr.get("isDraft"):
         bits.append("draft")
-    if failed:
-        bits.append(f"✗{failed}")
-    if pending:
-        bits.append(f"◷{pending}")
-    if passed and not failed and not pending:
-        bits.append(f"✓{passed}")
-    elif passed:
-        bits.append(f"✓{passed}")
-    if mark:
-        bits.append(mark)
+    if checks:
+        bits.append("✗" if failed else "⋯" if pending else "✓")
+    decision = (pr.get("reviewDecision") or "").lower()
+    bits.append("●" if decision == "approved" else "○")
     if pr.get("mergeable") == "CONFLICTING":
-        bits.append("conflicts")
+        bits.append("⚠")
 
     return " ".join(bits), {
         "number": pr["number"],
