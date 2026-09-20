@@ -41,10 +41,10 @@ new_tab      = "cmd+t"
 close_tab    = ""   # unbound - close tabs via right-click menu
 previous_tab = "cmd+["
 next_tab     = "cmd+]"
-switch_tab   = "cmd+1..9"
+switch_tab   = "alt+1..9"   # left option only — right option composes
 
 # Spaces
-switch_workspace   = "cmd+shift+1..9"
+switch_workspace   = "alt+shift+1..9"
 previous_workspace = "cmd+shift+["
 next_workspace     = "cmd+shift+]"
 
