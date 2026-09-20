@@ -72,8 +72,10 @@ key = "cmd+b"
 type = "shell"
 command = "sidebar"
 
-# No key for annotate. Its manifest registers a link handler for
-# ^file://.*\.(md|markdown|mdx)$, so ctrl+clicking any Markdown path in any
-# pane opens it in plannotator-tui — nothing to remember, and it lands on the
-# file you were already looking at. The actions are still on the CLI:
-#   herdr plugin action invoke capture --plugin annotate
+# Annotate. Ctrl+clicking a Markdown path also opens it — the plugin registers
+# a link handler for ^file://.*\.(md|markdown|mdx)$ — but that only reaches a
+# file you can see. This opens the review UI over the focused pane's folder.
+[[keys.command]]
+key = "cmd+alt+a"
+type = "shell"
+command = "herdr plugin action invoke open --plugin annotate"
