@@ -61,6 +61,9 @@ focus_pane_up    = "prefix+k"
 # Pane controls
 zoom = "cmd+shift+enter"
 
+# herdr's own sidebar — the workspace list, not the editor
+toggle_sidebar = "cmd+b"
+
 # Keep prefix around only as an escape hatch
 prefix = "ctrl+b"
 
@@ -72,9 +75,9 @@ prefix = "ctrl+b"
 # of its own; Fresh has one built in, on ctrl+p — and a cmd chord could not
 # reach it regardless, since Fresh ignores the super modifier.
 [[keys.command]]
-key = "cmd+b"
+key = "cmd+e"
 type = "shell"
-command = "sidebar"
+command = "editor"
 
 # Annotate. Ctrl+clicking a Markdown path also opens it — the plugin registers
 # a link handler for ^file://.*\.(md|markdown|mdx)$ — but that only reaches a
