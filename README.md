@@ -488,6 +488,20 @@ Warp is still installed but no longer the daily terminal — it has no AeroSpace
 
 `Cmd+B` is herdr's own sidebar — the workspace list — which is why the editor moved off it. This replaced the herdr-sidebar plugin. Its viewer was read-only and handed off to an editor anyway, so browsing a file meant a pane that could not edit it; Fresh does both. The plugin's source-control view has no replacement — `gh dash` covers PRs, and git itself is at the prompt.
 
+### PR status in the sidebar
+
+`pr-watch` polls every herdr workspace's pull request and reports it as the `$pr` token, which [`config.toml`](home/.config/herdr/config.toml) renders as a third sidebar row:
+
+```
+[3] 37571-sdk-performance
+    sdk-components  +97 −32
+    #37582 ◷4 ✓45 review needed
+```
+
+It also fires a herdr notification when something actually changes — approved, changes requested, checks going red or green, a PR merging, a branch starting to conflict — so an approval or a failing run arrives rather than being discovered. State lives in `~/.local/state/pr-watch/state.json`; the first run is silent because there is nothing to compare against.
+
+A LaunchAgent runs it every 5 minutes. launchd rather than cron: it survives reboots and runs inside the user session, which is what reaching herdr's socket needs. Run `pr-watch` by hand any time, or `pr-watch --quiet` to resync without notifications.
+
 ## Tinycast
 
 [Tinycast](https://github.com/abue-ammar/tinycast) is the launcher, and it also owns the Caps Lock hyper key. Its settings live in a cfprefsd-managed plist, which cannot be symlinked — the app rewrites it from memory — so they are exported into the repo instead:

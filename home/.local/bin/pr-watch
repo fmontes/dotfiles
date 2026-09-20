@@ -1,0 +1,168 @@
+#!/usr/bin/env python3
+#
+# pr-watch — poll each workspace's pull request and report it to the sidebar.
+#
+# Renders as the $pr token in [ui.sidebar.spaces], and fires a herdr
+# notification when a PR's review decision, checks or state actually change —
+# the point being to notice an approval or a failing run without going to look.
+#
+# Run from a LaunchAgent every few minutes. Safe to run by hand any time.
+#
+# Usage:
+#   pr-watch            poll, update the sidebar, notify on change
+#   pr-watch --quiet    poll without notifications (first run, or catching up)
+
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+SOURCE = "pr-watch"
+TOKEN = "pr"
+STATE = Path.home() / ".local/state/pr-watch/state.json"
+
+if "--help" in sys.argv or "-h" in sys.argv:
+    print("\n".join(l[2:] if l.startswith("# ") else l[1:]
+                    for l in Path(__file__).read_text().splitlines()[2:]
+                    if l.startswith("#")))
+    raise SystemExit(0)
+
+QUIET = "--quiet" in sys.argv
+
+
+def herdr(*args):
+    out = subprocess.run(["herdr", *args], capture_output=True, text=True)
+    if out.returncode != 0:
+        return None
+    try:
+        return json.loads(out.stdout)["result"]
+    except (json.JSONDecodeError, KeyError):
+        return None
+
+
+def repo_root(path):
+    r = subprocess.run(["git", "-C", path, "rev-parse", "--show-toplevel"],
+                       capture_output=True, text=True)
+    return r.stdout.strip() if r.returncode == 0 else None
+
+
+def pr_for(root):
+    """The branch's PR, or None. gh exits non-zero when there is no PR."""
+    r = subprocess.run(
+        ["gh", "pr", "view", "--json",
+         "number,state,isDraft,reviewDecision,mergeable,statusCheckRollup"],
+        cwd=root, capture_output=True, text=True)
+    if r.returncode != 0:
+        return None
+    try:
+        return json.loads(r.stdout)
+    except json.JSONDecodeError:
+        return None
+
+
+def summarise(pr):
+    """A compact token plus the fields worth alerting on."""
+    checks = pr.get("statusCheckRollup") or []
+    passed = sum(1 for c in checks if c.get("conclusion") in ("SUCCESS", "NEUTRAL", "SKIPPED"))
+    failed = sum(1 for c in checks if c.get("conclusion") in ("FAILURE", "TIMED_OUT", "CANCELLED", "ACTION_REQUIRED"))
+    pending = sum(1 for c in checks if not c.get("conclusion"))
+
+    decision = (pr.get("reviewDecision") or "").lower()
+    mark = {"approved": "approved",
+            "changes_requested": "changes requested",
+            "review_required": "review needed"}.get(decision, decision)
+
+    bits = [f"#{pr['number']}"]
+    if pr.get("isDraft"):
+        bits.append("draft")
+    if failed:
+        bits.append(f"✗{failed}")
+    if pending:
+        bits.append(f"◷{pending}")
+    if passed and not failed and not pending:
+        bits.append(f"✓{passed}")
+    elif passed:
+        bits.append(f"✓{passed}")
+    if mark:
+        bits.append(mark)
+    if pr.get("mergeable") == "CONFLICTING":
+        bits.append("conflicts")
+
+    return " ".join(bits), {
+        "number": pr["number"],
+        "state": pr.get("state"),
+        "decision": decision,
+        "failed": failed,
+        "pending": pending,
+        "mergeable": pr.get("mergeable"),
+    }
+
+
+def changed(old, new):
+    """What is worth interrupting someone for."""
+    if old is None:
+        return None
+    if old.get("decision") != new.get("decision") and new.get("decision"):
+        return {"approved": "approved",
+                "changes_requested": "changes requested",
+                "review_required": "review requested"}.get(new["decision"], new["decision"])
+    if new.get("failed", 0) and not old.get("failed", 0):
+        return f"{new['failed']} check(s) failing"
+    if old.get("failed", 0) and not new.get("failed", 0) and not new.get("pending", 0):
+        return "checks green"
+    if old.get("state") != new.get("state"):
+        return f"{(new.get('state') or '').lower()}"
+    if old.get("mergeable") != "CONFLICTING" and new.get("mergeable") == "CONFLICTING":
+        return "conflicts with base"
+    return None
+
+
+def main():
+    panes = herdr("pane", "list")
+    if not panes:
+        return 1
+    # First pane seen per workspace decides the directory.
+    dirs = {}
+    for p in panes["panes"]:
+        dirs.setdefault(p["workspace_id"], p.get("foreground_cwd") or p.get("cwd"))
+
+    labels = {w["workspace_id"]: w.get("label") or w["workspace_id"]
+              for w in (herdr("workspace", "list") or {}).get("workspaces", [])}
+
+    try:
+        previous = json.loads(STATE.read_text())
+    except (OSError, json.JSONDecodeError):
+        previous = {}
+
+    current = {}
+    for ws, path in dirs.items():
+        if not path or not os.path.isdir(path):
+            continue
+        root = repo_root(path)
+        if not root:
+            continue
+        pr = pr_for(root)
+        if not pr:
+            herdr("workspace", "report-metadata", ws, "--source", SOURCE,
+                  "--clear-token", TOKEN)
+            continue
+
+        token, state = summarise(pr)
+        current[ws] = state
+        herdr("workspace", "report-metadata", ws, "--source", SOURCE,
+              "--token", f"{TOKEN}={token}")
+
+        note = changed(previous.get(ws), state)
+        if note and not QUIET:
+            herdr("notification", "show", f"PR #{state['number']} {note}",
+                  "--body", f"{labels.get(ws, ws)} — {token}")
+
+    STATE.parent.mkdir(parents=True, exist_ok=True)
+    STATE.write_text(json.dumps(current, indent=1))
+    print(f"{len(current)} workspace(s) with a PR")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -88,6 +88,20 @@ if [[ -f "$tinycast_plist" ]]; then
   fi
 fi
 
+# ─── pr-watch LaunchAgent ────────────────────────────────────────────────────
+# Polls each herdr workspace's PR into the sidebar and notifies on changes.
+# The plist is symlinked by 03-symlinks.sh; launchd still has to be told.
+agent="$HOME/Library/LaunchAgents/com.fmontes.pr-watch.plist"
+if [[ -e "$agent" ]]; then
+  mkdir -p "$HOME/.local/state/pr-watch"
+  launchctl unload "$agent" 2>/dev/null
+  if launchctl load "$agent" 2>/dev/null; then
+    echo "pr-watch LaunchAgent loaded."
+  else
+    echo "pr-watch LaunchAgent failed to load — run 'launchctl load $agent' manually."
+  fi
+fi
+
 # ─── Fix .netrc permissions ──────────────────────────────────────────────────
 if [[ -f "$HOME/.netrc" ]]; then
   chmod 600 "$HOME/.netrc"
