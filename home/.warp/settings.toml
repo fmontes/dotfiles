@@ -118,7 +118,7 @@ system_theme = false
 
 [appearance.window]
 left_panel_visibility_across_tabs = true
-zoom_level = 110
+zoom_level = 125
 
 [appearance.panes]
 should_dim_inactive_panes = true

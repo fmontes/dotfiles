@@ -5,13 +5,17 @@
   <key>Label</key>
   <string>com.fmontes.pr-watch</string>
 
-  <!-- Polls every workspace's PR and reports it to herdr's sidebar, notifying
+  <!-- Template: 07-post-install.sh substitutes __HOME__ and writes the result
+       to ~/Library/LaunchAgents. launchd needs absolute paths and does not
+       expand ~, so this cannot be a symlink into the repo like everything else.
+
+       Polls every workspace's PR and reports it to herdr's sidebar, notifying
        when a review decision, check run or state changes. launchd rather than
        cron: it survives reboots and runs in the user session, which is what
        reaching herdr's socket needs. -->
   <key>ProgramArguments</key>
   <array>
-    <string>/Users/fmontes/.local/bin/pr-watch</string>
+    <string>__HOME__/.local/bin/pr-watch</string>
   </array>
 
   <!-- gh, git, herdr and python3 all come from Homebrew or ~/.local/bin, and
@@ -19,7 +23,7 @@
   <key>EnvironmentVariables</key>
   <dict>
     <key>PATH</key>
-    <string>/Users/fmontes/.local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    <string>__HOME__/.local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
   </dict>
 
   <key>StartInterval</key>
@@ -29,8 +33,8 @@
   <true/>
 
   <key>StandardOutPath</key>
-  <string>/Users/fmontes/.local/state/pr-watch/out.log</string>
+  <string>__HOME__/.local/state/pr-watch/out.log</string>
   <key>StandardErrorPath</key>
-  <string>/Users/fmontes/.local/state/pr-watch/err.log</string>
+  <string>__HOME__/.local/state/pr-watch/err.log</string>
 </dict>
 </plist>

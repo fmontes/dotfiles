@@ -501,7 +501,7 @@ Three chords are rewritten by Ghostty on the way through, because Fresh drops th
 
 Each one replaces a Ghostty default that sent an old readline escape — `\x01`, `\x05`, `esc:b`, `esc:f` — which Fresh reads as Select All, Focus File Explorer, and its Alt+letter menu mnemonics.
 
-herdr comes from the Brewfile as a formula, but its plugins install at runtime, so `07-post-install.sh` fetches [annotate](https://github.com/plannotator/herdr-annotate) if it is missing. [automatic-rename](https://github.com/qu8n/herdr-automatic-rename) names tabs after their directory, git branch and running program — `[2] api › feat/oauth › nvim` — which is why `prompt_new_tab_name` is off: there is nothing to type. It renames on herdr events, plus a `.zshrc` hook so a tab also renames the moment a command starts.
+herdr comes from the Brewfile as a formula, but its plugins install at runtime, so `07-post-install.sh` fetches [annotate](https://github.com/plannotator/herdr-annotate) if it is missing, pinned with `--ref` to the commit this setup was built against — the refs live at the top of that script and are bumped deliberately. [automatic-rename](https://github.com/qu8n/herdr-automatic-rename) names tabs after their directory, git branch and running program — `[2] api › feat/oauth › nvim` — which is why `prompt_new_tab_name` is off: there is nothing to type. It renames on herdr events, plus a `.zshrc` hook so a tab also renames the moment a command starts.
 
 `Cmd+L` toggles [reviewr](https://github.com/persiyanov/herdr-reviewr): diffs with comments on a line *or a range*, a changed-file browser, and a read-only mirror of the branch's PR through `gh`. That covers the two things Fresh's own review cannot — its comments anchor to a single line, and its Git Log is per-commit with no branch-level file list.
 
@@ -538,7 +538,7 @@ It also fires a herdr notification when something actually changes — approved,
 
 `Cmd+Shift+O` opens the focused workspace's PR in the browser — the sidebar number itself cannot be clickable, since workspace metadata is display-only and clicking the row switches workspace.
 
-A LaunchAgent runs it every 5 minutes. launchd rather than cron: it survives reboots and runs inside the user session, which is what reaching herdr's socket needs. Run `pr-watch` by hand any time, or `pr-watch --quiet` to resync without notifications.
+A LaunchAgent runs it every 5 minutes, generated from [`scripts/pr-watch.plist.template`](scripts/pr-watch.plist.template) rather than symlinked — launchd needs absolute paths and will not expand `~`, so the template carries `__HOME__` and post-install substitutes it. launchd rather than cron: it survives reboots and runs inside the user session, which is what reaching herdr's socket needs. Run `pr-watch` by hand any time, or `pr-watch --quiet` to resync without notifications.
 
 ## Tinycast
 
