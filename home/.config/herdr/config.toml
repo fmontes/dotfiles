@@ -72,17 +72,8 @@ key = "cmd+b"
 type = "shell"
 command = "sidebar"
 
-# Full review UI over the focused pane's folder: files, annotations, and
-# feedback back to the agent.
-[[keys.command]]
-key = "cmd+p"
-type = "shell"
-command = "herdr plugin action invoke open --plugin annotate"
-
-# The quick path: annotate whatever is selected right now. Fresh's own review
-# comments anchor to a single diff line, so a remark about a block has nowhere
-# to live; this takes however many lines you dragged.
-[[keys.command]]
-key = "cmd+shift+p"
-type = "shell"
-command = "herdr plugin action invoke capture --plugin annotate"
+# No key for annotate. Its manifest registers a link handler for
+# ^file://.*\.(md|markdown|mdx)$, so ctrl+clicking any Markdown path in any
+# pane opens it in plannotator-tui — nothing to remember, and it lands on the
+# file you were already looking at. The actions are still on the CLI:
+#   herdr plugin action invoke capture --plugin annotate
