@@ -1,18 +1,19 @@
 #!/usr/bin/env bash
 #
-# sidebar — toggle a Fresh editor tab for browsing and editing files.
+# editor — toggle a Fresh editor tab for browsing and editing files.
 #
 # Replaces the herdr-sidebar plugin. Fresh's own file explorer does the
 # listing and editing happens in the same window, instead of a read-only
 # viewer that hands off to an editor.
 #
 # One tab per workspace, labelled Fresh: open it if missing, focus it if it
-# is open elsewhere, close it if you are already looking at it.
+# is open elsewhere, close it if you are already looking at it. Not to be
+# confused with herdr's own sidebar, which is on cmd+b.
 #
 # Opens at the git root when there is one, otherwise the pane's directory.
 #
 # Usage:
-#   sidebar
+#   editor
 set -euo pipefail
 
 usage() { awk 'NR>2 && /^#/ { sub(/^# ?/, ""); print; next } NR>2 { exit }' "$0"; }

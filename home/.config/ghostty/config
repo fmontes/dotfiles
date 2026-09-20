@@ -42,6 +42,9 @@ keybind = cmd+]=unbind
 # Zoom pane
 keybind = cmd+shift+enter=unbind
 
+# Toggle the Fresh editor tab (Ghostty binds this to search_selection)
+keybind = cmd+e=unbind
+
 # Pane movement (Ghostty binds these to prev/next tab by default)
 keybind = cmd+alt+left=unbind
 keybind = cmd+alt+right=unbind
