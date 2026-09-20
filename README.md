@@ -540,6 +540,8 @@ It also fires a herdr notification when something actually changes — approved,
 
 `Cmd+Shift+O` opens the focused workspace's PR in the browser — the sidebar number itself cannot be clickable, since workspace metadata is display-only and clicking the row switches workspace.
 
+[`herdr-plugins/pr-refresh`](herdr-plugins/pr-refresh) also refreshes one workspace the moment you focus it, so the row is current when you look at it rather than up to five minutes old. It hooks `tab.focused` rather than `workspace.focused` — the latter is a valid event name in herdr's binary but nothing emits it, while `tab.focused` fires reliably and switching workspace always switches tab. A single-workspace poll takes ~1.4s against ~10s for all of them, it runs detached so focus never waits on the network, and a 45-second debounce keeps flicking between workspaces from hammering the API.
+
 A LaunchAgent runs it every 5 minutes, generated from [`scripts/pr-watch.plist.template`](scripts/pr-watch.plist.template) rather than symlinked — launchd needs absolute paths and will not expand `~`, so the template carries `__HOME__` and post-install substitutes it. launchd rather than cron: it survives reboots and runs inside the user session, which is what reaching herdr's socket needs. Run `pr-watch` by hand any time, or `pr-watch --quiet` to resync without notifications.
 
 ## Tinycast
