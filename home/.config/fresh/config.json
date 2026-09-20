@@ -1,20 +1,55 @@
 {
   "keybindings": [
     {
-      "comment": "Cmd+C. fresh ignores the super modifier in CSI-u, so Ghostty rewrites cmd+c into F13 (keybind = cmd+c=csi:25~).",
+      "comment": "Cmd+C. Fresh ignores the super modifier, so Ghostty rewrites cmd+c into F13 (keybind = cmd+c=csi:25~).",
       "key": "f13",
+      "modifiers": [],
       "action": "copy",
+      "args": {},
       "when": "normal"
     },
     {
-      "comment": "Select all. Cmd+A is dead for the same reason, ctrl+shift+a is swallowed, and ctrl+a is line-start in this keymap.",
-      "key": "a",
-      "modifiers": ["alt"],
-      "action": "select_all",
+      "comment": "The vscode map puts word motion on ctrl+arrow and history on alt+arrow, which is its Windows/Linux layout. VS Code on macOS uses option+arrow for word motion, so these four put it back.",
+      "key": "Left",
+      "modifiers": [
+        "alt"
+      ],
+      "action": "move_word_left",
+      "args": {},
+      "when": "normal"
+    },
+    {
+      "key": "Right",
+      "modifiers": [
+        "alt"
+      ],
+      "action": "move_word_end",
+      "args": {},
+      "when": "normal"
+    },
+    {
+      "key": "Left",
+      "modifiers": [
+        "alt",
+        "shift"
+      ],
+      "action": "select_word_left",
+      "args": {},
+      "when": "normal"
+    },
+    {
+      "key": "Right",
+      "modifiers": [
+        "alt",
+        "shift"
+      ],
+      "action": "select_word_end",
+      "args": {},
       "when": "normal"
     }
   ],
   "editor": {
     "show_horizontal_scrollbar": false
-  }
+  },
+  "active_keybinding_map": "vscode"
 }
