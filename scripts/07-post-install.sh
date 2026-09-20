@@ -27,6 +27,21 @@ else
   fi
 fi
 
+# ─── herdr annotate plugin ───────────────────────────────────────────────────
+# herdr comes from the Brewfile but its plugins install at runtime, so a fresh
+# machine has to fetch this one again. The manifest is pinned to a commit, so
+# the install is deterministic.
+if command -v herdr &>/dev/null; then
+  if herdr plugin list 2>/dev/null | grep -q annotate; then
+    echo "herdr annotate plugin already installed."
+  else
+    echo "Installing herdr annotate plugin..."
+    herdr plugin install plannotator/herdr-annotate -y || echo "annotate install failed — run 'herdr plugin install plannotator/herdr-annotate' manually."
+  fi
+else
+  echo "herdr not available yet — install the Brewfile first, then run 'herdr plugin install plannotator/herdr-annotate'."
+fi
+
 # ─── Global npm packages ─────────────────────────────────────────────────────
 if command -v npm &>/dev/null; then
   echo "Installing global npm packages..."
