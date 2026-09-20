@@ -1,0 +1,8 @@
+# reviewr reads this file, not herdr's config.toml, and re-reads it on every
+# refresh and toggle — edits apply without a relaunch.
+
+# Open on the branch diff: the working tree against the merge-base with the
+# base branch, so uncommitted work plus the branch's commits — the same thing
+# the PR shows. reviewr starts in "uncommitted" otherwise, which is empty on a
+# clean tree. u / b / t / g still switch scope at runtime.
+default_scope = "branch"
