@@ -16,11 +16,6 @@ status_indicators = "symbols"
 hide_tab_bar_when_single_tab = true
 show_agent_labels_on_pane_borders = true
 
-# Frame a lone pane too, not just splits. herdr has no padding setting, so a
-# border is the only thing that puts a column between the sidebar divider and
-# the prompt.
-pane_borders = "always"
-
 # Cmd+T opens a tab immediately instead of asking for a name first. Tabs get a
 # generated name, and rename is there via the right-click menu if one earns it.
 prompt_new_tab_name = false

@@ -3,6 +3,9 @@
 # it — the format indents the info line, [character] indents the ❯ below it.
 format = " $all"
 
+# No blank line before each prompt — starship adds one by default.
+add_newline = false
+
 [gcloud]
 disabled = true
 
