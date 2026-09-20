@@ -8,6 +8,11 @@ macos-option-as-alt = left
 # of vertical space.
 macos-titlebar-style = hidden
 
+# With no title bar the content sat flush against the top edge. This is a
+# fixed margin for the whole surface, sidebar included — unlike starship's
+# add_newline, which cost a row on every prompt.
+window-padding-y = 8
+
 # Ghostty rewrites opt+arrows into esc:b / esc:f — the old readline word-motion
 # convention. Fresh reads esc+f as alt+f, which is its File menu mnemonic, so
 # opt+right opened a menu instead of moving a word. Unbound, the real
