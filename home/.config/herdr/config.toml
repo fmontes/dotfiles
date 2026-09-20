@@ -29,6 +29,8 @@ row_gap = 1
 rows = [
   [{ token = "state_icon" }, { token = "workspace", bold = true }],
   [{ token = "branch", dim = true }, { token = "git_status", dim = true }],
+  # Reported by the pr-watch LaunchAgent; absent on workspaces with no PR.
+  [{ token = "$pr", dim = true }],
 ]
 
 [keys]
