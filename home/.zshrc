@@ -31,6 +31,13 @@ export PNPM_HOME="$HOME/Library/pnpm"
 export BUN_INSTALL="$HOME/.bun"
 export DOCKER_HOST=unix:///var/run/docker.sock
 
+# ─── Keys ───────────────────────────────────────────────────────────────────
+# Ghostty's opt+arrow defaults are unbound (see its config) so TUIs get the
+# real modified arrows. zsh already knows ^[b / ^[f but not these, and without
+# them the prompt just prints ";3C".
+bindkey '^[[1;3D' backward-word
+bindkey '^[[1;3C' forward-word
+
 # ─── PATH ───────────────────────────────────────────────────────────────────
 export PATH="$HOME/.local/bin:$PATH"   # claude and other native-installer bins
 export PATH="/opt/homebrew/opt/ruby/bin:$PATH"
