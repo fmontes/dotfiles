@@ -66,8 +66,7 @@ cask "chromium"
 # AeroSpace tiles these in home/.config/aerospace/aerospace.toml. Workspaces
 # are generic contexts, so nothing is assigned to one — an app opens wherever
 # focus is. Only Slack and MacWhisper carry a rule, forcing windows macOS
-# mislabels as panels back into tiling. Orca has no cask — see
-# scripts/07-post-install.sh.
+# mislabels as panels back into tiling.
 cask "nikitabobko/tap/aerospace"
 
 cask "slack"                      # slot 3
