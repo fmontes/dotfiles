@@ -54,6 +54,16 @@ keybind = cmd+alt+right=unbind
 keybind = cmd+alt+up=csi:1;7A
 keybind = cmd+alt+down=csi:1;7B
 
+# Same story for cmd+left/right. Ghostty sends \x01 and \x05 — the readline
+# line-start/end convention — and in Fresh's vscode keymap ctrl+a is Select All
+# and ctrl+e is Focus File Explorer, so the cursor never moved and the focus
+# jumped to the tree. Home/End are what Fresh wants; the shell needs bindkey
+# lines for them, see .zshrc.
+keybind = cmd+left=csi:H
+keybind = cmd+right=csi:F
+keybind = cmd+shift+left=csi:1;2H
+keybind = cmd+shift+right=csi:1;2F
+
 # Previous / next space
 keybind = cmd+shift+[=unbind
 keybind = cmd+shift+]=unbind

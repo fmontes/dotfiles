@@ -38,6 +38,11 @@ export DOCKER_HOST=unix:///var/run/docker.sock
 bindkey '^[[1;3D' backward-word
 bindkey '^[[1;3C' forward-word
 
+# cmd+left/right are rewritten to Home/End for the same reason — zsh knew
+# ^A and ^E, but not these.
+bindkey '^[[H' beginning-of-line
+bindkey '^[[F' end-of-line
+
 # ─── PATH ───────────────────────────────────────────────────────────────────
 export PATH="$HOME/.local/bin:$PATH"   # claude and other native-installer bins
 export PATH="/opt/homebrew/opt/ruby/bin:$PATH"
