@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.fmontes.pr-watch</string>
+
+  <!-- Template: 07-post-install.sh substitutes __HOME__ and writes the result
+       to ~/Library/LaunchAgents. launchd needs absolute paths and does not
+       expand ~, so this cannot be a symlink into the repo like everything else.
+
+       Polls every workspace's PR and reports it to herdr's sidebar, notifying
+       when a review decision, check run or state changes. launchd rather than
+       cron: it survives reboots and runs in the user session, which is what
+       reaching herdr's socket needs. -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>__HOME__/.local/bin/pr-watch</string>
+  </array>
+
+  <!-- gh, git, herdr and python3 all come from Homebrew or ~/.local/bin, and
+       launchd starts with almost no PATH. -->
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>__HOME__/.local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+
+  <key>StartInterval</key>
+  <integer>300</integer>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>__HOME__/.local/state/pr-watch/out.log</string>
+  <key>StandardErrorPath</key>
+  <string>__HOME__/.local/state/pr-watch/err.log</string>
+</dict>
+</plist>

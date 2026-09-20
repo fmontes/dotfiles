@@ -11,11 +11,6 @@ alias gbd="git branch -d"
 alias gl="git log --oneline --graph --decorate -20"
 alias gll="git log --oneline --graph --decorate --all"
 
-gcleanbranches() {
-  git fetch -p
-  git branch -vv | grep ': gone]' | awk '{print $1}' | xargs git branch -d
-}
-
 # ─── CLI Replacements ───────────────────────────────────────────────────────
 alias cat="bat"
 alias f="fd"
@@ -23,41 +18,8 @@ alias ls="eza --icons --group-directories-first"
 alias ll="eza -l --icons --group-directories-first --git"
 alias lt="eza --tree --level=2 --icons"
 
-# ─── Ports ──────────────────────────────────────────────────────────────────
-port() {
-  local process
-  process=$(lsof -i ":$1" | grep LISTEN)
-  echo "$process"
-}
-
-killport() {
-  local pid
-  pid=$(lsof -ti ":$1")
-  if [[ -z "$pid" ]]; then
-    echo "Nothing listening on port $1"
-    return
-  fi
-  echo "Killing PID $pid on port $1"
-  echo "$pid" | xargs kill -9
-}
-
-ports() {
-  echo "── Host processes ──"
-  lsof -i -P | grep LISTEN | grep -E 'node|bun|deno|java|ruby'
-  echo "── Docker containers ──"
-  docker ps --format "{{.Names}}\t{{.Ports}}" 2>/dev/null | while IFS=$'\t' read -r name ports; do
-    local mapped=$(echo "$ports" | grep -oE '0\.0\.0\.0:[0-9]+->[0-9]+/tcp' | sed 's/0.0.0.0://' | sed 's|->| -> |')
-    [[ -n "$mapped" ]] && echo "$name: $mapped"
-  done
-}
-alias devports='lsof -i :3000,3001,4200,5173,8080,8090,8443 | grep LISTEN'
-
-killdev() {
-  lsof -ti:3000,3001,4200,5173,8080,8443 | xargs kill -9 2>/dev/null
-  echo "Killed common dev ports"
-}
-
 # ─── Projects ───────────────────────────────────────────────────────────────
+# Stays a function: a script runs in a child process and cannot cd this shell.
 proj() {
   local dir
   dir=$(zoxide query -l | fzf --preview 'eza --tree --level=1 --icons {}')
@@ -68,12 +30,15 @@ proj() {
 alias prs="gh dash"
 
 # ─── Dotfiles ───────────────────────────────────────────────────────────────
-dotfiles() { code --new-window ~/Developer/dotfiles }
+# Stays an alias: sourcing has to happen in this shell, not a child.
 alias zreload="source ~/.zshrc && echo 'Reloaded'"
 
-# ─── Help ───────────────────────────────────────────────────────────────────
-aliases() { bat --language=sh ~/.config/zsh/*.zsh }
+# ─── Desktop ────────────────────────────────────────────────────────────────
+# AeroSpace has no overview GUI and parks inactive windows off-screen rather
+# than using macOS Spaces, so Mission Control is no help either. Workspaces are
+# generic and exist only while occupied, so there is nothing to label — just
+# list what is where.
+alias spaces="aerospace list-windows --all --format '%{workspace}  %{app-name}  %{window-title}' | sort -n"
 
 # ─── Misc ───────────────────────────────────────────────────────────────────
-alias run-help=man
 alias code="code --new-window"

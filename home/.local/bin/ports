@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+#
+# ports — list dev servers and container ports currently listening.
+#
+# Usage:
+#   ports
+set -euo pipefail
+
+usage() { awk 'NR>2 && /^#/ { sub(/^# ?/, ""); print; next } NR>2 { exit }' "$0"; }
+[[ ${1:-} == "-h" || ${1:-} == "--help" ]] && { usage; exit 0; }
+
+echo "── Host processes ──"
+lsof -i -P | grep LISTEN | grep -E 'node|bun|deno|java|ruby|python|php|go|rails|caddy|nginx' || echo "  none"
+
+echo "── Docker containers ──"
+if ! command -v docker >/dev/null 2>&1; then
+  echo "  docker not installed"
+  exit 0
+fi
+docker ps --format '{{.Names}}\t{{.Ports}}' 2>/dev/null | while IFS=$'\t' read -r name published; do
+  mapped=$(echo "$published" | grep -oE '0\.0\.0\.0:[0-9]+->[0-9]+/tcp' | sed 's/0.0.0.0://' | sed 's|->| -> |' || true)
+  [[ -n $mapped ]] && echo "$name: $mapped"
+done

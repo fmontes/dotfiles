@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+#
+# annotate — toggle a plannotator-tui review tab.
+#
+# The plugin's own placements are overlay, split and popup — there is no tab
+# among them — so this makes the tab and runs the plugin's pane wrapper in it,
+# which is exactly what its `doc` pane runs.
+#
+# One tab per workspace, labelled Annotate: open it if missing, focus it if it
+# is open elsewhere, close it if you are already looking at it.
+#
+# Usage:
+#   annotate
+set -euo pipefail
+
+usage() { awk 'NR>2 && /^#/ { sub(/^# ?/, ""); print; next } NR>2 { exit }' "$0"; }
+[[ ${1:-} == "-h" || ${1:-} == "--help" ]] && { usage; exit 0; }
+
+LABEL="Annotate"
+
+command -v herdr >/dev/null 2>&1 || { echo "herdr is not installed" >&2; exit 1; }
+
+# The install directory carries a hash, so glob for it rather than hardcoding.
+wrapper=$(echo "$HOME"/.config/herdr/plugins/github/annotate-*/scripts/plannotator-tui.sh)
+[[ -r $wrapper ]] || { echo "annotate plugin not installed" >&2; exit 1; }
+
+read -r pane workspace cwd < <(herdr-pane) || { echo "No herdr pane to work from" >&2; exit 1; }
+
+read -r tab focused < <(
+  herdr tab list --workspace "$workspace" | python3 -c '
+import sys, json
+# automatic-rename prefixes labels with [n], so match on the suffix rather
+# than equality — otherwise this never finds its own tab and opens a second.
+label = sys.argv[1]
+t = next((t for t in json.load(sys.stdin)["result"]["tabs"]
+          if (t.get("label") or "").endswith(label)), None)
+print(t["tab_id"], str(bool(t.get("focused"))).lower()) if t else print("", "")
+' "$LABEL"
+)
+
+if [[ -n $tab ]]; then
+  if [[ $focused == true ]]; then
+    herdr tab close "$tab" >/dev/null
+    echo "Closed $tab"
+  else
+    herdr tab focus "$tab" >/dev/null
+    echo "Focused $tab"
+  fi
+  exit 0
+fi
+
+root=$(git -C "${cwd:-$PWD}" rev-parse --show-toplevel 2>/dev/null || echo "${cwd:-$PWD}")
+
+# PLANNOTATOR_TUI_DELIVER_TO is how the wrapper learns which pane's agent to
+# send the review back to. The plugin's own action passes --deliver-to, but
+# `herdr pane` mode takes no arguments, so without this the review has nowhere
+# to go: "no agent pane to read: not focused on one and no --deliver-to".
+new=$(herdr tab create --workspace "$workspace" --label "$LABEL" --cwd "$root" --focus \
+  --env "PLANNOTATOR_TUI_DELIVER_TO=$pane" \
+  | python3 -c 'import sys,json; print(json.load(sys.stdin)["result"]["root_pane"]["pane_id"])')
+
+herdr pane run "$new" bash "$wrapper" herdr pane >/dev/null
+echo "Opened $LABEL tab at $root"

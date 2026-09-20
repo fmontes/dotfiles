@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+#
+# tools — list the standalone commands this machine provides.
+#
+# Reads the `# name — description` line every tool carries in its header, so
+# writing that line is the same act as registering the tool. Anything in
+# ~/.local/bin that is not a symlink into the dotfiles repo is listed
+# separately: those come from their own installers, not from here.
+#
+# Usage:
+#   tools
+set -euo pipefail
+
+usage() { awk 'NR>2 && /^#/ { sub(/^# ?/, ""); print; next } NR>2 { exit }' "$0"; }
+[[ ${1:-} == "-h" || ${1:-} == "--help" ]] && { usage; exit 0; }
+
+bin="$HOME/.local/bin"
+# Resolve this script through its symlink to find the repo's bin directory.
+self="$(cd "$(dirname "$(readlink "$0" || echo "$0")")" && pwd -P)"
+
+bold=$'\033[1m'; dim=$'\033[2m'; off=$'\033[0m'
+[[ -t 1 ]] || { bold=""; dim=""; off=""; }
+
+mine=(); theirs=()
+for f in "$bin"/*; do
+  [[ -e $f ]] || continue
+  name=$(basename "$f")
+  target="$(cd "$(dirname "$(readlink "$f" || echo "$f")")" 2>/dev/null && pwd -P)" || target=""
+  if [[ $target == "$self" ]]; then mine+=("$name"); else theirs+=("$name"); fi
+done
+
+describe() {
+  # The header line is `# <name> — <description>`; everything after the dash.
+  sed -n '1,12p' "$bin/$1" 2>/dev/null \
+    | grep -m1 -E '^# *[A-Za-z0-9_-]+ — ' \
+    | sed -E 's/^# *[A-Za-z0-9_-]+ — //' || true
+}
+
+echo "${bold}Tools${off} ${dim}(~/.dotfiles/home/.local/bin)${off}"
+for name in "${mine[@]}"; do
+  printf '  %s%-18s%s %s\n' "$bold" "$name" "$off" "$(describe "$name")"
+done
+
+if (( ${#theirs[@]} )); then
+  echo
+  echo "${dim}Also on PATH here, installed elsewhere: ${theirs[*]}${off}"
+fi

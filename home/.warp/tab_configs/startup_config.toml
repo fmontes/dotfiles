@@ -1,0 +1,8 @@
+name = "New tab: fmontes"
+
+[[panes]]
+id = "main"
+type = "agent"
+directory = "/Users/fmontes"
+
+[params]

@@ -1,0 +1,290 @@
+#!/usr/bin/env python3
+#
+# pr-watch — poll each workspace's pull request and report it to the sidebar.
+#
+# Renders as the $pr token in [ui.sidebar.spaces], and fires a herdr
+# notification when a PR's review decision, checks or state actually change —
+# the point being to notice an approval or a failing run without going to look.
+#
+# Run from a LaunchAgent every few minutes. Safe to run by hand any time.
+#
+# Usage:
+#   pr-watch                  poll every workspace, notify on change
+#   pr-watch --quiet          poll without notifications (first run, catching up)
+#   pr-watch --workspace ID   poll one workspace, for the focus hook
+
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+SOURCE = "pr-watch"
+TOKEN = "pr"
+STATE = Path.home() / ".local/state/pr-watch/state.json"
+
+if "--help" in sys.argv or "-h" in sys.argv:
+    print("\n".join(l[2:] if l.startswith("# ") else l[1:]
+                    for l in Path(__file__).read_text().splitlines()[2:]
+                    if l.startswith("#")))
+    raise SystemExit(0)
+
+QUIET = "--quiet" in sys.argv
+ONLY = None
+if "--workspace" in sys.argv:
+    i = sys.argv.index("--workspace")
+    ONLY = sys.argv[i + 1] if i + 1 < len(sys.argv) else None
+
+
+def herdr(*args):
+    out = subprocess.run(["herdr", *args], capture_output=True, text=True)
+    if out.returncode != 0:
+        return None
+    try:
+        return json.loads(out.stdout)["result"]
+    except (json.JSONDecodeError, KeyError):
+        return None
+
+
+def repo_root(path):
+    r = subprocess.run(["git", "-C", path, "rev-parse", "--show-toplevel"],
+                       capture_output=True, text=True)
+    return r.stdout.strip() if r.returncode == 0 else None
+
+
+NO_PR = "no-pr"
+LOOKUP_FAILED = "lookup-failed"
+
+
+def pr_for(root):
+    """The branch's PR, NO_PR, or LOOKUP_FAILED.
+
+    gh exits non-zero both when a branch genuinely has no PR and when the
+    network, auth or rate limit fails. Treating those the same wiped the
+    sidebar and the comparison baseline on a single bad poll, so the next
+    success looked like a fresh change.
+    """
+    r = subprocess.run(
+        ["gh", "pr", "view", "--json",
+         "number,state,isDraft,reviewDecision,mergeable,statusCheckRollup,url"],
+        cwd=root, capture_output=True, text=True)
+    if r.returncode != 0:
+        err = (r.stderr or "").lower()
+        return NO_PR if "no pull requests found" in err or "no open pull requests" in err else LOOKUP_FAILED
+    try:
+        return json.loads(r.stdout)
+    except json.JSONDecodeError:
+        return LOOKUP_FAILED
+
+
+PASS = {"SUCCESS", "NEUTRAL", "SKIPPED", "EXPECTED"}
+FAIL = {"FAILURE", "TIMED_OUT", "CANCELLED", "ACTION_REQUIRED", "STARTUP_FAILURE", "ERROR"}
+
+
+def check_verdict(c):
+    """statusCheckRollup mixes two shapes and they do not share a field.
+
+    CheckRun carries `status` + `conclusion`; StatusContext carries `state`
+    and no conclusion at all. Reading only `conclusion` marks every
+    StatusContext pending, which showed green PRs as still running.
+    """
+    if c.get("__typename") == "StatusContext":
+        state = c.get("state")
+    else:
+        if c.get("status") and c.get("status") != "COMPLETED":
+            return "pending"
+        state = c.get("conclusion")
+    if state in PASS:
+        return "pass"
+    if state in FAIL:
+        return "fail"
+    return "pending"
+
+
+THREADS_QUERY = """
+query($owner:String!,$repo:String!,$number:Int!){
+  repository(owner:$owner,name:$repo){
+    pullRequest(number:$number){
+      reviewThreads(first:100){ nodes { isResolved } }
+    }
+  }
+}
+"""
+
+
+def unresolved_threads(pr, cwd):
+    """Count review threads nobody has resolved.
+
+    GitHub blocks merge on these independently of reviewDecision, so a PR can
+    read approved and still not be mergeable. `gh pr view` does not expose
+    them; owner and repo come off the PR url so this costs no extra lookup.
+    """
+    url = pr.get("url") or ""
+    parts = url.split("/")
+    if len(parts) < 5:
+        return None
+    owner, repo = parts[-4], parts[-3]
+    r = subprocess.run(
+        ["gh", "api", "graphql", "-f", f"query={THREADS_QUERY}",
+         "-F", f"owner={owner}", "-F", f"repo={repo}", "-F", f"number={pr['number']}"],
+        cwd=cwd, capture_output=True, text=True)
+    if r.returncode != 0:
+        return None
+    try:
+        nodes = json.loads(r.stdout)["data"]["repository"]["pullRequest"]["reviewThreads"]["nodes"]
+    except (json.JSONDecodeError, KeyError, TypeError):
+        return None
+    return sum(1 for t in nodes if not t.get("isResolved"))
+
+
+# One word, coloured by severity. Only the matching token is reported and the
+# other two are cleared, so the sidebar shows a single status with no legend to
+# remember: red is your problem, yellow is waiting on someone, green is done.
+BLOCKED, WAITING, READY = "blocked", "waiting", "ready"
+
+
+def summarise(pr, threads=0):
+    """Return (number, severity, word, state) — the top blocker only.
+
+    Order matters: a PR with a conflict and a failing check is reported as
+    conflicting, because that is what you have to fix first.
+    """
+    checks = pr.get("statusCheckRollup") or []
+    verdicts = [check_verdict(c) for c in checks]
+    failed = verdicts.count("fail")
+    pending = verdicts.count("pending")
+    decision = (pr.get("reviewDecision") or "").lower()
+
+    state = (pr.get("state") or "").upper()
+    if state and state != "OPEN":
+        # Merged and closed PRs are not blockers; without this a merged PR sat
+        # in the sidebar reading "needs review" forever.
+        sev, word = READY, state.lower()
+    elif pr.get("mergeable") == "CONFLICTING":
+        sev, word = BLOCKED, "conflicts"
+    elif failed:
+        sev, word = BLOCKED, f"{failed} failing"
+    elif decision == "changes_requested":
+        sev, word = BLOCKED, "changes requested"
+    elif threads:
+        sev, word = WAITING, f"{threads} comment{'s' if threads > 1 else ''}"
+    elif pr.get("isDraft"):
+        sev, word = WAITING, "draft"
+    elif pending:
+        sev, word = WAITING, "running"
+    elif decision != "approved":
+        sev, word = WAITING, "needs review"
+    else:
+        sev, word = READY, "ready"
+
+    return f"#{pr['number']}", sev, word, {
+        "number": pr["number"],
+        "state": pr.get("state"),
+        "decision": decision,
+        "failed": failed,
+        "pending": pending,
+        "threads": threads,
+        "mergeable": pr.get("mergeable"),
+    }
+
+
+def changed(old, new):
+    """What is worth interrupting someone for."""
+    if old is None:
+        return None
+    if old.get("decision") != new.get("decision") and new.get("decision"):
+        return {"approved": "approved",
+                "changes_requested": "changes requested",
+                "review_required": "review requested"}.get(new["decision"], new["decision"])
+    if new.get("threads", 0) and not old.get("threads", 0):
+        return f"{new['threads']} comment(s) to resolve"
+    if old.get("threads", 0) and not new.get("threads", 0):
+        return "comments resolved"
+    if new.get("failed", 0) and not old.get("failed", 0):
+        return f"{new['failed']} check(s) failing"
+    settled = not new.get("failed", 0) and not new.get("pending", 0)
+    was_unsettled = old.get("failed", 0) or old.get("pending", 0)
+    if settled and was_unsettled:
+        return "checks green"
+    if old.get("state") != new.get("state"):
+        return f"{(new.get('state') or '').lower()}"
+    if old.get("mergeable") != "CONFLICTING" and new.get("mergeable") == "CONFLICTING":
+        return "conflicts with base"
+    return None
+
+
+def main():
+    panes = herdr("pane", "list")
+    if not panes:
+        return 1
+    # First pane seen per workspace decides the directory.
+    dirs = {}
+    for p in panes["panes"]:
+        dirs.setdefault(p["workspace_id"], p.get("foreground_cwd") or p.get("cwd"))
+
+    labels = {w["workspace_id"]: w.get("label") or w["workspace_id"]
+              for w in (herdr("workspace", "list") or {}).get("workspaces", [])}
+
+    try:
+        previous = json.loads(STATE.read_text())
+    except (OSError, json.JSONDecodeError):
+        previous = {}
+
+    current = {}
+    for ws, path in dirs.items():
+        if ONLY and ws != ONLY:
+            # Keep every other workspace's reading; this is a targeted refresh,
+            # not a reason to forget the rest.
+            if ws in previous:
+                current[ws] = previous[ws]
+            continue
+        if not path or not os.path.isdir(path):
+            continue
+        root = repo_root(path)
+        if not root:
+            continue
+        pr = pr_for(root)
+        if pr == LOOKUP_FAILED:
+            # Carry the previous reading forward untouched: a failed poll is not
+            # evidence that anything changed.
+            if ws in previous:
+                current[ws] = previous[ws]
+            continue
+        if pr == NO_PR:
+            herdr("workspace", "report-metadata", ws, "--source", SOURCE,
+                  "--clear-token", TOKEN,
+                  "--clear-token", f"{TOKEN}_{BLOCKED}",
+                  "--clear-token", f"{TOKEN}_{WAITING}",
+                  "--clear-token", f"{TOKEN}_{READY}")
+            continue
+
+        threads = unresolved_threads(pr, root)
+        if threads is None:
+            # Unknown, not zero — reporting zero would claim every thread was
+            # resolved and fire a false "comments resolved".
+            threads = previous.get(ws, {}).get("threads", 0)
+
+        number, sev, word, state = summarise(pr, threads)
+        current[ws] = state
+        args = ["workspace", "report-metadata", ws, "--source", SOURCE,
+                "--token", f"{TOKEN}={number}"]
+        for name in (BLOCKED, WAITING, READY):
+            if name == sev:
+                args += ["--token", f"{TOKEN}_{name}={word}"]
+            else:
+                args += ["--clear-token", f"{TOKEN}_{name}"]
+        herdr(*args)
+
+        note = changed(previous.get(ws), state)
+        if note and not QUIET:
+            herdr("notification", "show", f"PR #{state['number']} {note}",
+                  "--body", f"{labels.get(ws, ws)} — {number} {word}")
+
+    STATE.parent.mkdir(parents=True, exist_ok=True)
+    STATE.write_text(json.dumps(current, indent=1))
+    print(f"{len(current)} workspace(s) with a PR" + (f" (refreshed {ONLY})" if ONLY else ""))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

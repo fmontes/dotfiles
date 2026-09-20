@@ -25,6 +25,11 @@ BREW_BIN="/opt/homebrew/bin/brew"
 [[ -x "$BREW_BIN" ]] && eval "$("$BREW_BIN" shellenv)"
 
 run_script 03-symlinks.sh
+
+# Hooks are tracked so a fresh clone gets them, but core.hooksPath is local
+# config and has to be pointed at the directory once per clone.
+info "Enabling repo git hooks..."
+git -C "$DOTFILES_DIR" config core.hooksPath .githooks
 run_script 04-omz.sh
 run_script 05-mise.sh
 

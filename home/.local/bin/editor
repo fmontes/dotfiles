@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+#
+# editor — toggle a Fresh editor tab for browsing and editing files.
+#
+# Replaces the herdr-sidebar plugin. Fresh's own file explorer does the
+# listing and editing happens in the same window, instead of a read-only
+# viewer that hands off to an editor.
+#
+# One tab per workspace, labelled Fresh: open it if missing, focus it if it
+# is open elsewhere, close it if you are already looking at it. Not to be
+# confused with herdr's own sidebar, which is on cmd+b.
+#
+# Opens at the git root when there is one, otherwise the pane's directory.
+#
+# Usage:
+#   editor
+set -euo pipefail
+
+usage() { awk 'NR>2 && /^#/ { sub(/^# ?/, ""); print; next } NR>2 { exit }' "$0"; }
+[[ ${1:-} == "-h" || ${1:-} == "--help" ]] && { usage; exit 0; }
+
+LABEL="Fresh"
+
+command -v herdr >/dev/null 2>&1 || { echo "herdr is not installed" >&2; exit 1; }
+
+read -r pane workspace cwd < <(herdr-pane) || { echo "No herdr pane to work from" >&2; exit 1; }
+
+read -r tab focused < <(
+  herdr tab list --workspace "$workspace" | python3 -c '
+import sys, json
+# automatic-rename prefixes labels with [n], so match on the suffix rather
+# than equality — otherwise this never finds its own tab and opens a second.
+label = sys.argv[1]
+t = next((t for t in json.load(sys.stdin)["result"]["tabs"]
+          if (t.get("label") or "").endswith(label)), None)
+print(t["tab_id"], str(bool(t.get("focused"))).lower()) if t else print("", "")
+' "$LABEL"
+)
+
+if [[ -n $tab ]]; then
+  if [[ $focused == true ]]; then
+    herdr tab close "$tab" >/dev/null
+    echo "Closed $tab"
+  else
+    herdr tab focus "$tab" >/dev/null
+    echo "Focused $tab"
+  fi
+  exit 0
+fi
+
+root=$(git -C "${cwd:-$PWD}" rev-parse --show-toplevel 2>/dev/null || echo "${cwd:-$PWD}")
+
+new=$(herdr tab create --workspace "$workspace" --label "$LABEL" --cwd "$root" --focus \
+  | python3 -c 'import sys,json; d=json.load(sys.stdin)["result"]; print(d["root_pane"]["pane_id"])')
+
+# --no-restore so it opens on the directory rather than whatever buffers were
+# last open; unsaved work is recovered either way.
+herdr pane run "$new" fresh --no-restore . >/dev/null
+echo "Opened $LABEL tab at $root"
