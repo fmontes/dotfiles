@@ -57,10 +57,15 @@ row_gap = 1
 rows = [
   [{ token = "state_icon" }, { token = "workspace", bold = true }],
   [{ token = "branch", fg = "#7f849c" }, { token = "git_status", fg = "#7f849c" }],
-  # Reported by the pr-watch LaunchAgent; absent on workspaces with no PR.
-  # #number, checks (✓ green / ✗ failing / ⋯ running), review (● approved / ◻ waiting),
-  # then ≡n unresolved comment threads and ⚠ for a conflict.
-  [{ token = "$pr", fg = "#a6adc8" }],
+  # Reported by the pr-watch LaunchAgent. One word, coloured by severity, so
+  # there is no legend: red is your problem, yellow is waiting on someone else,
+  # green means it can merge. Only the matching token is ever set.
+  [
+    { token = "$pr", fg = "#7f849c" },
+    { token = "$pr_blocked", fg = "#f38ba8" },
+    { token = "$pr_waiting", fg = "#f9e2af" },
+    { token = "$pr_ready",   fg = "#a6e3a1" },
+  ],
 ]
 
 [keys]
