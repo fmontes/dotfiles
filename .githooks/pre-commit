@@ -1,0 +1,30 @@
+#!/usr/bin/env zsh
+# Keep the tracked Tinycast settings in step with the live ones.
+#
+# Tinycast's plist cannot be symlinked (cfprefsd rewrites it), so it is exported
+# into the repo. Doing that by hand means hotkey changes get forgotten until the
+# next machine rebuild, which is exactly when you find out.
+#
+# This never blocks a commit: no Tinycast, no export, no problem.
+
+repo_root="$(git rev-parse --show-toplevel)"
+plist="home/.config/tinycast/com.tinycast.app.plist"
+
+DOTFILES_DIR="$repo_root" zsh "$repo_root/scripts/tinycast-export.sh" || exit 0
+
+if ! git diff --quiet -- "$plist" 2>/dev/null; then
+  git add "$plist"
+  echo "pre-commit: Tinycast settings changed, staged $plist"
+fi
+
+# Apps sometimes replace a config rather than writing through it, which turns a
+# symlink back into a regular file and silently ends tracking — Warp syncs its
+# settings from its own cloud, so it is the likeliest to do this. Warn, never
+# block: a missing destination just means that file is not installed here.
+git ls-files home/ | while read -r f; do
+  dest="$HOME/${f#home/}"
+  [[ -e "$dest" ]] || continue
+  [[ -L "$dest" ]] || echo "pre-commit: warning — $dest is a real file, no longer linked to $f"
+done
+
+exit 0

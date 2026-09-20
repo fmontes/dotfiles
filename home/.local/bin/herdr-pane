@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+#
+# herdr-pane — print the working pane as "pane_id workspace_id cwd".
+#
+# HERDR_PANE_ID is set inside a pane, but a herdr keybinding runs its command
+# detached without it — and `herdr pane current` needs it too, so it cannot be
+# the fallback. This reads the pane list, which carries `focused`, and every
+# caller then addresses herdr by id.
+#
+# Exits 1 when there is no pane to work from.
+#
+# Usage:
+#   read -r pane workspace cwd < <(herdr-pane)
+set -euo pipefail
+
+usage() { awk 'NR>2 && /^#/ { sub(/^# ?/, ""); print; next } NR>2 { exit }' "$0"; }
+[[ ${1:-} == "-h" || ${1:-} == "--help" ]] && { usage; exit 0; }
+
+command -v herdr >/dev/null 2>&1 || { echo "herdr is not installed" >&2; exit 1; }
+
+herdr pane list | HERDR_WANT="${HERDR_PANE_ID:-}" python3 -c '
+import sys, json, os
+panes = json.load(sys.stdin)["result"]["panes"]
+want = os.environ.get("HERDR_WANT") or ""
+p = next((x for x in panes if x["pane_id"] == want), None) \
+    or next((x for x in panes if x.get("focused")), None)
+if not p:
+    sys.exit(1)
+print(p["pane_id"], p["workspace_id"], p.get("foreground_cwd") or p.get("cwd") or "")
+'

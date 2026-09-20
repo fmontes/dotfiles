@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+#
+# aliases — show the shell aliases and functions this machine defines.
+#
+# Usage:
+#   aliases
+set -euo pipefail
+
+usage() { awk 'NR>2 && /^#/ { sub(/^# ?/, ""); print; next } NR>2 { exit }' "$0"; }
+[[ ${1:-} == "-h" || ${1:-} == "--help" ]] && { usage; exit 0; }
+
+# Standalone commands live in ~/.local/bin and are listed by `tools`; this is
+# only what has to stay in the shell.
+bat --language=sh "$HOME"/.config/zsh/*.zsh

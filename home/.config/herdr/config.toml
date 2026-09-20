@@ -1,0 +1,140 @@
+onboarding = false
+
+[update]
+# herdr is installed with Homebrew now, so its self-updater would fetch its own
+# build into ~/.local/bin and shadow the brew binary on PATH. Upgrade with
+# `brew upgrade herdr` instead of `herdr update`.
+version_check = false
+
+# Layered on the default catppuccin base
+[theme.custom]
+sidebar_bg    = "reset"     # no panel of its own - takes the terminal background
+panel_bg      = "reset"     # same, so borders are the only thing dividing regions
+active_row_bg = "#313244"   # surface0 - the focused space reads as selected
+accent        = "#cba6f7"   # mauve - the active tab and highlights read lavender
+
+[ui]
+status_indicators = "symbols"
+hide_tab_bar_when_single_tab = true
+
+# Frame every pane, not only splits, and keep the outside edge of the pane
+# area. With sidebar_bg at base there is no colour change left to separate the
+# sidebar from the panes, so the outer border is what draws that line.
+pane_borders = "always"
+pane_outer_borders = true
+
+# No scrollbar column beside panes. It is a vertical line the borders already
+# imply, and dropping it keeps the column out of terminal-native selections.
+pane_scrollbars = false
+
+# What the titlebar says. The default is "{hostname}: {workspace}", and the
+# hostname is the one thing on screen that never changes and never matters.
+window_title = "{workspace} › {tab}"
+show_agent_labels_on_pane_borders = true
+
+# Cmd+T opens a tab immediately instead of asking for a name first. Tabs get a
+# generated name, and rename is there via the right-click menu if one earns it.
+prompt_new_tab_name = false
+
+[ui.toast]
+delivery = "terminal"
+
+# Separate space entries by weight, not blank rows
+[ui.sidebar.agents]
+row_gap = 1
+# state_icon and state_text are tinted by the agent's state — yellow working,
+# red blocked, green done, hollow idle — so the state reads as colour before
+# it reads as a word.
+rows = [
+  [{ token = "state_icon" }, { token = "workspace", bold = true }],
+  [{ token = "state_text" }, { token = "agent", fg = "#7f849c" }],
+]
+
+[ui.sidebar.spaces]
+row_gap = 1
+# Explicit catppuccin greys rather than dim: dim multiplies the theme's own
+# muted colour and the second and third rows came out barely legible.
+rows = [
+  [{ token = "state_icon" }, { token = "workspace", bold = true }],
+  [{ token = "branch", fg = "#7f849c" }, { token = "git_status", fg = "#7f849c" }],
+  # Reported by the pr-watch LaunchAgent. One word, coloured by severity, so
+  # there is no legend: red is your problem, yellow is waiting on someone else,
+  # green means it can merge. Only the matching token is ever set.
+  [
+    { token = "$pr", fg = "#7f849c" },
+    { token = "$pr_blocked", fg = "#f38ba8" },
+    { token = "$pr_waiting", fg = "#f9e2af" },
+    { token = "$pr_ready",   fg = "#a6e3a1" },
+  ],
+]
+
+[keys]
+
+# Warp-style tabs
+new_tab      = "cmd+t"
+close_tab    = ""   # unbound - close tabs via right-click menu
+previous_tab = "alt+["
+next_tab     = "alt+]"
+switch_tab   = "alt+1..9"   # left option only — right option composes
+
+# Spaces
+switch_workspace   = "alt+shift+1..9"
+previous_workspace = "alt+shift+["
+next_workspace     = "alt+shift+]"
+
+# Warp-style splits
+split_vertical   = "cmd+d"
+split_horizontal = "cmd+shift+d"
+
+# Pane movement
+focus_pane_left  = "cmd+alt+left"
+focus_pane_right = "cmd+alt+right"
+# Up/down belong to Fresh's multi-cursor now — Ghostty rewrites cmd+alt+up/down
+# into ctrl+alt+up/down before herdr sees them. These never worked anyway:
+# Ghostty's goto_split default was swallowing the chord. On the prefix instead.
+focus_pane_down  = "prefix+j"
+focus_pane_up    = "prefix+k"
+
+# Pane controls
+zoom = "cmd+shift+enter"
+
+# herdr's own sidebar — the workspace list, not the editor
+toggle_sidebar = "cmd+b"
+
+# Keep prefix around only as an escape hatch
+prefix = "ctrl+b"
+
+# File explorer and editing: the Fresh editor in a tab, toggled by the
+# `sidebar` tool. This replaced the herdr-sidebar plugin, whose viewer was
+# read-only and handed off to an editor anyway.
+#
+# There is no cmd+p here any more. The plugin's quick-open was a file picker
+# of its own; Fresh has one built in, on ctrl+p — and a cmd chord could not
+# reach it regardless, since Fresh ignores the super modifier.
+[[keys.command]]
+key = "cmd+e"
+type = "shell"
+command = "editor"
+
+# Annotate. Ctrl+clicking a Markdown path also opens it — the plugin registers
+# a link handler for ^file://.*\.(md|markdown|mdx)$ — but that only reaches a
+# file you can see. This opens the review UI over the focused pane's folder.
+[[keys.command]]
+key = "cmd+alt+a"
+type = "shell"
+command = "annotate"
+
+# Code review: diffs with line and range comments, a changed-file browser, and
+# a read-only mirror of the branch's PR. Toggle, so the same key puts it away.
+[[keys.command]]
+key = "cmd+l"
+type = "shell"
+command = "herdr plugin action invoke toggle --plugin persiyanov.reviewr"
+
+# Open the focused workspace's PR in the browser. The sidebar shows its number
+# but cannot make it clickable — workspace metadata is display-only, and
+# clicking the row switches workspace.
+[[keys.command]]
+key = "cmd+shift+o"
+type = "shell"
+command = "pr-open"

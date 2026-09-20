@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+#
+# pr-open — open the focused workspace's pull request in the browser.
+#
+# The sidebar shows the PR number but cannot make it clickable: workspace
+# metadata is display-only, and a click on the row switches workspace. This is
+# the same gesture from a key instead.
+#
+# Usage:
+#   pr-open
+set -euo pipefail
+
+usage() { awk 'NR>2 && /^#/ { sub(/^# ?/, ""); print; next } NR>2 { exit }' "$0"; }
+[[ ${1:-} == "-h" || ${1:-} == "--help" ]] && { usage; exit 0; }
+
+command -v gh >/dev/null 2>&1 || { echo "gh is not installed" >&2; exit 1; }
+
+read -r _pane _workspace cwd < <(herdr-pane) || cwd=""
+
+[[ -d ${cwd:-} ]] || cwd=$PWD
+
+if ! root=$(git -C "$cwd" rev-parse --show-toplevel 2>/dev/null); then
+  echo "Not a git repository: $cwd" >&2
+  exit 1
+fi
+
+branch=$(git -C "$root" rev-parse --abbrev-ref HEAD)
+
+if ! (cd "$root" && gh pr view --web) >/dev/null 2>&1; then
+  echo "No pull request for $branch" >&2
+  # A key press that silently does nothing is worse than one that says why.
+  herdr notification show "No pull request" --body "$branch has none open" >/dev/null 2>&1 || true
+  exit 1
+fi

@@ -1,3 +1,94 @@
 shell-integration = none
+# left option = alt (opt+backspace deletes a word)
+# right option stays free for composing accented characters
+macos-option-as-alt = left
+
+# The title bar stays, but it has to disappear into the window. Ghostty's
+# default background is #282c34 while herdr paints catppuccin base, and a
+# transparent titlebar takes Ghostty's colour — which is why the bar read as a
+# lighter grey strip above everything.
+background = #1e1e2e
+
+# No folder proxy icon; herdr already says where it is.
+macos-titlebar-proxy-icon = hidden
+
+# Both zero. The top was 20 back when the title bar was hidden and content sat
+# flush against the top edge; with the bar visible that padding was only an
+# empty band. The second value is the bottom, and 20 there just left an empty
+# strip under herdr's status bar.
+window-padding-y = 0,0
+
+# Ghostty rewrites opt+arrows into esc:b / esc:f — the old readline word-motion
+# convention. Fresh reads esc+f as alt+f, which is its File menu mnemonic, so
+# opt+right opened a menu instead of moving a word. Unbound, the real
+# ESC[1;3C/D arrives and Fresh's own alt+arrow word bindings fire. The shell
+# needs bindkey lines for those sequences — see .zshrc.
+keybind = alt+arrow_left=unbind
+keybind = alt+arrow_right=unbind
 tab-inherit-working-directory = true
 split-inherit-working-directory = true
+
+# Herdr owns tabs/panes/layout.
+# Ghostty should pass these through instead of handling them.
+
+# Tabs
+keybind = cmd+t=unbind
+keybind = cmd+w=unbind
+
+# Splits
+keybind = cmd+d=unbind
+keybind = cmd+shift+d=unbind
+
+# Tab switching
+keybind = cmd+1=unbind
+keybind = cmd+2=unbind
+keybind = cmd+3=unbind
+keybind = cmd+4=unbind
+keybind = cmd+5=unbind
+keybind = cmd+6=unbind
+keybind = cmd+7=unbind
+keybind = cmd+8=unbind
+keybind = cmd+9=unbind
+
+# Previous / next tab
+keybind = cmd+[=unbind
+keybind = cmd+]=unbind
+
+# Zoom pane
+keybind = cmd+shift+enter=unbind
+
+# Toggle the Fresh editor tab (Ghostty binds this to search_selection)
+keybind = cmd+e=unbind
+
+# Pane movement (Ghostty binds these to prev/next tab by default)
+keybind = cmd+alt+left=unbind
+keybind = cmd+alt+right=unbind
+
+# Up/down go to Fresh instead, as multi-cursor. Ghostty's goto_split default
+# was swallowing them, so herdr's focus_pane_up/down never fired either — the
+# chord did nothing at all. Fresh puts add-cursor-above/below on ctrl+alt,
+# VS Code on macOS puts it on cmd+alt, and Fresh cannot see a cmd chord, so
+# rewrite one into the other.
+keybind = cmd+alt+up=csi:1;7A
+keybind = cmd+alt+down=csi:1;7B
+
+# Same story for cmd+left/right. Ghostty sends \x01 and \x05 — the readline
+# line-start/end convention — and in Fresh's vscode keymap ctrl+a is Select All
+# and ctrl+e is Focus File Explorer, so the cursor never moved and the focus
+# jumped to the tree. Home/End are what Fresh wants; the shell needs bindkey
+# lines for them, see .zshrc.
+keybind = cmd+left=csi:H
+keybind = cmd+right=csi:F
+keybind = cmd+shift+left=csi:1;2H
+keybind = cmd+shift+right=csi:1;2F
+
+# Previous / next space
+keybind = cmd+shift+[=unbind
+keybind = cmd+shift+]=unbind
+
+# fresh ignores the super modifier in CSI-u, so its whole macOS keymap is dead
+# in a terminal. Translate cmd+c into F13, which fresh binds to copy and every
+# other pane ignores. Ctrl+Shift+C would have worked too, but it degrades to
+# ^C (SIGINT) in panes that do not speak the Kitty keyboard protocol.
+# Cost: Ghostty's and herdr's own cmd+c selection copy. Both copy on select anyway.
+keybind = cmd+c=csi:25~
