@@ -3,9 +3,7 @@
     {
       "comment": "Cmd+C. fresh ignores the super modifier in CSI-u, so Ghostty rewrites cmd+c into F13 (keybind = cmd+c=csi:25~).",
       "key": "f13",
-      "modifiers": [],
       "action": "copy",
-      "args": {},
       "when": "normal"
     },
     {
@@ -13,8 +11,10 @@
       "key": "a",
       "modifiers": ["alt"],
       "action": "select_all",
-      "args": {},
       "when": "normal"
     }
-  ]
+  ],
+  "editor": {
+    "show_horizontal_scrollbar": false
+  }
 }
