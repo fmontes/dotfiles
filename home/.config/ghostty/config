@@ -46,6 +46,14 @@ keybind = cmd+shift+enter=unbind
 keybind = cmd+alt+left=unbind
 keybind = cmd+alt+right=unbind
 
+# Up/down go to Fresh instead, as multi-cursor. Ghostty's goto_split default
+# was swallowing them, so herdr's focus_pane_up/down never fired either — the
+# chord did nothing at all. Fresh puts add-cursor-above/below on ctrl+alt,
+# VS Code on macOS puts it on cmd+alt, and Fresh cannot see a cmd chord, so
+# rewrite one into the other.
+keybind = cmd+alt+up=csi:1;7A
+keybind = cmd+alt+down=csi:1;7B
+
 # Previous / next space
 keybind = cmd+shift+[=unbind
 keybind = cmd+shift+]=unbind
