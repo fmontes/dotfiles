@@ -51,7 +51,7 @@ def pr_for(root):
     """The branch's PR, or None. gh exits non-zero when there is no PR."""
     r = subprocess.run(
         ["gh", "pr", "view", "--json",
-         "number,state,isDraft,reviewDecision,mergeable,statusCheckRollup"],
+         "number,state,isDraft,reviewDecision,mergeable,statusCheckRollup,url"],
         cwd=root, capture_output=True, text=True)
     if r.returncode != 0:
         return None
@@ -85,11 +85,48 @@ def check_verdict(c):
     return "pending"
 
 
-def summarise(pr):
+THREADS_QUERY = """
+query($owner:String!,$repo:String!,$number:Int!){
+  repository(owner:$owner,name:$repo){
+    pullRequest(number:$number){
+      reviewThreads(first:100){ nodes { isResolved } }
+    }
+  }
+}
+"""
+
+
+def unresolved_threads(pr, cwd):
+    """Count review threads nobody has resolved.
+
+    GitHub blocks merge on these independently of reviewDecision, so a PR can
+    read approved and still not be mergeable. `gh pr view` does not expose
+    them; owner and repo come off the PR url so this costs no extra lookup.
+    """
+    url = pr.get("url") or ""
+    parts = url.split("/")
+    if len(parts) < 5:
+        return 0
+    owner, repo = parts[-4], parts[-3]
+    r = subprocess.run(
+        ["gh", "api", "graphql", "-f", f"query={THREADS_QUERY}",
+         "-F", f"owner={owner}", "-F", f"repo={repo}", "-F", f"number={pr['number']}"],
+        cwd=cwd, capture_output=True, text=True)
+    if r.returncode != 0:
+        return 0
+    try:
+        nodes = json.loads(r.stdout)["data"]["repository"]["pullRequest"]["reviewThreads"]["nodes"]
+    except (json.JSONDecodeError, KeyError, TypeError):
+        return 0
+    return sum(1 for t in nodes if not t.get("isResolved"))
+
+
+def summarise(pr, threads=0):
     """Two marks and a number. Anything longer does not earn its width.
 
-    checks   ✓ green   ✗ failing   ⋯ still running   (omitted when no CI)
-    review   ● approved   ○ not approved yet
+    checks    ✓ green   ✗ failing   ⋯ still running   (omitted when no CI)
+    review    ● approved   ◻ waiting
+    comments  ≡n unresolved review threads   (omitted when none)
 
     Glyphs are kept to ones that render at a single cell in a normal mono
     font — ◷ was distorted and squeezed against the digit beside it.
@@ -105,7 +142,11 @@ def summarise(pr):
     if checks:
         bits.append("✗" if failed else "⋯" if pending else "✓")
     decision = (pr.get("reviewDecision") or "").lower()
-    bits.append("●" if decision == "approved" else "○")
+    bits.append("●" if decision == "approved" else "◻")
+    # Unresolved threads block merge on their own, so an approved PR can still
+    # be waiting on them.
+    if threads:
+        bits.append(f"≡{threads}")
     if pr.get("mergeable") == "CONFLICTING":
         bits.append("⚠")
 
@@ -116,6 +157,7 @@ def summarise(pr):
         "failed": failed,
         "pending": pending,
         "mergeable": pr.get("mergeable"),
+        "threads": threads,
     }
 
 
@@ -127,6 +169,10 @@ def changed(old, new):
         return {"approved": "approved",
                 "changes_requested": "changes requested",
                 "review_required": "review requested"}.get(new["decision"], new["decision"])
+    if new.get("threads", 0) and not old.get("threads", 0):
+        return f"{new['threads']} comment(s) to resolve"
+    if old.get("threads", 0) and not new.get("threads", 0):
+        return "comments resolved"
     if new.get("failed", 0) and not old.get("failed", 0):
         return f"{new['failed']} check(s) failing"
     if old.get("failed", 0) and not new.get("failed", 0) and not new.get("pending", 0):
@@ -168,7 +214,7 @@ def main():
                   "--clear-token", TOKEN)
             continue
 
-        token, state = summarise(pr)
+        token, state = summarise(pr, unresolved_threads(pr, root))
         current[ws] = state
         herdr("workspace", "report-metadata", ws, "--source", SOURCE,
               "--token", f"{TOKEN}={token}")
