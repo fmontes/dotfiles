@@ -472,9 +472,9 @@ The cost is Ghostty's and herdr's own `Cmd+C` selection copy. Both copy on selec
 | Key | Does |
 |---|---|
 | `Cmd+T` | New tab (no name prompt — automatic-rename supplies one) |
-| `Cmd+[` / `Cmd+]` | Previous / next tab |
+| `Option+[` / `Option+]` | Previous / next tab |
 | `Option+1`…`9` | Switch tab (left Option only) |
-| `Cmd+Shift+[` / `]` | Previous / next workspace |
+| `Option+Shift+[` / `]` | Previous / next workspace |
 | `Option+Shift+1`…`9` | Switch workspace |
 | `Cmd+D` / `Cmd+Shift+D` | Split vertical / horizontal |
 | `Cmd+Option+←` / `→` | Focus pane left / right |
@@ -487,7 +487,7 @@ The cost is Ghostty's and herdr's own `Cmd+C` selection copy. Both copy on selec
 | `Cmd+Option+A` | Toggle an annotate tab (`annotate`) |
 | `Ctrl+B` | Prefix, for everything else |
 
-Tab and workspace switching sit on `Option` rather than `Cmd`, which costs Fresh its `⌥1`–`⌥9` bookmark jumps — herdr takes the chord first. Only the *left* Option key sends `alt`; the right one composes accented characters, per `macos-option-as-alt = left`.
+Tab and workspace switching sit on `Option` rather than `Cmd`, which costs Fresh its `⌥1`–`⌥9` bookmark jumps and `⌥[`/`⌥]` split navigation — herdr takes those chords first. Only the *left* Option key sends `alt`; the right one composes accented characters, per `macos-option-as-alt = left`.
 
 Pane focus is left/right only on `Cmd+Option`: up and down went to Fresh's multi-cursor, since Ghostty's `goto_split` default had been swallowing that chord anyway and it did nothing.
 
