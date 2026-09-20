@@ -58,7 +58,8 @@ rows = [
   [{ token = "state_icon" }, { token = "workspace", bold = true }],
   [{ token = "branch", fg = "#7f849c" }, { token = "git_status", fg = "#7f849c" }],
   # Reported by the pr-watch LaunchAgent; absent on workspaces with no PR.
-  # #number, then checks (✓ green / ✗ failing / ⋯ running) and review (● approved / ○ not).
+  # #number, checks (✓ green / ✗ failing / ⋯ running), review (● approved / ◻ waiting),
+  # then ≡n unresolved comment threads and ⚠ for a conflict.
   [{ token = "$pr", fg = "#a6adc8" }],
 ]
 
