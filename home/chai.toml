@@ -8,11 +8,11 @@
 platforms = ["claude", "codex", "opencode", "antigravity"]
 
 # Shared instructions, copied to platforms with a global instructions file.
-instructions = "~/.dotfiles/ai/instructions/AGENTS.md"
+instructions = ["~/.dotfiles/ai/instructions/AGENTS.md"]
 
 [deps]
 # External git repos cloned to ~/.chai/deps/ by `chai update`.
-# Reference as @name in skill/subagent paths below.
+# Reference as @name in skill paths below.
 impeccable = "https://github.com/pbakaus/impeccable"
 frontend-slides = "https://github.com/zarazhangrui/frontend-slides"
 dev-browser = "https://github.com/sawyerhood/dev-browser"
@@ -26,7 +26,3 @@ paths = [
   "@frontend-slides/plugins/frontend-slides/skills/frontend-slides",
   "@dev-browser/skills/dev-browser",
 ]
-
-[subagents]
-# Files copied to each platform's agents folder.
-paths = ["~/.dotfiles/ai/subagents/*"]
