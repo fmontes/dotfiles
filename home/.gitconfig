@@ -26,3 +26,7 @@
 	autoStash = true
 [credential]
 	helper = store
+
+# Machine-local overrides (identity, work settings). Not tracked; see README.
+[include]
+	path = ~/.gitconfig.local
