@@ -1,0 +1,25 @@
+id = "agent-labels"
+name = "Agent labels"
+version = "0.1.0"
+min_herdr_version = "0.8.0"
+description = "Summarise each agent's reported task into a short sidebar label."
+platforms = ["linux", "macos"]
+
+# tab.renamed is the title-changed signal: automatic-rename renames a tab when
+# the agent reports a new task, so this fires exactly when there is something
+# new to summarise. agent_status_changed catches an agent starting or finishing
+# without the title moving.
+# tab.focused is the one event that reliably fires, including from the CLI.
+# Relabelling on focus is free when every title is already cached, so this is
+# the trigger that actually works rather than the one that reads best.
+[[events]]
+on = "tab.focused"
+command = ["bash", "label.sh"]
+
+[[events]]
+on = "tab.renamed"
+command = ["bash", "label.sh"]
+
+[[events]]
+on = "pane.agent_status_changed"
+command = ["bash", "label.sh"]

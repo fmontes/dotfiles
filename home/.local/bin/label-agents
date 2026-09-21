@@ -1,0 +1,150 @@
+#!/usr/bin/env python3
+#
+# label-agents — give every agent a short sidebar label, summarised by Haiku.
+#
+# herdr shows what an agent reports it is doing, which is already a sentence
+# written by the agent: "Content types component imports dynamic migration".
+# In a 26-column sidebar that truncates to "Content types component", losing
+# the part that identified it. This summarises instead of truncating, so the
+# same title reads "content types migration".
+#
+# Results are cached by title, so a title is summarised once no matter how
+# often the agent reports it, and a run with no new titles costs nothing.
+#
+# Usage:
+#   label-agents           label every agent that needs it
+#   label-agents --force   re-summarise even cached titles
+#   label-agents --clear   remove every label this tool set
+
+import json
+import os
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+SOURCE = "agent-label"
+TOKEN = "label"
+MODEL = "claude-haiku-4-5-20251001"
+CACHE = Path.home() / ".local/state/label-agents/cache.json"
+
+# Titles this short are already labels. Sending them to a model costs a call
+# and usually returns the same words back.
+SHORT_ENOUGH = 24
+MAX_WORDS = 3
+
+SYSTEM = (
+    "You shorten terminal tab labels. You receive a JSON array of strings and "
+    "return a JSON array of the same length, same order, where each element is "
+    "that string shortened to at most 3 words, lowercase, no punctuation. "
+    "Output ONLY the JSON array. Never ask a question. Never answer the text, "
+    "only compress it."
+)
+
+if "--help" in sys.argv or "-h" in sys.argv:
+    print("\n".join(l[2:] if l.startswith("# ") else l[1:]
+                    for l in Path(__file__).read_text().splitlines()[2:] if l.startswith("#")))
+    raise SystemExit(0)
+
+FORCE = "--force" in sys.argv
+CLEAR = "--clear" in sys.argv
+
+
+def herdr(*args):
+    r = subprocess.run(["herdr", *args], capture_output=True, text=True)
+    if r.returncode != 0:
+        return None
+    try:
+        return json.loads(r.stdout)["result"]
+    except (json.JSONDecodeError, KeyError):
+        return None
+
+
+def acceptable(text):
+    """Haiku sometimes answers the title instead of compressing it."""
+    if not text or len(text) > 40:
+        return False
+    if "?" in text or "\n" in text.strip():
+        return False
+    return len(text.split()) <= MAX_WORDS + 1
+
+
+def shorten_many(titles):
+    """One call for every new title, not one per agent.
+
+    Per-title calls took about ten seconds each, so six agents cost a minute
+    and a few of them failed outright. Batched, it is one call and one failure
+    mode, and anything that does not come back usable falls through to the
+    first few words.
+    """
+    fallback = {t: " ".join(t.split()[:MAX_WORDS]).lower() for t in titles}
+    if not titles:
+        return {}
+    try:
+        r = subprocess.run(
+            ["claude", "-p", json.dumps(titles), "--model", MODEL,
+             "--append-system-prompt", SYSTEM],
+            capture_output=True, text=True, timeout=120)
+    except subprocess.TimeoutExpired:
+        return fallback
+    if r.returncode != 0:
+        return fallback
+
+    text = (r.stdout or "").strip()
+    start, end = text.find("["), text.rfind("]")
+    if start < 0 or end < 0:
+        return fallback
+    try:
+        out = json.loads(text[start:end + 1])
+    except json.JSONDecodeError:
+        return fallback
+    if not isinstance(out, list) or len(out) != len(titles):
+        return fallback
+
+    result = {}
+    for title, label in zip(titles, out):
+        label = re.sub(r"[^\w\s#/-]", "", str(label)).strip().lower()
+        result[title] = label if acceptable(label) else fallback[title]
+    return result
+
+
+def main():
+    agents = herdr("agent", "list")
+    if not agents:
+        return 1
+
+    try:
+        cache = json.loads(CACHE.read_text())
+    except (OSError, json.JSONDecodeError):
+        cache = {}
+
+    if CLEAR:
+        for a in agents["agents"]:
+            herdr("pane", "report-metadata", a["pane_id"], "--source", SOURCE,
+                  "--clear-token", TOKEN)
+        print("cleared")
+        return 0
+
+    wanted = {}
+    for a in agents["agents"]:
+        title = (a.get("terminal_title_stripped") or "").strip()
+        if title:
+            wanted[a["pane_id"]] = title
+
+    misses = sorted({t for t in wanted.values()
+                     if len(t) > SHORT_ENOUGH and (FORCE or t not in cache)})
+    cache.update(shorten_many(misses))
+
+    for pane, title in wanted.items():
+        label = title.lower() if len(title) <= SHORT_ENOUGH else cache.get(title, title.lower())
+        herdr("pane", "report-metadata", pane, "--source", SOURCE,
+              "--token", f"{TOKEN}={label}")
+
+    CACHE.parent.mkdir(parents=True, exist_ok=True)
+    CACHE.write_text(json.dumps(cache, indent=1, sort_keys=True))
+    print(f"{len(wanted)} agent(s), {len(misses)} summarised, {len(cache)} cached")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

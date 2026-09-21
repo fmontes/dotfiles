@@ -42,12 +42,20 @@ delivery = "terminal"
 # Separate space entries by weight, not blank rows
 [ui.sidebar.agents]
 row_gap = 1
-# state_icon and state_text are tinted by the agent's state — yellow working,
-# red blocked, green done, hollow idle — so the state reads as colour before
-# it reads as a word.
+# The task line is the point. terminal_title_stripped is whatever the agent
+# reports it is doing, kept current by automatic-rename's AGENT_TITLES, so
+# every agent labels itself with nothing to set per pane.
+#
+# $label is pane metadata for a manual override that outlasts the current
+# task, set with `herdr pane report-metadata <pane> --source agent-label
+# --token label="..."`. It renders nothing when unset.
+#
+# state_text and agent are gone from the row: the state icon already carries
+# state as colour, and "claude" seven times says less than the task does.
+# `machine` comes back on its own once a second machine is in the list.
 rows = [
-  [{ token = "state_icon" }, { token = "workspace", bold = true }],
-  [{ token = "state_text" }, { token = "agent", fg = "#7f849c" }],
+  [{ token = "state_icon" }, { token = "workspace", bold = true }, { token = "$label", fg = "#cba6f7" }],
+  [{ token = "machine", fg = "#7f849c" }, { token = "terminal_title_stripped", fg = "#a6adc8" }],
 ]
 
 [ui.sidebar.spaces]

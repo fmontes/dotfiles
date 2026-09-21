@@ -107,6 +107,7 @@ if command -v herdr &>/dev/null; then
     echo "pr-refresh plugin already linked."
   else
     echo "Linking pr-refresh plugin..."
+    herdr plugin link "$DOTFILES_DIR/herdr-plugins/agent-labels" >/dev/null 2>&1 || true
     herdr plugin link "$DOTFILES_DIR/herdr-plugins/pr-refresh" >/dev/null \
       && herdr server reload-config >/dev/null \
       && echo "pr-refresh linked." \
