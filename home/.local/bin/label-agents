@@ -11,6 +11,10 @@
 # Results are cached by title, so a title is summarised once no matter how
 # often the agent reports it, and a run with no new titles costs nothing.
 #
+# Every machine in `herdr machine list` is labelled too, not just the local
+# one. Remote agents share the sidebar with local ones, and a sidebar where
+# only half the rows carry a label is worse than one where none do.
+#
 # Usage:
 #   label-agents           label every agent that needs it
 #   label-agents --force   re-summarise even cached titles
@@ -25,6 +29,9 @@ from pathlib import Path
 
 SOURCE = "agent-label"
 TOKEN = "label"
+# Set only for agents on another machine, so the sidebar can show where an
+# agent lives without spending a row on the word "Local" nine times.
+REMOTE_TOKEN = "remote"
 MODEL = "claude-haiku-4-5-20251001"
 CACHE = Path.home() / ".local/state/label-agents/cache.json"
 
@@ -32,6 +39,15 @@ CACHE = Path.home() / ".local/state/label-agents/cache.json"
 # and usually returns the same words back.
 SHORT_ENOUGH = 24
 MAX_WORDS = 3
+
+# An agent that is mid-turn reports its state as its title. Summarising that
+# gives every busy agent the label "working", and it sticks after the agent
+# goes idle because the real title never gets re-read. Leave the old label
+# alone instead.
+STATUS_TITLES = {
+    "working", "idle", "blocked", "waiting", "thinking", "done", "running",
+    "ready", "error", "unknown",
+}
 
 SYSTEM = (
     "You shorten terminal tab labels. You receive a JSON array of strings and "
@@ -50,14 +66,34 @@ FORCE = "--force" in sys.argv
 CLEAR = "--clear" in sys.argv
 
 
-def herdr(*args):
-    r = subprocess.run(["herdr", *args], capture_output=True, text=True)
+def herdr(*args, machine=None):
+    """Run a herdr command, optionally against a remote machine."""
+    prefix = ["--machine", machine] if machine else []
+    r = subprocess.run(["herdr", *prefix, *args], capture_output=True, text=True)
     if r.returncode != 0:
         return None
     try:
         return json.loads(r.stdout)["result"]
     except (json.JSONDecodeError, KeyError):
         return None
+
+
+def machines():
+    """The local machine first, then every enabled remote one.
+
+    `herdr machine list` prints tab-separated rows ending in enabled/disabled.
+    A disabled machine has no reachable server, so asking it for agents would
+    just block until the ssh attempt gives up.
+    """
+    out = [None]
+    r = subprocess.run(["herdr", "machine", "list"], capture_output=True, text=True)
+    if r.returncode != 0:
+        return out
+    for line in r.stdout.splitlines():
+        parts = line.split("\t")
+        if len(parts) >= 5 and parts[4].strip() == "enabled":
+            out.append(parts[1].strip())
+    return out
 
 
 def acceptable(text):
@@ -109,40 +145,56 @@ def shorten_many(titles):
 
 
 def main():
-    agents = herdr("agent", "list")
-    if not agents:
-        return 1
-
     try:
         cache = json.loads(CACHE.read_text())
     except (OSError, json.JSONDecodeError):
         cache = {}
 
-    if CLEAR:
+    # (machine, pane_id, title) for every agent anywhere, so one batched call
+    # covers the whole fleet rather than one per machine.
+    found = []
+    for machine in machines():
+        agents = herdr("agent", "list", machine=machine)
+        if not agents:
+            continue
         for a in agents["agents"]:
-            herdr("pane", "report-metadata", a["pane_id"], "--source", SOURCE,
-                  "--clear-token", TOKEN)
+            found.append((machine, a["pane_id"],
+                          (a.get("terminal_title_stripped") or "").strip()))
+
+    if not found:
+        return 1
+
+    if CLEAR:
+        for machine, pane, _ in found:
+            herdr("pane", "report-metadata", pane, "--source", SOURCE,
+                  "--clear-token", TOKEN, "--clear-token", REMOTE_TOKEN,
+                  machine=machine)
         print("cleared")
         return 0
 
-    wanted = {}
-    for a in agents["agents"]:
-        title = (a.get("terminal_title_stripped") or "").strip()
-        if title:
-            wanted[a["pane_id"]] = title
+    wanted = [(m, p, t) for m, p, t in found
+              if t and t.lower() not in STATUS_TITLES]
 
-    misses = sorted({t for t in wanted.values()
+    misses = sorted({t for _, _, t in wanted
                      if len(t) > SHORT_ENOUGH and (FORCE or t not in cache)})
     cache.update(shorten_many(misses))
 
-    for pane, title in wanted.items():
+    for machine, pane, title in wanted:
         label = title.lower() if len(title) <= SHORT_ENOUGH else cache.get(title, title.lower())
-        herdr("pane", "report-metadata", pane, "--source", SOURCE,
-              "--token", f"{TOKEN}={label}")
+        args = ["pane", "report-metadata", pane, "--source", SOURCE,
+                "--token", f"{TOKEN}={label}"]
+        # The sidebar has no way to show a token only when it is set, so the
+        # decision is made here: local agents carry no machine token at all and
+        # their row collapses to one line.
+        args += ["--token", f"{REMOTE_TOKEN}={machine}"] if machine else \
+                ["--clear-token", REMOTE_TOKEN]
+        herdr(*args, machine=machine)
 
     CACHE.parent.mkdir(parents=True, exist_ok=True)
     CACHE.write_text(json.dumps(cache, indent=1, sort_keys=True))
-    print(f"{len(wanted)} agent(s), {len(misses)} summarised, {len(cache)} cached")
+    skipped = len(found) - len(wanted)
+    print(f"{len(wanted)} agent(s), {skipped} skipped, "
+          f"{len(misses)} summarised, {len(cache)} cached")
     return 0
 
 
