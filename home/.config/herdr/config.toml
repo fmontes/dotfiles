@@ -42,19 +42,21 @@ delivery = "terminal"
 # Separate space entries by weight, not blank rows
 [ui.sidebar.agents]
 row_gap = 1
-# One line per agent. $label is the agent's own reported task, summarised to
-# three words by the label-agents tool, so it fits the column instead of being
-# truncated mid-sentence.
+# The task gets its own row, full width. Beside the workspace name it had
+# maybe a dozen columns left and every label ended in an ellipsis, which
+# defeats the point of summarising it in the first place.
 #
-# terminal_title_stripped used to sit on a second row. It is what $label is
-# made from, so the row was the same sentence twice, both halves cut off.
+# $label is the agent's own reported task, shortened to three words by the
+# label-agents tool. terminal_title_stripped is not here: it is what $label is
+# made from, so showing both was the same sentence twice, both halves cut off.
 #
 # $remote is set only for agents on another machine, which is the closest the
 # sidebar gets to a conditional: the builtin `machine` token would print
-# "Local" on every local row. Local agents render one line, remote ones two.
+# "Local" on every local row. It sits with the workspace because it is part of
+# where the agent is, not part of what it is doing.
 rows = [
-  [{ token = "state_icon" }, { token = "workspace", bold = true }, { token = "$label", fg = "#cba6f7" }],
-  [{ token = "$remote", fg = "#7f849c" }],
+  [{ token = "state_icon" }, { token = "workspace", bold = true }, { token = "$remote", fg = "#7f849c" }],
+  [{ token = "$label", fg = "#cba6f7" }],
 ]
 
 [ui.sidebar.spaces]
