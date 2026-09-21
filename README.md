@@ -56,6 +56,8 @@ These steps require human interaction and can't be automated:
 
 ## Aliases
 
+Only things that have to live in the shell. Standalone commands are [CLI tools](#cli-tools); run `tools` to list them.
+
 ### Git
 
 | Alias | Command |
@@ -71,7 +73,6 @@ These steps require human interaction and can't be automated:
 | `gbd` | git branch -d |
 | `gl` | Git log graph (last 20) |
 | `gll` | Git log graph (all branches) |
-| `gcleanbranches` | Delete local branches whose remote is gone |
 
 ### CLI Replacements
 
@@ -82,16 +83,6 @@ These steps require human interaction and can't be automated:
 | `ls` | eza (icons, dirs first) |
 | `ll` | eza long view with git status |
 | `lt` | eza tree view (2 levels) |
-
-### Ports
-
-| Alias | Command |
-|---|---|
-| `port 3000` | Show process listening on a port |
-| `killport 3000` | Kill process on a port |
-| `ports` | List all running node/bun/deno processes |
-| `devports` | List processes on common dev ports |
-| `killdev` | Kill all common dev ports at once |
 
 ### Projects
 
@@ -109,7 +100,6 @@ These steps require human interaction and can't be automated:
 
 | Alias | Command |
 |---|---|
-| `dotfiles` | Open dotfiles repo in VS Code |
 | `zreload` | Reload zsh config |
 
 ### Misc
@@ -117,7 +107,6 @@ These steps require human interaction and can't be automated:
 | Alias | Command |
 |---|---|
 | `code` | Open VS Code in a new window |
-| `run-help` | man (show manual) |
 
 ## CLI Tools
 
@@ -372,6 +361,61 @@ Copy is the one thing that needs help. fresh ships a macOS keymap built on `Cmd`
 
 The cost is Ghostty's and herdr's own `Cmd+C` selection copy. Both copy on select, so dragging a selection still lands it on the clipboard.
 
+### Keys
+
+From Fresh's own **Show Keyboard Shortcuts** (`Ctrl+P`, then run it) with this keymap and the overrides above.
+
+| Editing | |
+|---|---|
+| `⌃C` / `F13` | Copy. `F13` is what `Cmd+C` becomes |
+| `⌃X` `⌃V` `⌃Z` `⌃Y` | Cut, paste, undo, redo |
+| `⌃A` `⌃L` | Select all, select line |
+| `⌃⇧K` / `⌃K` | Delete line / to end of line |
+| `⌥↑` `⌥↓` | Move line up / down |
+| `⌥U` `⌥L` | Upper / lowercase |
+
+| Multi-cursor | |
+|---|---|
+| `⌃D` | Add cursor at next match |
+| `⌃⌥↑` `⌃⌥↓` | Add cursor above / below. This is what `Cmd+⌥↑↓` becomes |
+| `⌥⇧I` | Cursors to line ends |
+| `⌥⇧↑` `⌥⇧↓` | Block select |
+| `Esc` | Drop secondary cursors |
+
+| Moving | |
+|---|---|
+| `⌥←→` / `⌃←→` | Word motion. `⌥` is the override |
+| `Home` `End` | Line start / end. This is what `Cmd+←→` becomes |
+| `⌃Home` `⌃End` | Document start / end |
+| `⌃G` | Go to line |
+
+| Finding | |
+|---|---|
+| `⌥/` | Live grep across files |
+| `⌥R` | Resume live grep |
+| `⌃F` `⌃R` | Find, replace in buffer |
+| `F3` `⇧F3` | Next / previous match |
+| `⌃⌥R` | Interactive replace, y/n/!/q per match |
+
+| LSP | |
+|---|---|
+| `F12` `⇧F12` `⌃F12` | Definition, references, implementation |
+| `F2` | Rename symbol |
+| `⌥.` `⌥K` | Code actions, hover docs |
+| `⌃Space` | Completion |
+| `F8` `⇧F8` | Next / previous diagnostic |
+
+| Files and panes | |
+|---|---|
+| `⌃O` `⌃S` `⌃N` `⌃Q` | Open, save, new, quit |
+| `⌃E` | Focus file explorer |
+| `⌃PgUp` `⌃PgDn` | Previous / next buffer |
+| `⌥W` | Close tab |
+| `⌥\`` | Terminal in the utility dock |
+| `⌥\|` | Run a shell command on the buffer or selection |
+
+Three of these never arrive, because herdr takes the chord first: `⌥1`–`⌥9` (bookmarks) and `⌥[` / `⌥]` (splits). Both are still in the command palette.
+
 ## Terminal
 
 [Ghostty](https://ghostty.org/) is the outer window and [herdr](https://herdr.dev) runs inside it, owning tabs, panes, and agent workspaces. Ghostty's config unbinds the chords herdr wants ([`home/.config/ghostty/config`](home/.config/ghostty/config)) so they pass through instead of being handled twice.
@@ -438,7 +482,7 @@ Warp is still installed but no longer the daily terminal. It has no AeroSpace sl
 ```
 [3] 37571-sdk-performance
     sdk-components  +97 −32
-    #37582 ⋯ ○
+    #37582 needs review
 ```
 
 One word, coloured by severity, so there is no legend to learn: **red** is your problem, **yellow** is waiting on someone else, **green** can merge. Only the top blocker shows: `conflicts` → `n failing` → `changes requested` → `n comments` → `draft` → `running` → `needs review` → `ready`.
@@ -476,7 +520,7 @@ Tools (~/.dotfiles/home/.local/bin)
   dotfiles           open the dotfiles repo in a new editor window.
   gcleanbranches     delete local branches whose remote is gone.
   ...
-Also on PATH here, installed elsewhere: claude test-sdk yellit
+Also on PATH here, installed elsewhere: claude herdr-reviewr test-sdk yellit
 ```
 
 `tools` resolves each symlink and only claims the ones pointing into this repo, so anything a native installer drops into `~/.local/bin` is listed separately rather than mixed in.
