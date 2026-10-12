@@ -16,11 +16,15 @@
 	<array/>
 	<key>boundCustomWindowSizeIDs</key>
 	<array/>
+	<key>boundExtensionCommandEntryIDs</key>
+	<array/>
 	<key>boundQuickActionIDs</key>
 	<array/>
 	<key>boundQuicklinkIDs</key>
 	<array/>
 	<key>boundWindowLayoutIDs</key>
+	<array/>
+	<key>boundWindowRoomIDs</key>
 	<array/>
 	<key>calendarEnabled</key>
 	<true/>
@@ -48,6 +52,10 @@
 	<true/>
 	<key>emojiSkinTone</key>
 	<string>none</string>
+	<key>extensionAppearances</key>
+	<data>
+	e30=
+	</data>
 	<key>extensionRegistries</key>
 	<data>
 	W3sibmFtZSI6IlJheWNhc3QgU3RvcmUiLCJwYXRoIjoiZXh0ZW5zaW9ucyIsImtpbmQi
@@ -64,6 +72,8 @@
 	<string>{"combo":{"_0":{"carbonModifiers":4096,"carbonKeyCode":42}}}</string>
 	<key>hotkey.command:search-emoji</key>
 	<string>{"combo":{"_0":{"carbonKeyCode":14,"carbonModifiers":768}}}</string>
+	<key>hotkey.command:search-snippets</key>
+	<string>{"combo":{"_0":{"carbonKeyCode":42,"carbonModifiers":4864}}}</string>
 	<key>hotkey.togglePalette</key>
 	<string>{"combo":{"_0":{"carbonModifiers":2048,"carbonKeyCode":49}}}</string>
 	<key>hyperKeyIncludesShift</key>

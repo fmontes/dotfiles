@@ -79,7 +79,8 @@ source "$HOME/.docker/init-zsh.sh" 2>/dev/null || true
 # Auto-trust mise configs under these roots, so a fresh clone does not need a
 # manual `mise trust`. Note this trusts any .mise.toml found there, including
 # in repos cloned from elsewhere — mise configs can set env vars and run hooks.
-export MISE_TRUSTED_CONFIG_PATHS="$HOME/Developer"
+# herdr puts its worktrees outside ~/Developer, so they need their own entry.
+export MISE_TRUSTED_CONFIG_PATHS="$HOME/Developer:$HOME/.herdr/worktrees"
 eval "$(mise activate zsh)"
 
 # OrbStack
