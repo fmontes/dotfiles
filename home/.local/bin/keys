@@ -1,0 +1,337 @@
+#!/usr/bin/env python3
+#
+# keys — show the keyboard cheatsheet for this machine.
+#
+# Four programs share the keyboard here — AeroSpace, Ghostty, herdr, Fresh —
+# and each one can only show you its own half. This is the cross-layer view:
+# what owns which modifier, and the chords worth remembering from each.
+#
+# It is curated, not generated. Every program here can already print its own
+# complete list (`prefix ?`, Fresh's Show Keyboard Shortcuts, `ghostty
+# +list-keybinds`), and those lists are long and full of actions nobody
+# reaches for. Each section says where its full list lives.
+#
+# Usage:
+#   keys                 the whole sheet
+#   keys herdr           one section
+#   keys cmd+alt         search every section for a chord or a word
+#   keys -l              list the sections
+#   keys --no-color      plain text, for piping
+
+import os
+import re
+import shutil
+import subprocess
+import sys
+
+# Section bodies. A line starting with "# " opens a group, everything else is
+# "chord    what it does" split on two or more spaces.
+SHEET = r"""
+@map  Layers  who owns which modifier
+⌃ + arrows/digits    AeroSpace — focus a window, switch workspace
+⌃⇧ + anything        AeroSpace — move, resize, retile
+⌃ + letter           Fresh — editor commands
+⌥ + letter           Fresh — editor commands
+⌃⌥ + anything        Fresh — multi-cursor, interactive replace
+⌘⌥ + anything        herdr — panes, tabs, agents, custom commands
+⌃B then a key        herdr — the same actions, and these survive SSH
+⌘ + anything         Ghostty — the terminal window itself
+Caps Lock            Tinycast — hyper key (⌃⌥⇧⌘)
+
+# Why it splits this way
+Fresh cannot see ⌘       It drops super when decoding CSI-u, so ⌘⌥ is herdr's for good
+⌃ has no letters         AeroSpace stays on arrows and digits, so the shell keeps ⌃A ⌃C ⌃D ⌃R ⌃W
+Two chords for herdr     Prefix works everywhere; ⌘⌥ is the one-stroke version
+
+@wm  Windows  AeroSpace. Config: ~/.config/aerospace/aerospace.toml
+# Focus and move
+⌃ + arrows           Focus left / down / up / right
+⌃⇧ + arrows          Move the focused window
+⌃⇧F                  Fullscreen, and back
+⌃⇧T                  Float the focused window, and back
+
+# Workspaces
+⌃1…9                 Switch to a workspace; press again to bounce back
+⌃⇧1…9                Send the window there, without following it
+⌃⇧[ / ⌃⇧]            Previous / next occupied workspace, wrapping
+⌃⇧, / ⌃⇧.            Send the window to the previous / next workspace
+⌃⇧B                  Back to the workspace you came from
+
+# Layout
+⌃⇧J                  Flip the container: side-by-side or stacked
+⌃⇧- / ⌃⇧=            Shrink / grow along the container's axis
+⌃⇧/                  Collapse the workspace to an accordion, and back
+⌃⇧\                  Rebuild the workspace as one flat row
+⌃⇧R                  Re-apply the window rules to every open window
+
+# Service
+⌃⇧; then Esc         Service mode, then reload the config
+⌃⇧; then R           Service mode, then flatten the tree
+⌃⇧E                  Disable AeroSpace entirely
+
+@launcher  Launcher  Tinycast. Hotkeys are exported to the repo by the pre-commit hook
+⌥Space               Open the launcher palette
+⌃\                   Toggle Ghostty
+⌘⇧E                  Emoji search
+⌃⇧⌘\                 Snippet search
+Caps Lock            Hyper — Tinycast remaps it to F18 at the HID layer and expands that to ⌃⌥⇧⌘
+
+@terminal  Terminal  Ghostty. Full list: ghostty +list-keybinds
+# Rewritten here, for Fresh and zsh
+⌘K                   Clear screen and scrollback — sent as F14, zsh does the clearing
+⌘← / ⌘→              Line start / end — sent as Home/End
+⌘⇧← / ⌘⇧→            Select to line start / end
+⌘⌥I                  Unbound, so herdr gets it for focus pane up
+
+# Ghostty's own, left alone
+⌘T / ⌘W              New / close a Ghostty tab — not a herdr tab
+⌘1…8 / ⌘9            Ghostty tab N / last tab
+⌘N / ⌘⇧W             New window / close window
+⌘D / ⌘⇧D             Split right / down — Ghostty's splits, not herdr's
+⌘⌥ + arrows          Focus a Ghostty split
+⌘⇧⏎                  Zoom a Ghostty split
+⌘C / ⌘V              Copy / paste. Selecting already copies
+⌘F / ⌘G / ⌘⇧G        Search, next match, previous match
+⌘+ / ⌘- / ⌘0         Font size up / down / reset
+⌘⇧P                  Command palette
+⌘, / ⌘⇧,             Open config / reload config
+⌘⏎                   Fullscreen
+⌘Q                   Quit. ⌘W prompts first, since it closes the pane herdr runs in
+
+@herdr  Panes and tabs  herdr. Full list: ⌃B then ?
+# Every action takes both. ⌘⌥ is one stroke; the prefix survives SSH
+⌃B C  ::  ⌘⌥C  ::  New tab
+⌃B P / N  ::  ⌘⌥[ / ⌘⌥]  ::  Previous / next tab
+⌃B V / -  ::  ⌘⌥S / ⌘⌥⇧S  ::  Split vertical / horizontal
+⌃B H J K L  ::  ⌘⌥J K I L  ::  Focus pane left / down / up / right
+⌃B Z  ::  ⌘⌥Z  ::  Zoom the pane
+⌃B ⇧J / ⇧K  ::  ⌘⌥N / ⌘⌥P  ::  Next / previous agent, in priority order
+
+# Prefix only
+⌃B 1…9               Switch tab
+⌃B ⇧X                Close tab
+⌃B ⇧N                New workspace
+⌃B W                 Workspace picker
+⌃B B                 Toggle herdr's sidebar
+⌃B ?                 Help
+
+# Custom commands, on the same ⌘⌥ layer
+⌘⌥E                  Toggle a Fresh editor tab at the git root
+⌘⌥⇧L                 Toggle reviewr — diffs, line and range comments, the PR
+⌘⌥O                  Open the focused workspace's PR in the browser
+⌘⌥A                  Toggle an annotate tab over the focused pane's folder
+⌃click a .md path    Open it in plannotator-tui, from any pane
+
+@editor  Editor  Fresh, vscode keymap. Full list: ⌃P then Show Keyboard Shortcuts
+# Editing
+⌃C ⌃X ⌃V ⌃Z ⌃Y       Copy, cut, paste, undo, redo
+⌃A / ⌃L              Select all / select line
+⌃⇧K / ⌃K             Delete line / delete to end of line
+⌥↑ / ⌥↓              Move the line up / down
+⌥U / ⌥L              Upper / lowercase
+
+# Multi-cursor
+⌃D                   Add a cursor at the next match
+⌃⌥↑ / ⌃⌥↓            Add a cursor above / below
+⌥⇧I                  A cursor at the end of every selected line
+⌥⇧↑ / ⌥⇧↓            Block select
+Esc                  Drop the secondary cursors
+
+# Moving
+⌥← → / ⌃← →          Word motion, either modifier
+Home / End           Line start / end — ⌘←/→ arrives as these
+⌃Home / ⌃End         Document start / end
+⌃G                   Go to line
+
+# Finding
+⌥/                   Live grep across files
+⌥R                   Resume the last live grep
+⌃F / ⌃R              Find / replace in this buffer
+F3 / ⇧F3             Next / previous match
+⌃⌥R                  Interactive replace, y/n/!/q per match
+
+# Language server
+F12 / ⇧F12 / ⌃F12    Definition / references / implementation
+F2                   Rename symbol
+⌥. / ⌥K              Code actions / hover docs
+⌃Space               Completion
+F8 / ⇧F8             Next / previous diagnostic
+
+# Files and panes
+⌃P                   Command palette and file picker
+⌃O ⌃S ⌃N ⌃Q          Open, save, new, quit
+⌃E                   Focus the file explorer
+⌃PgUp / ⌃PgDn        Previous / next buffer
+⌥W                   Close tab
+⌥1…9                 Bookmarks
+⌥[ / ⌥]              Splits
+⌥`                   Terminal in the utility dock
+⌥|                   Run a shell command on the buffer or selection
+
+@shell  Shell  zsh. Config: ~/.zshrc
+⌘K / ⌃K              Clear screen and scrollback. ⌃K costs zsh its kill-line
+⌘← / ⌘→              Line start / end, via Home/End
+⌃R                   Atuin history search
+⌥← / ⌥→              Word motion
+⌥⌫                   Delete the word before the cursor
+⌃A / ⌃E              Line start / end
+⌃W / ⌃U              Delete the word before / the whole line
+⌃D                   EOF, or close the pane on an empty line
+⌃C                   Interrupt
+
+# Not keys, but the same question
+aliases              Show every alias and shell function this machine defines
+tools                Show every standalone command in ~/.local/bin
+"""
+
+# ─── Rendering ───────────────────────────────────────────────────────────────
+
+ASCII = {"⌘": "cmd", "⌥": "alt", "⇧": "shift", "⌃": "ctrl", "⏎": "enter",
+         "⌫": "backspace", "←": "left", "→": "right", "↑": "up", "↓": "down"}
+
+
+def ascii_form(s):
+    """A searchable spelling, so `keys cmd+alt` finds a row written ⌘⌥."""
+    for sym, word in ASCII.items():
+        s = s.replace(sym, word + "+")
+    return re.sub(r"\++", "+", s).lower()
+
+
+def width(s):
+    """Display columns. The modifier glyphs are single-width; the box-drawing
+    and arrow characters here are too, so a character count is the width."""
+    return len(s)
+
+
+def parse():
+    sections, cur = [], None
+    for line in SHEET.strip("\n").split("\n"):
+        if not line.strip():
+            continue
+        if line.startswith("@"):
+            name, title, blurb = (line[1:].split("  ", 2) + ["", ""])[:3]
+            cur = {"name": name.strip(), "title": title.strip(),
+                   "blurb": blurb.strip(), "rows": []}
+            sections.append(cur)
+        elif line.startswith("# "):
+            cur["rows"].append(("group", line[2:].strip()))
+        else:
+            if " :: " in line:
+                a, b, desc = [p.strip() for p in line.split(" :: ", 2)]
+                cur["rows"].append(("row", (a, b, desc)))
+                continue
+            parts = re.split(r"\s{2,}", line.strip(), maxsplit=1)
+            if len(parts) == 2:
+                cur["rows"].append(("row", (parts[0], "", parts[1])))
+    return sections
+
+
+def render(sections, color, query=None):
+    if color:
+        bold, dim, key, head, off = (
+            "\033[1m", "\033[2m", "\033[38;2;203;166;247m",
+            "\033[1;38;2;203;166;247m", "\033[0m")
+    else:
+        bold = dim = key = head = off = ""
+
+    out = []
+    for sec in sections:
+        rows = sec["rows"]
+        if query:
+            rows = [r for r in rows if r[0] == "row" and matches(r[1], query)]
+            if not rows:
+                continue
+        cells = [v for t_, v in rows if t_ == "row"]
+        pad_a = max((width(a) for a, _, _ in cells), default=0)
+        pad_b = max((width(b) for _, b, _ in cells), default=0)
+        # Rows with only one chord column stretch across both, so every
+        # description in a section starts at the same column.
+        span = pad_a + (pad_b + 2 if pad_b else 0)
+        out.append("")
+        out.append(f"{head}{sec['title']}{off}"
+                   + (f"  {dim}{sec['blurb']}{off}" if sec["blurb"] else ""))
+        first = True
+        for kind, val in rows:
+            if kind == "group":
+                if not first:
+                    out.append("")
+                out.append(f"  {dim}{val}{off}")
+            else:
+                a, b, desc = val
+                if b:
+                    gap_a = " " * (pad_a - width(a) + 2)
+                    gap_b = " " * (pad_b - width(b) + 2)
+                    out.append(f"  {key}{a}{off}{gap_a}{key}{b}{off}{gap_b}{desc}")
+                else:
+                    out.append(f"  {key}{a}{off}{' ' * (span - width(a) + 2)}{desc}")
+            first = False
+    out.append("")
+    return "\n".join(out)
+
+
+def matches(row, query):
+    raw = " ".join(row)
+    return query in f"{raw} {ascii_form(raw)}".lower()
+
+
+def main():
+    args = [a for a in sys.argv[1:]]
+    color = sys.stdout.isatty() and "--no-color" not in args and not os.environ.get("NO_COLOR")
+    args = [a for a in args if a != "--no-color"]
+
+    sections = parse()
+
+    if args and args[0] in ("-h", "--help"):
+        usage()
+        return 0
+    if args and args[0] in ("-l", "--list"):
+        for s in sections:
+            print(f"  {s['name']:<10} {s['title']} — {s['blurb']}")
+        return 0
+
+    query = None
+    if args:
+        want = args[0].lower()
+        named = [s for s in sections if s["name"].startswith(want)]
+        if named:
+            sections = named
+        else:
+            query = ascii_form(want).strip("+")
+            text = render(sections, color, query)
+            if not text.strip():
+                print(f"Nothing matches '{args[0]}'. `keys -l` lists the sections.",
+                      file=sys.stderr)
+                return 1
+            page(text, color)
+            return 0
+
+    page(render(sections, color), color)
+    return 0
+
+
+def usage():
+    """Print this file's own header block, the way the bash tools do."""
+    with open(__file__, encoding="utf-8") as fh:
+        for n, line in enumerate(fh):
+            if n < 2:
+                continue
+            if not line.startswith("#"):
+                return
+            print(line[2:].rstrip() if len(line) > 2 else "")
+
+
+def page(text, color):
+    lines = text.count("\n") + 1
+    if sys.stdout.isatty() and lines > shutil.get_terminal_size((80, 24)).lines:
+        pager = subprocess.Popen(
+            ["less", "-R" if color else "-r", "-F", "-X"], stdin=subprocess.PIPE)
+        try:
+            pager.communicate(text.encode())
+        except BrokenPipeError:
+            pass
+        return
+    print(text)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

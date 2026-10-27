@@ -437,6 +437,8 @@ Four programs want the same modifiers — AeroSpace, Ghostty, herdr, Fresh — a
 | herdr | `cmd+alt+*`, plus the `Ctrl+B` prefix |
 | Ghostty | `cmd+*` |
 
+Run `keys` to print that map and the chords under it at any prompt; `keys herdr` narrows it to one layer and `keys cmd+alt` searches every layer for a chord.
+
 That split holds by construction rather than by vigilance. Fresh drops the super modifier when decoding CSI-u, so it cannot receive a `cmd` chord **at all** — which means nothing herdr puts on `cmd+alt` can ever shadow a Fresh binding, whatever Fresh adds in a future release. `ctrl+alt` was herdr's old home and it shared a modifier with Fresh's keymap: pane focus on `ctrl+alt+arrows` ate `add_cursor_above`/`below`, and `ctrl+alt+r` was unreachable behind interactive replace. Moving herdr up one modifier handed all of `ctrl+alt` back to the editor.
 
 [`home/.config/ghostty/config`](home/.config/ghostty/config) is down to six `keybind` lines from the thirty-odd it used to carry. Five are rewrites Fresh and zsh want — `Cmd+K` into F14, `Cmd+←/→` and `Cmd+⇧←/→` into Home/End — and the sixth is a single `unbind`: `cmd+alt+i` is Ghostty's `inspector:toggle`, the only `cmd+alt` default that collides with anything herdr wants. `cmd+alt+w`, `cmd+alt+shift+w/j` and `cmd+alt+arrows` are left alone, because herdr claims none of them.
@@ -545,6 +547,7 @@ Tools (~/.dotfiles/home/.local/bin)
   aliases            show the shell aliases and functions this machine defines.
   dotfiles           open the dotfiles repo in a new editor window.
   gcleanbranches     delete local branches whose remote is gone.
+  keys               show the keyboard cheatsheet for this machine.
   ...
 Also on PATH here, installed elsewhere: claude herdr-reviewr test-sdk yellit
 ```
@@ -625,6 +628,7 @@ dotfiles/
     ├── .gitconfig
     ├── chai.toml             # AI config sync manifest (~/chai.toml)
     ├── .local/bin/          # Standalone commands, run `tools` to list them
+    │   ├── keys              # Keyboard cheatsheet across all four layers
     │   ├── new-tool          # Scaffold a new one
     │   ├── restore-layout    # Reset apps onto workspaces 1-5
     │   └── tools             # List what is installed
