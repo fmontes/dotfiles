@@ -1,55 +1,36 @@
 {
-  "keybindings": [
-    {
-      "comment": "Cmd+C. Fresh ignores the super modifier, so Ghostty rewrites cmd+c into F13 (keybind = cmd+c=csi:25~).",
-      "key": "f13",
-      "modifiers": [],
-      "action": "copy",
-      "args": {},
-      "when": "normal"
-    },
-    {
-      "comment": "The vscode map puts word motion on ctrl+arrow and history on alt+arrow, which is its Windows/Linux layout. VS Code on macOS uses option+arrow for word motion, so these four put it back.",
-      "key": "Left",
-      "modifiers": [
-        "alt"
-      ],
-      "action": "move_word_left",
-      "args": {},
-      "when": "normal"
-    },
-    {
-      "key": "Right",
-      "modifiers": [
-        "alt"
-      ],
-      "action": "move_word_end",
-      "args": {},
-      "when": "normal"
-    },
-    {
-      "key": "Left",
-      "modifiers": [
-        "alt",
-        "shift"
-      ],
-      "action": "select_word_left",
-      "args": {},
-      "when": "normal"
-    },
-    {
-      "key": "Right",
-      "modifiers": [
-        "alt",
-        "shift"
-      ],
-      "action": "select_word_end",
-      "args": {},
-      "when": "normal"
-    }
-  ],
   "editor": {
-    "show_horizontal_scrollbar": false
+    "show_horizontal_scrollbar": false,
+    "menu_bar_mnemonics": false
   },
-  "active_keybinding_map": "vscode"
+  "active_keybinding_map": "vscode",
+  "file_browser": {
+    "show_hidden": true
+  },
+  "file_explorer": {
+    "show_gitignored": true,
+    "show_hidden": true
+  },
+  "version": 2,
+  "lsp": {
+    "typescript": {
+      "enabled": true,
+      "auto_start": true,
+      "process_limits": {
+        "max_memory_percent": 50,
+        "max_cpu_percent": 90,
+        "enabled": false
+      }
+    }
+  },
+  "plugins": {
+    "vi_mode": {
+      "enabled": true,
+      "settings": {
+        "autoStart": false,
+        "arrowKeys": true,
+        "searchWordUnderCursor": true
+      }
+    }
+  }
 }

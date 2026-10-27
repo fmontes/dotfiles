@@ -36,16 +36,29 @@ export BUN_INSTALL="$HOME/.bun"
 export DOCKER_HOST=unix:///var/run/docker.sock
 
 # ─── Keys ───────────────────────────────────────────────────────────────────
-# Ghostty's opt+arrow defaults are unbound (see its config) so TUIs get the
-# real modified arrows. zsh already knows ^[b / ^[f but not these, and without
-# them the prompt just prints ";3C".
-bindkey '^[[1;3D' backward-word
-bindkey '^[[1;3C' forward-word
+# Clear the screen and drop the scrollback with it. zsh's own clear-screen sends
+# terminfo `clear`, ESC[H ESC[2J, which blanks the visible screen and leaves the
+# scrollback — the reason cmd+k looked like it had done nothing. ESC[3J is the
+# part that drops it, and herdr's emulator honours it.
+#
+# On two keys: cmd+k, which Ghostty rewrites to F14 (see its config) because its
+# own clear_screen only wipes Ghostty's buffer and herdr repaints over it, and
+# ctrl+k directly. ctrl+k is bound here rather than in Ghostty on purpose —
+# Ghostty would take it from every pane, and Fresh spends ⌃K on delete-to-line-
+# end. The cost is zsh's kill-line, which ctrl+k held until now.
+clear-screen-and-scrollback() {
+  printf '\033[H\033[2J\033[3J'
+  zle .reset-prompt
+}
+zle -N clear-screen-and-scrollback
+bindkey '^[[26~' clear-screen-and-scrollback
 
-# cmd+left/right are rewritten to Home/End for the same reason — zsh knew
-# ^A and ^E, but not these.
+# cmd+left/right are rewritten to Home/End (see Ghostty's config), because the
+# \x01 and \x05 they send by default are ctrl+a and ctrl+e, which Fresh spends on
+# select_all and focus_file_explorer. zsh knows ^A and ^E, but not these.
 bindkey '^[[H' beginning-of-line
 bindkey '^[[F' end-of-line
+bindkey '^K' clear-screen-and-scrollback
 
 # ─── herdr automatic tab naming ─────────────────────────────────────────────
 # The plugin renames tabs on herdr events, but a tab should also rename the
@@ -126,3 +139,7 @@ command -v direnv &>/dev/null && eval "$(direnv hook zsh)"
 # absent on a fresh machine and an unguarded source errors on every new shell.
 source "$HOME/.railway/env" 2>/dev/null || true
 # <<< railway initialize <<<
+
+
+# Load Angular CLI autocompletion.
+source <(ng completion script)

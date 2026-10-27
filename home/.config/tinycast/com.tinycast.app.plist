@@ -2,6 +2,14 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>AVDesktopPlaybackControlsControllerShowsDurationInsteadOfTimeRemainingDefaultsKey</key>
+	<true/>
+	<key>AppleLanguages</key>
+	<array>
+		<string>en</string>
+	</array>
+	<key>NSStatusItem VisibleCC Item-0</key>
+	<false/>
 	<key>aiDefaultModel</key>
 	<data>
 	eyJhcHBsZUludGVsbGlnZW5jZSI6e319
@@ -78,6 +86,16 @@
 	<string>{"combo":{"_0":{"carbonModifiers":2048,"carbonKeyCode":49}}}</string>
 	<key>hyperKeyIncludesShift</key>
 	<true/>
+	<key>hyperKeyKeyboardMappings</key>
+	<data>
+	eyJrZXlib2FyZHMiOnsiNDI5NDk3MTM2MSI6eyJvcmlnaW5hbCI6W10sImluc3RhbGxl
+	ZCI6eyJzb3VyY2UiOjMwMDY0NzcxMTI5LCJkZXN0aW5hdGlvbiI6MzAwNjQ3NzExODF9
+	fSwiNDI5NzkyNTEyMiI6eyJvcmlnaW5hbCI6W10sImluc3RhbGxlZCI6eyJzb3VyY2Ui
+	OjMwMDY0NzcxMTI5LCJkZXN0aW5hdGlvbiI6MzAwNjQ3NzExODF9fSwiNDI5NzkyNzEw
+	NCI6eyJvcmlnaW5hbCI6W10sImluc3RhbGxlZCI6eyJzb3VyY2UiOjMwMDY0NzcxMTI5
+	LCJkZXN0aW5hdGlvbiI6MzAwNjQ3NzExODF9fX0sImJvb3RTZXNzaW9uSUQiOiIxNDFD
+	N0I1NS0xQzQzLTQzMUQtOEJCRi1EOUY5NjgwMzVBNDgifQ==
+	</data>
 	<key>hyperKeyPhysicalKey</key>
 	<string>capsLock</string>
 	<key>launcherAliases</key>
@@ -104,7 +122,7 @@
 	<key>showFavoritesInCompactMode</key>
 	<true/>
 	<key>showInMenuBar</key>
-	<true/>
+	<false/>
 	<key>snippetsEnabled</key>
 	<true/>
 </dict>
