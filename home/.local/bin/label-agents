@@ -28,7 +28,6 @@ import sys
 from pathlib import Path
 
 SOURCE = "agent-label"
-TOKEN = "label"
 # Set only for agents on another machine, so the sidebar can show where an
 # agent lives without spending a row on the word "Local" nine times.
 REMOTE_TOKEN = "remote"
@@ -167,7 +166,7 @@ def main():
     if CLEAR:
         for machine, pane, _ in found:
             herdr("pane", "report-metadata", pane, "--source", SOURCE,
-                  "--clear-token", TOKEN, "--clear-token", REMOTE_TOKEN,
+                  "--clear-display-agent", "--clear-token", REMOTE_TOKEN,
                   machine=machine)
         print("cleared")
         return 0
@@ -181,8 +180,12 @@ def main():
 
     for machine, pane, title in wanted:
         label = title.lower() if len(title) <= SHORT_ENOUGH else cache.get(title, title.lower())
+        # --display-agent, not a custom token. It is herdr's own field for what
+        # an agent is called, so the `agent` row token renders it and so do the
+        # pane border labels, and an unlabelled agent falls back to "claude"
+        # instead of a blank row.
         args = ["pane", "report-metadata", pane, "--source", SOURCE,
-                "--token", f"{TOKEN}={label}"]
+                "--display-agent", label]
         # The sidebar has no way to show a token only when it is set, so the
         # decision is made here: local agents carry no machine token at all and
         # their row collapses to one line.
