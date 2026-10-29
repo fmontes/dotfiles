@@ -30,3 +30,13 @@
 # Machine-local overrides (identity, work settings). Not tracked; see README.
 [include]
 	path = ~/.gitconfig.local
+# Sign every commit and tag with an SSH key. The key itself and the allowed-
+# signers file are absolute paths under $HOME, so they live in ~/.gitconfig.local
+# with the identity -- see README. Without them `gpgsign = true` fails every
+# commit, which is why a new machine has to set those two before committing.
+[gpg]
+	format = ssh
+[commit]
+	gpgsign = true
+[tag]
+	gpgsign = true

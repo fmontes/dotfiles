@@ -48,7 +48,18 @@ These steps require human interaction and can't be automated:
 
 - Install **1Password** and sign in first
 - Generate SSH key: `ssh-keygen -t ed25519 -C "your@email.com"` and add to GitHub
-- Update `~/.gitconfig` with your name and email
+- Write `~/.gitconfig.local` with your name, email, and the two signing paths. The tracked `home/.gitconfig` turns SSH commit signing on for everyone but deliberately holds no absolute path, so `commit.gpgsign = true` fails every commit until this file exists:
+
+  ```ini
+  [user]
+  	name = Your Name
+  	email = your@email.com
+  	signingkey = /Users/you/.ssh/github_ed25519.pub
+  [gpg "ssh"]
+  	allowedSignersFile = /Users/you/.ssh/allowed_signers
+  ```
+
+  `allowed_signers` is a file you write, one `email key-type key` line per identity you trust, and it is what makes `git log --show-signature` say *Good signature* rather than *No principal matched*.
 - Run `gh auth login`
 - Run `atuin login` (optional, for cross-machine history sync)
 - Launch Tinycast. Its hotkeys and aliases are restored by the installer, but grant it Accessibility access so the hyper key works
