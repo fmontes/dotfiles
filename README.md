@@ -19,7 +19,7 @@ This clones the repo to `~/.dotfiles` and runs the installer.
 - **mise** for managing Node, Python, and Java versions
 - **[AeroSpace](https://nikitabobko.github.io/AeroSpace/)** for an Omarchy-style tiling desktop with generic workspaces
 - **[Fresh](https://getfresh.dev/)** for terminal code editing and browsing
-- **[Ghostty](https://ghostty.org/)** as the terminal, running **[herdr](https://herdr.dev)** for panes, tabs, and agent workspaces
+- **[herdr.app](https://herdr.dev/)** as the terminal: spaces, tabs, panes and coding agents in one native window
 - **[AI](ai/)** skills and instructions for agentic coding harnesses
 - **macOS defaults** for Dock, Finder, keyboard
 
@@ -146,7 +146,6 @@ Only things that have to live in the shell. Standalone commands are [CLI tools](
 | `1password-cli` | 1Password CLI |
 | `aerospace` | Tiling window manager, drives the desktop layout |
 | `codex` | OpenAI Codex CLI |
-| `ghostty` | Terminal, the outer window herdr runs in |
 | `google-chrome` | Browser, two profiles: Work and personal |
 | `orbstack` | Lightweight Docker alternative |
 | `tinycast` | Command launcher, hotkeys, and clipboard history |
@@ -240,7 +239,6 @@ Only windows that need behaviour they cannot get on their own have a rule. Nothi
 
 | App | Rule | Why |
 |---|---|---|
-| Ghostty | `layout tiling` | AeroSpace auto-floats it otherwise. [Ghostty's own docs](https://ghostty.org/docs/help/macos-tiling-wms#workarounds) recommend this for macOS tiling window managers |
 | Slack | `layout tiling` | macOS reports a huddle as a utility panel, which AeroSpace auto-floats. This hands it back to tiling so a huddle sits beside the channel instead of on top of it. |
 | MacWhisper | `layout tiling` | Auto-floated the same way, since macOS does not report its window as an ordinary resizable one, but it tiles fine when told to |
 | System Settings | `layout floating` | Glanced at, not worked in |
@@ -359,13 +357,13 @@ AeroSpace needs Accessibility access (System Settings → Privacy & Security →
 
 fresh ships a macOS keymap built on `Cmd`, but it drops the super modifier when decoding CSI-u, so none of those bindings can fire inside a terminal. The keymap is therefore `vscode`, not `macos`. The `macos` map is where all 38 of those dead `Cmd` bindings live, while `vscode` is built on `Ctrl` and works in full: `⌃D` add cursor at next match, `⌃⌥↑/↓` add cursor above/below, `⌃⇧K` delete line, `⌃L` select line, `⌥↑/↓` move line.
 
-That one structural fact — Fresh cannot see a `Cmd` chord — is what the rest of the keyboard setup is built around. It leaves `cmd+*` free for Ghostty and `cmd+alt+*` free for herdr, permanently, no matter what either adds in a later release. [Terminal](#terminal) has the whole layer map.
+That one structural fact — Fresh cannot see a `Cmd` chord — is what the rest of the keyboard setup is built around. It leaves the whole of `cmd+*` to herdr.app, permanently, no matter what either program adds in a later release. [Terminal](#terminal) has the whole layer map.
 
-Ghostty keeps five rewrites for Fresh's benefit, in [`home/.config/ghostty/config`](home/.config/ghostty/config). `Cmd+←/→` and `Cmd+⇧←/→` become Home/End and their shifted pair, because the `\x01`/`\x05` Ghostty sends by default are `⌃A` and `⌃E`, which the vscode map spends on `select_all` and `focus_file_explorer` — so `Cmd+←` used to select the whole buffer and `Cmd+→` threw focus into the file tree. `Cmd+K` becomes F14 so the shell can clear its own scrollback. Everything else Fresh gets raw.
+herdr.app keeps five rewrites for Fresh's benefit, in the `terminal` section of [`home/.config/herdr-app/keys.json`](home/.config/herdr-app/keys.json). `Cmd+←/→` and `Cmd+⇧←/→` become Home/End and their shifted pair, because the `\u0001`/`\u0005` it sends by default are `⌃A` and `⌃E`, which the vscode map spends on `select_all` and `focus_file_explorer` — so `Cmd+←` used to select the whole buffer and `Cmd+→` threw focus into the file tree. `Cmd+K` becomes F14 so the shell can clear its own scrollback. Everything else Fresh gets raw.
 
-`editor.menu_bar_mnemonics: false` in [`home/.config/fresh/config.json`](home/.config/fresh/config.json) is what makes `⌥←/→` word motion work. Ghostty rewrites opt+arrows into `esc:b`/`esc:f`, which Fresh decodes as `alt+b`/`alt+f` — and `alt+f` is bound **twice** in the vscode map, to `menu_open` and to `move_word_right`. The mnemonic won, so `⌥→` opened the File menu. Turning mnemonics off leaves the motion. The menu bar is still there and still clickable; only the Alt-letter shortcuts into it are gone. This replaced four custom `alt+arrow` overrides, and the config now carries no keybindings of its own at all.
+`editor.menu_bar_mnemonics: false` in [`home/.config/fresh/config.json`](home/.config/fresh/config.json) is what makes `⌥←/→` word motion work. herdr.app sends `esc b`/`esc f` for opt+arrows, which Fresh decodes as `alt+b`/`alt+f` — and `alt+f` is bound **twice** in the vscode map, to `menu_open` and to `move_word_right`. The mnemonic won, so `⌥→` opened the File menu. Turning mnemonics off leaves the motion. The menu bar is still there and still clickable; only the Alt-letter shortcuts into it are gone. This replaced four custom `alt+arrow` overrides, and the config now carries no keybindings of its own at all.
 
-`Cmd+C` is Ghostty's own selection copy. Ghostty and herdr both copy on select anyway, so dragging a selection still lands it on the clipboard.
+`Cmd+C` is herdr.app's `terminal.copy`. Selecting already copies, so dragging a selection lands it on the clipboard either way.
 
 ### Keys
 
@@ -426,67 +424,90 @@ Fresh runs as a **persistent daemon per workspace**, not a process per window, s
 
 ## Terminal
 
-[Ghostty](https://ghostty.org/) is the outer window and [herdr](https://herdr.dev) runs inside it, owning tabs, panes, and agent workspaces.
+[herdr.app](https://herdr.dev/) is the terminal. Not a multiplexer inside one — the app draws its own terminals, spaces, tabs and panes, and there is no emulator under it.
 
-Four programs want the same modifiers — AeroSpace, Ghostty, herdr, Fresh — and for a long time this was a running audit: add a binding, find what it broke, move it. The fix was to give each layer a modifier space it cannot be evicted from:
+This replaced a two-program stack. herdr ships as **two separate products**: the **TUI**, a multiplexer that ran inside a terminal emulator and was configured by `~/.config/herdr/config.toml`, and the **app**, a native window that runs terminals through a background server called herdr-core. They share a name and nothing else — not agents, not config format, not a plugin API. Ghostty hosted the TUI; both are gone, and [`docs/herdr-tui-archive.md`](docs/herdr-tui-archive.md) keeps their config verbatim.
+
+Collapsing to one program also collapsed the keyboard problem. Four programs used to want the same modifiers, and keeping them apart was a running audit: add a binding, find what it broke, move it. Now:
 
 | Layer | Owns |
 |---|---|
-| AeroSpace | `ctrl+*`, `ctrl+shift+*` |
+| AeroSpace | `ctrl+arrows`, `ctrl+digits`, `ctrl+shift+*` |
 | Fresh | `ctrl+letter`, `alt+letter`, `ctrl+alt+*` |
-| herdr | `cmd+alt+*`, plus the `Ctrl+B` prefix |
-| Ghostty | `cmd+*` |
+| herdr.app | all of `cmd+*`, including `cmd+alt+*` |
+| Tinycast | Caps Lock, as a `⌃⌥⇧⌘` hyper key |
 
-Run `keys` to print that map and the chords under it at any prompt; `keys herdr` narrows it to one layer and `keys cmd+alt` searches every layer for a chord.
+That holds by construction, not by vigilance. Fresh drops the super modifier when decoding CSI-u, so it cannot receive a `cmd` chord **at all** — which means nothing herdr puts on `cmd` can ever shadow a Fresh binding, whatever Fresh adds later. With Ghostty gone there is no longer a second program competing for `cmd`, so herdr.app takes the whole modifier rather than the `cmd+alt` corner of it.
 
-That split holds by construction rather than by vigilance. Fresh drops the super modifier when decoding CSI-u, so it cannot receive a `cmd` chord **at all** — which means nothing herdr puts on `cmd+alt` can ever shadow a Fresh binding, whatever Fresh adds in a future release. `ctrl+alt` was herdr's old home and it shared a modifier with Fresh's keymap: pane focus on `ctrl+alt+arrows` ate `add_cursor_above`/`below`, and `ctrl+alt+r` was unreachable behind interactive replace. Moving herdr up one modifier handed all of `ctrl+alt` back to the editor.
+`keys` prints this map and every chord under it at any prompt. `keys herdr` narrows to one layer; `keys cmd+alt` searches all of them.
 
-[`home/.config/ghostty/config`](home/.config/ghostty/config) is down to six `keybind` lines from the thirty-odd it used to carry. Five are rewrites Fresh and zsh want — `Cmd+K` into F14, `Cmd+←/→` and `Cmd+⇧←/→` into Home/End — and the sixth is a single `unbind`: `cmd+alt+i` is Ghostty's `inspector:toggle`, the only `cmd+alt` default that collides with anything herdr wants. `cmd+alt+w`, `cmd+alt+shift+w/j` and `cmd+alt+arrows` are left alone, because herdr claims none of them.
+### Config
 
-`macos-option-as-alt = left` makes the left Option key send `alt`, so `opt+backspace` deletes a word and Fresh's `⌥` bindings fire, while the right one stays free to compose accented characters. `confirm-close-surface = always` is there because `Cmd+W` is Ghostty's `close_surface` and the surface it closes is the one herdr runs in. The default, `true`, decides whether to prompt from what shell integration reports about a running process — and `shell-integration` is `none` here, so it might not prompt at all. Closing it is survivable, since herdr is a server and `herdr` reattaches with the panes still running, but the prompt is cheaper than the reattach.
+`~/.config/herdr-app/` **is** the app's interface, as files. It redraws from them within a second of a change, and if a file is invalid it keeps the last good version and writes why to `<name>.error`. Two files are the person's and are tracked here:
+
+- [`home/.config/herdr-app/keys.json`](home/.config/herdr-app/keys.json) — what every key does
+- [`home/.config/herdr-app/settings.json`](home/.config/herdr-app/settings.json) — zoom and sounds
+
+Everything else in that folder is the app's: `layouts/`, `mods/`, `themes/`, `icons/`, plus bookkeeping it rewrites on every start. Those are deliberately **not** tracked, because the app owns them and rewrites them in place.
+
+`AGENTS.md` in that folder is the real reference — 900-odd lines, regenerated on every start so it matches the installed version, and more accurate than the website. It documents the command list, the layout format, and the mod API (mods are JavaScript against GPUI, not HTML). `herdr-app commands` prints every command with its arguments.
+
+**`ctrl-alt-shift-escape` is the escape hatch.** It sets the layout and `keys.json` aside as `*.reset-<time>` and returns to the default layout. Nothing can rebind it, which makes a broken keymap recoverable without a terminal.
 
 ### Keys
 
-Everything herdr owns has two chords: the `Ctrl+B` prefix, which works everywhere including over SSH, and a direct `Cmd+Alt` chord for the ones used constantly. herdr takes an array per action, so neither has to win, and the prefix half is the fallback for a session where a `cmd` chord may not arrive at all. `prefix ?` opens the full list in herdr itself.
-
-| Prefix | Direct | Does |
-|---|---|---|
-| `prefix c` | `⌘⌥C` | New tab |
-| `prefix p` / `prefix n` | `⌘⌥[` / `⌘⌥]` | Previous / next tab |
-| `prefix v` / `prefix -` | `⌘⌥S` / `⌘⌥⇧S` | Split vertical / horizontal |
-| `prefix h` `j` `k` `l` | `⌘⌥J` `K` `I` `L` | Focus pane left / down / up / right |
-| `prefix z` | `⌘⌥Z` | Zoom pane |
-| `prefix ⇧J` / `prefix ⇧K` | `⌘⌥N` / `⌘⌥P` | Next / previous agent |
-| `prefix 1`…`9` | | Switch tab |
-| `prefix ⇧X` | | Close tab |
-| `prefix ⇧N` / `prefix w` | | New workspace / workspace picker |
-| `prefix b` | | Toggle herdr's sidebar |
-| `prefix ?` | | Help |
-
-The direct half is a flattened map of the prefix one rather than a copy of it. Pane focus is the `ijkl` inverted-T, since the `hjkl` row has no up-down shape to it without the prefix in front; the prefix half keeps herdr's vim letters. Splits are on `S` and `⇧S`, not the `D`/`⇧D` that would match their shape, because `Cmd+Alt+D` is a live macOS system hotkey — Dock show/hide, symbolichotkey 52 — and macOS takes it before Ghostty ever sees it.
-
-`next_agent` and `previous_agent` ship unbound in herdr. They step in `agent_panel_sort` order, which [`config.toml`](home/.config/herdr/config.toml) sets to `priority` rather than the default `spaces`: the rows climb as agents start wanting something, so stepping follows whoever needs answering rather than wherever they happen to sit in the list.
-
-Four custom commands sit on the same `Cmd+Alt` layer, because they are reached often enough that two strokes grate:
+The app's shipped keymap is kept as it is, with two exceptions below. `⌘⇧P` opens the command palette, which lists every command with its key, so the full list never needs writing down.
 
 | Key | Does |
 |---|---|
-| `⌘⌥E` | Toggle a Fresh editor tab (`editor`) |
-| `⌘⌥⇧L` | Toggle reviewr: diffs, comments, PR |
-| `⌘⌥O` | Open the focused workspace's PR in the browser (`pr-open`) |
-| `⌘⌥A` | Toggle an annotate tab (`annotate`) |
+| `⌘T` / `⌘W` | New / close tab |
+| `⌘1`…`9` | Select tab |
+| `⌘⇧[` / `⌘⇧]` | Previous / next tab |
+| `⌘N` | New space |
+| `⌘⌥[` / `⌘⌥]` | Previous / next space |
+| `⌘D` / `⌘⇧D` | Split right / down |
+| `⌘⇧W` / `⌘⇧⏎` | Close / zoom pane |
+| `⌘⌥` + arrows | Focus pane |
+| `⌘⌥⇧` + arrows | Swap pane |
+| `⌘[` / `⌘]` | Previous / next agent |
+| `⌘B` / `⌘P` / `⌘⇧P` | Sidebar, picker, command palette |
+| `F2` / `⇧F2` | Rename tab / space |
 
-The prefix was not an option for these: `prefix e`, `prefix o` and `prefix l` are herdr's own `edit_scrollback`, `open_notification_target` and `focus_pane_right`. reviewr is on `⌘⌥⇧L` rather than plain `⌘⌥L`, which is `focus_pane_right` in the `ijkl` block.
+**`ctrl-1`…`ctrl-9` were removed.** The app ships them as `space.select:1`…`9`, but AeroSpace registers `Ctrl`+digits as system hotkeys and wins before herdr sees the key, so they were bindings that could never fire. Spaces are reachable on `⌘⌥[` / `⌘⌥]` and through the picker.
 
-[`docs/keybindings-archive.md`](docs/keybindings-archive.md) keeps the previous, `Cmd`-based keymap verbatim, with the reasoning for each line. It was thirty-odd lines of Ghostty config that had to track Ghostty's own defaults, plus `bindkey` lines in `.zshrc` to catch the rewrites, and it is there in case any of it is worth reviving.
+**Five `terminal` bindings send escape sequences** instead of running a command, which is the same job Ghostty's `keybind = cmd+left=csi:H` used to do:
 
-herdr comes from the Brewfile as a formula, but its plugins install at runtime, so `07-post-install.sh` fetches [annotate](https://github.com/plannotator/herdr-annotate) if it is missing, pinned with `--ref` to the commit this setup was built against. The refs live at the top of that script and are bumped deliberately. [automatic-rename](https://github.com/qu8n/herdr-automatic-rename) names tabs after their directory, git branch and running program (`[2] api › feat/oauth › nvim`), which is why `prompt_new_tab_name` is off: there is nothing to type. It renames on herdr events, plus a `.zshrc` hook so a tab also renames the moment a command starts. Its numbering is per item kind, and [`home/.config/herdr-automatic-rename/config.sh`](home/.config/herdr-automatic-rename/config.sh) turns it off for workspaces with `AUTO_INDEX_WORKSPACES=0`: tabs keep the `[2]` that `prefix 1`…`9` jumps to, while the sidebar spaces rows drop a number that only repeated their position in the list. That switch also strips any `[N] ` already on a workspace label, including one you typed yourself.
+```json
+"terminal": {
+  "cmd-k":           "send:\u001b[26~",
+  "cmd-left":        "send:\u001b[H",
+  "cmd-right":       "send:\u001b[F",
+  "cmd-shift-left":  "send:\u001b[1;2H",
+  "cmd-shift-right": "send:\u001b[1;2F"
+}
+```
 
-`⌘⌥⇧L` toggles [reviewr](https://github.com/persiyanov/herdr-reviewr): diffs with comments on a line *or a range*, a changed-file browser, and a read-only mirror of the branch's PR through `gh`. That covers the two things Fresh's own review cannot: its comments anchor to a single line, and its Git Log is per-commit with no branch-level file list. It only opens inside a git repo. Outside one the plugin refuses with `not a git repo`, and that refusal goes to herdr's plugin log rather than the screen, so the key reads as dead. `cd` into a checkout.
+The app's defaults sent `\u0001` and `\u0005` for `cmd+←/→` — the readline line-start/end convention, and byte-for-byte `⌃A` and `⌃E`, which Fresh's vscode keymap spends on `select_all` and `focus_file_explorer`. So `⌘←` selected the whole buffer and `⌘→` threw focus into the file tree. Home/End are what Fresh wants: it binds Home to `smart_home`, End to `move_line_end`, and the shifted pair to `select_line_start`/`end`. `⌘K` becomes F14 because only the shell can clear its own scrollback — see the widget in [`.zshrc`](home/.zshrc), which needs `bindkey` lines for all of these.
 
-`⌘⌥A` runs the `annotate` tool, which toggles a plannotator-tui tab over the focused pane's folder. The plugin's own placements are overlay, split and popup, with no tab among them, so the tool makes the tab and runs the plugin's pane wrapper in it, the same thing its `doc` pane runs. It also registers a link handler for `^file://.*\.(md|markdown|mdx)$`, so **Ctrl-clicking any Markdown path in any pane** opens it in plannotator-tui. The rest of its actions stay on the CLI. `herdr plugin action invoke capture --plugin annotate` comments on a terminal selection, which is how a remark can cover a block of lines at all, since Fresh's review comments anchor to a single one. `version_check` is off in [`home/.config/herdr/config.toml`](home/.config/herdr/config.toml): herdr's self-updater would fetch its own build into `~/.local/bin` and shadow the brew binary on `PATH`. Upgrade with `brew upgrade herdr`, never `herdr update`.
+`⌥←/→` and `⌥⌫` are left as the app ships them, sending `esc b` / `esc f` / `⌃W`. Fresh reads the first two as `alt+b`/`alt+f`, and `menu_bar_mnemonics: false` is what stops `alt+f` opening the File menu instead of moving a word.
 
-Changing `[keys]` needs `herdr server reload-config` — the running server holds the old keymap and a new binding will not fire until it is told to re-read the file. A full restart is not needed.
+### What the herdr TUI took with it
+
+The TUI had a plugin API and a CLI (`herdr pane`, `herdr workspace report-metadata`, `herdr notification show`). herdr.app has neither, so everything built on them is **dead code, still tracked**:
+
+| Orphaned | Was |
+|---|---|
+| [`home/.local/bin/editor`](home/.local/bin/editor) | Toggled a Fresh tab at the git root |
+| [`home/.local/bin/annotate`](home/.local/bin/annotate) | Toggled a plannotator-tui tab |
+| [`home/.local/bin/pr-open`](home/.local/bin/pr-open) | Opened the focused workspace's PR |
+| [`home/.local/bin/herdr-pane`](home/.local/bin/herdr-pane) | Reported the focused pane's workspace and cwd |
+| [`home/.local/bin/label-agents`](home/.local/bin/label-agents) | Summarised each agent's task into a sidebar label |
+| [`home/.local/bin/pr-watch`](home/.local/bin/pr-watch) | Polled each workspace's PR into the sidebar |
+| [`herdr-plugins/`](herdr-plugins/) | `pr-refresh` and `agent-labels`, TUI plugins |
+
+The pr-watch LaunchAgent is unloaded and `07-post-install.sh` no longer installs it, so nothing runs on a timer and fails. The plugins that came from other people — annotate, reviewr, automatic-rename — are not installed any more either; herdr.app has its own mods, which are a different thing entirely.
+
+Porting any of these means writing a herdr.app **mod**, or calling `herdr-app do <command>` from a script. `terminal.open {argv, folder, place, name}` covers most of what `editor` and `annotate` did.
 
 ## Warp
 
@@ -496,34 +517,6 @@ Warp is still installed but no longer the daily terminal. It has no AeroSpace sl
 - [`home/.warp/tab_configs/startup_config.toml`](home/.warp/tab_configs/startup_config.toml): what a new tab opens with
 
 `~/.warp/remote-server/` is deliberately left alone: it is a 300 MB bundled binary plus SQLite state, not config. `is_settings_sync_enabled = true` means Warp also syncs settings to its own account, so the cloud copy can win. If a setting mysteriously reverts, that is why.
-
-### Files and editing
-
-`⌘⌥E` runs the `editor` tool, which toggles a [Fresh](https://getfresh.dev/) tab at the git root, one per workspace, labelled `Fresh`. It opens the tab if it is missing, focuses it if it is open elsewhere, and closes it if you are already looking at it. Fresh's own file explorer does the listing and editing happens in the same window.
-
-`prefix b` is herdr's own sidebar, the workspace list, which is why the editor never shared a key with it. This replaced the herdr-sidebar plugin. Its viewer was read-only and handed off to an editor anyway, so browsing a file meant a pane that could not edit it; Fresh does both. The plugin's source-control view has no replacement. `gh dash` covers PRs, and git itself is at the prompt.
-
-### PR status in the sidebar
-
-`pr-watch` polls every herdr workspace's pull request and reports it as the `$pr` token, which [`config.toml`](home/.config/herdr/config.toml) renders as a third sidebar row:
-
-```
-[3] 37571-sdk-performance
-    sdk-components  +97 −32
-    #37582 needs review
-```
-
-One word, coloured by severity, so there is no legend to learn: **red** is your problem, **yellow** is waiting on someone else, **green** can merge. Only the top blocker shows: `conflicts` → `n failing` → `changes requested` → `n comments` → `draft` → `running` → `needs review` → `ready`.
-
-`n comments` counts unresolved review threads, which block merge on their own: an approved PR with green checks can still be waiting on them. `gh pr view` has no field for these at all, so they come from a GraphQL query.
-
-It also fires a herdr notification when something actually changes (approved, changes requested, checks going red or green, a PR merging, a branch starting to conflict) so an approval or a failing run arrives rather than being discovered. State lives in `~/.local/state/pr-watch/state.json`; the first run is silent because there is nothing to compare against.
-
-`⌘⌥O` opens the focused workspace's PR in the browser. The sidebar number itself cannot be clickable, since workspace metadata is display-only and clicking the row switches workspace.
-
-[`herdr-plugins/pr-refresh`](herdr-plugins/pr-refresh) also refreshes one workspace the moment you focus it, so the row is current when you look at it rather than up to five minutes old. It hooks `tab.focused` rather than `workspace.focused`. The latter is a valid event name in herdr's binary but nothing emits it, while `tab.focused` fires reliably and switching workspace always switches tab. A single-workspace poll takes ~1.4s against ~10s for all of them, it runs detached so focus never waits on the network, and a 45-second debounce keeps flicking between workspaces from hammering the API.
-
-A LaunchAgent runs it every 5 minutes, generated from [`scripts/pr-watch.plist.template`](scripts/pr-watch.plist.template) rather than symlinked. launchd needs absolute paths and will not expand `~`, so the template carries `__HOME__` and post-install substitutes it. launchd rather than cron: it survives reboots and runs inside the user session, which is what reaching herdr's socket needs. Run `pr-watch` by hand any time, or `pr-watch --quiet` to resync without notifications.
 
 ## Tinycast
 
@@ -640,10 +633,9 @@ dotfiles/
         │   └── aerospace.toml # Tiling, window rules, keys
         ├── fresh/
         │   └── config.json   # Editor keybindings
-        ├── ghostty/
-        │   └── config        # Terminal appearance and macOS option handling
-        ├── herdr/
-        │   └── config.toml   # Panes, tabs, workspaces, theme
+        ├── herdr-app/
+        │   ├── keys.json     # What every key does
+        │   └── settings.json # Zoom and sounds
         ├── tinycast/
         │   └── com.tinycast.app.plist  # Exported, imported by post-install
         ├── zsh/

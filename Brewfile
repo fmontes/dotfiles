@@ -19,7 +19,6 @@ brew "ffmpeg"
 brew "ffmpeg@7", link: true
 brew "fzf"
 brew "gh"
-brew "herdr"
 brew "imagemagick"
 brew "jq"
 brew "just"
@@ -40,7 +39,9 @@ brew "zsh-syntax-highlighting"
 # ─── Casks ──────────────────────────────────────────────────────────────────
 cask "1password-cli"
 cask "codex"
-cask "ghostty"
+# herdr.app is the terminal, and it has no Homebrew cask: it ships as a DMG
+# from https://herdr.dev/download/ and updates itself in place. Nothing in
+# this file installs it; 07-post-install.sh checks for it and says so.
 cask "orbstack"
 cask "tinycast"
 

@@ -4,7 +4,9 @@ Every keyboard binding that used to live in the Ghostty, herdr, and zsh configs,
 
 The three sets were one system: Ghostty unbound its own chords so herdr could see them, rewrote a few into CSI sequences that Fresh and zsh understand, and zsh bound the receiving end. Putting back one part without the others will not work — Ghostty's unbinds are what let herdr's `[keys]` fire at all, and zsh's `bindkey` lines are dead without Ghostty's rewrites.
 
-herdr's `[[keys.command]]` blocks — editor, annotate, reviewr, pr-open — were deliberately left in place and are still live in `home/.config/herdr/config.toml`, but not on the chords recorded here. They were on `cmd+e`, `cmd+alt+a`, `cmd+l` and `cmd+shift+o` when this archive was written; the whole direct layer has since moved to `cmd+alt`, and the README's Terminal section has the current chords.
+> **Both programs here are gone.** Ghostty was uninstalled and the herdr TUI went with it on 2026-10-29, replaced by [herdr.app](https://herdr.dev/). This file is now an archive of an archive: it records the keymap as it stood in September 2026, one revision before the final Ghostty and TUI configs, which [`herdr-tui-archive.md`](herdr-tui-archive.md) keeps. Nothing here can be pasted back into a program that still exists.
+
+herdr's `[[keys.command]]` blocks — editor, annotate, reviewr, pr-open — were left in place when this was written and were live in `home/.config/herdr/config.toml` on `cmd+e`, `cmd+alt+a`, `cmd+l` and `cmd+shift+o`. The direct layer later moved to `cmd+alt`, and then the whole file went.
 
 ## Ghostty — `home/.config/ghostty/config`
 

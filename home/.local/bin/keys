@@ -2,14 +2,14 @@
 #
 # keys — show the keyboard cheatsheet for this machine.
 #
-# Four programs share the keyboard here — AeroSpace, Ghostty, herdr, Fresh —
-# and each one can only show you its own half. This is the cross-layer view:
-# what owns which modifier, and the chords worth remembering from each.
+# Four programs share the keyboard here — AeroSpace, Tinycast, herdr.app and
+# Fresh — and each one can only show you its own half. This is the cross-layer
+# view: what owns which modifier, and the chords worth remembering from each.
 #
 # It is curated, not generated. Every program here can already print its own
-# complete list (`prefix ?`, Fresh's Show Keyboard Shortcuts, `ghostty
-# +list-keybinds`), and those lists are long and full of actions nobody
-# reaches for. Each section says where its full list lives.
+# complete list (`herdr-app commands`, Fresh's Show Keyboard Shortcuts), and
+# those lists are long and full of actions nobody reaches for. Each section
+# says where its full list lives.
 #
 # Usage:
 #   keys                 the whole sheet
@@ -33,15 +33,14 @@ SHEET = r"""
 ⌃ + letter           Fresh — editor commands
 ⌥ + letter           Fresh — editor commands
 ⌃⌥ + anything        Fresh — multi-cursor, interactive replace
-⌘⌥ + anything        herdr — panes, tabs, agents, custom commands
-⌃B then a key        herdr — the same actions, and these survive SSH
-⌘ + anything         Ghostty — the terminal window itself
+⌘ + anything         herdr.app — tabs, panes, spaces, agents
+⌘⌥ + anything        herdr.app — panes and spaces
 Caps Lock            Tinycast — hyper key (⌃⌥⇧⌘)
 
 # Why it splits this way
-Fresh cannot see ⌘       It drops super when decoding CSI-u, so ⌘⌥ is herdr's for good
-⌃ has no letters         AeroSpace stays on arrows and digits, so the shell keeps ⌃A ⌃C ⌃D ⌃R ⌃W
-Two chords for herdr     Prefix works everywhere; ⌘⌥ is the one-stroke version
+Fresh cannot see ⌘      It drops super when decoding CSI-u, so all of ⌘ is herdr's for good
+⌃ has no letters        AeroSpace stays on arrows and digits, so the shell keeps ⌃A ⌃C ⌃D ⌃R ⌃W
+One program, not two    herdr.app is the terminal. There is no emulator under it to share keys with
 
 @wm  Windows  AeroSpace. Config: ~/.config/aerospace/aerospace.toml
 # Focus and move
@@ -71,56 +70,50 @@ Two chords for herdr     Prefix works everywhere; ⌘⌥ is the one-stroke versi
 
 @launcher  Launcher  Tinycast. Hotkeys are exported to the repo by the pre-commit hook
 ⌥Space               Open the launcher palette
-⌃\                   Toggle Ghostty
+⌃\                   Toggle herdr.app — rebind in Tinycast, it still points at Ghostty
 ⌘⇧E                  Emoji search
 ⌃⇧⌘\                 Snippet search
 Caps Lock            Hyper — Tinycast remaps it to F18 at the HID layer and expands that to ⌃⌥⇧⌘
 
-@terminal  Terminal  Ghostty. Full list: ghostty +list-keybinds
-# Rewritten here, for Fresh and zsh
+@herdr  herdr.app  The terminal. Full list: ⌘⇧P, or `herdr-app commands`
+# Tabs and spaces
+⌘T / ⌘W              New / close tab
+⌘1…9                 Select tab
+⌘⇧[ / ⌘⇧]            Previous / next tab
+⌃⇥ / ⌃⇧⇥             Previous / next tab, the other pair
+⌘N                   New space
+⌘⌥[ / ⌘⌥]            Previous / next space
+F2 / ⇧F2             Rename tab / space
+
+# Panes
+⌘D / ⌘⇧D             Split right / down
+⌘⇧W                  Close pane
+⌘⇧⏎                  Zoom pane
+⌘⌥ + arrows          Focus pane
+⌘⌥⇧ + arrows         Swap pane
+
+# Agents
+⌘[ / ⌘]              Previous / next agent
+
+# The window
+⌘B                   Toggle the sidebar
+⌘P                   Picker
+⌘⇧P                  Command palette — every command, with its key
+⌘⇧L                  Switch layout
+⌘, / ⌘/              Settings / help
+⌘= ⌘- ⌘0             Zoom in / out / reset
+⌘Q ⌘H ⌘⌥H            Quit, hide, hide others
+⌃⌥⇧Esc               Escape hatch — resets the layout and keys.json. Cannot be rebound
+
+# In a terminal
+⌘C / ⌘V              Copy / paste
+⌃V                   Paste an image
 ⌘K                   Clear screen and scrollback — sent as F14, zsh does the clearing
 ⌘← / ⌘→              Line start / end — sent as Home/End
 ⌘⇧← / ⌘⇧→            Select to line start / end
-⌘⌥I                  Unbound, so herdr gets it for focus pane up
-
-# Ghostty's own, left alone
-⌘T / ⌘W              New / close a Ghostty tab — not a herdr tab
-⌘1…8 / ⌘9            Ghostty tab N / last tab
-⌘N / ⌘⇧W             New window / close window
-⌘D / ⌘⇧D             Split right / down — Ghostty's splits, not herdr's
-⌘⌥ + arrows          Focus a Ghostty split
-⌘⇧⏎                  Zoom a Ghostty split
-⌘C / ⌘V              Copy / paste. Selecting already copies
-⌘F / ⌘G / ⌘⇧G        Search, next match, previous match
-⌘+ / ⌘- / ⌘0         Font size up / down / reset
-⌘⇧P                  Command palette
-⌘, / ⌘⇧,             Open config / reload config
-⌘⏎                   Fullscreen
-⌘Q                   Quit. ⌘W prompts first, since it closes the pane herdr runs in
-
-@herdr  Panes and tabs  herdr. Full list: ⌃B then ?
-# Every action takes both. ⌘⌥ is one stroke; the prefix survives SSH
-⌃B C  ::  ⌘⌥C  ::  New tab
-⌃B P / N  ::  ⌘⌥[ / ⌘⌥]  ::  Previous / next tab
-⌃B V / -  ::  ⌘⌥S / ⌘⌥⇧S  ::  Split vertical / horizontal
-⌃B H J K L  ::  ⌘⌥J K I L  ::  Focus pane left / down / up / right
-⌃B Z  ::  ⌘⌥Z  ::  Zoom the pane
-⌃B ⇧J / ⇧K  ::  ⌘⌥N / ⌘⌥P  ::  Next / previous agent, in priority order
-
-# Prefix only
-⌃B 1…9               Switch tab
-⌃B ⇧X                Close tab
-⌃B ⇧N                New workspace
-⌃B W                 Workspace picker
-⌃B B                 Toggle herdr's sidebar
-⌃B ?                 Help
-
-# Custom commands, on the same ⌘⌥ layer
-⌘⌥E                  Toggle a Fresh editor tab at the git root
-⌘⌥⇧L                 Toggle reviewr — diffs, line and range comments, the PR
-⌘⌥O                  Open the focused workspace's PR in the browser
-⌘⌥A                  Toggle an annotate tab over the focused pane's folder
-⌃click a .md path    Open it in plannotator-tui, from any pane
+⌘⌫                   Delete to line start
+⌥← / ⌥→              Word motion
+⌥⌫                   Delete the word before the cursor
 
 @editor  Editor  Fresh, vscode keymap. Full list: ⌃P then Show Keyboard Shortcuts
 # Editing

@@ -41,11 +41,11 @@ export DOCKER_HOST=unix:///var/run/docker.sock
 # scrollback — the reason cmd+k looked like it had done nothing. ESC[3J is the
 # part that drops it, and herdr's emulator honours it.
 #
-# On two keys: cmd+k, which Ghostty rewrites to F14 (see its config) because its
-# own clear_screen only wipes Ghostty's buffer and herdr repaints over it, and
-# ctrl+k directly. ctrl+k is bound here rather than in Ghostty on purpose —
-# Ghostty would take it from every pane, and Fresh spends ⌃K on delete-to-line-
-# end. The cost is zsh's kill-line, which ctrl+k held until now.
+# On two keys: cmd+k, which herdr.app sends as F14 (`"cmd-k": "send:\u001b[26~"`
+# in keys.json), and ctrl+k directly. cmd+k has to be rewritten rather than left
+# alone because only the shell can clear its own scrollback. ctrl+k is bound here
+# in zsh rather than in herdr.app on purpose: herdr would take it from every pane,
+# and Fresh spends ⌃K on delete-to-line-end. The cost is zsh's kill-line.
 clear-screen-and-scrollback() {
   printf '\033[H\033[2J\033[3J'
   zle .reset-prompt
@@ -53,20 +53,12 @@ clear-screen-and-scrollback() {
 zle -N clear-screen-and-scrollback
 bindkey '^[[26~' clear-screen-and-scrollback
 
-# cmd+left/right are rewritten to Home/End (see Ghostty's config), because the
+# cmd+left/right are rewritten to Home/End in herdr.app's keys.json, because the
 # \x01 and \x05 they send by default are ctrl+a and ctrl+e, which Fresh spends on
 # select_all and focus_file_explorer. zsh knows ^A and ^E, but not these.
 bindkey '^[[H' beginning-of-line
 bindkey '^[[F' end-of-line
 bindkey '^K' clear-screen-and-scrollback
-
-# ─── herdr automatic tab naming ─────────────────────────────────────────────
-# The plugin renames tabs on herdr events, but a tab should also rename the
-# moment a command starts, which only the shell can see. The glob carries the
-# plugin's install hash, so (N) keeps a reinstall from erroring on no match.
-for _f in ${HOME}/.config/herdr/plugins/github/herdr-automatic-rename-*/shell/hook.zsh(N); do
-  source $_f; break
-done
 
 # ─── PATH ───────────────────────────────────────────────────────────────────
 export PATH="$HOME/.local/bin:$PATH"   # claude and other native-installer bins

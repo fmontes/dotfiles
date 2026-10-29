@@ -314,9 +314,3 @@ ctrl-shift-semicolon = 'mode service'
 esc = ['reload-config', 'mode main']
 r = ['flatten-workspace-tree', 'mode main']
 
-# https://ghostty.org/docs/help/macos-tiling-wms#workarounds
-[[on-window-detected]]
-if.app-id="com.mitchellh.ghostty"
-run= [
-  "layout tiling",
-]

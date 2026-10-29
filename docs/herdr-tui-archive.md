@@ -1,3 +1,82 @@
+# herdr TUI and Ghostty archive
+
+Removed on 2026-10-29, when the terminal stack collapsed from two programs to one. Ghostty was uninstalled and the herdr TUI went with it; [herdr.app](https://herdr.dev/) replaced both. Nothing here is loaded by anything — it is a paste-back copy, kept with the comments that explain why each line existed.
+
+## What replaced what
+
+herdr shipped as two separate programs. The **TUI** was a terminal multiplexer that ran *inside* a terminal emulator, configured by `~/.config/herdr/config.toml`. The **app** is a native window that runs its own terminals through herdr-core, configured by `~/.config/herdr-app/`. They do not share agents, config format, or a plugin API, so this is a replacement rather than an upgrade — none of the config below carries across.
+
+| Was | Is now |
+|---|---|
+| Ghostty window + herdr TUI inside it | herdr.app, one program |
+| `~/.config/ghostty/config` (6 keybinds) | `~/.config/herdr-app/keys.json`, `terminal` section |
+| `~/.config/herdr/config.toml` `[keys]` | `~/.config/herdr-app/keys.json`, `global` section |
+| `[[keys.command]]` shell commands | not ported — see the orphaned tools in the README |
+| herdr TUI plugins (annotate, reviewr, pr-refresh, automatic-rename) | no equivalent installed; herdr.app has its own mods |
+
+The one piece of config that had to survive verbatim is the escape-sequence rewriting. Ghostty did it with `keybind = cmd+left=csi:H`; herdr.app does the same thing with `"cmd-left": "send:\u001b[H"` in the `terminal` section of `keys.json`. Both exist for the same reason: Fresh's vscode keymap spends `ctrl+a` on `select_all` and `ctrl+e` on `focus_file_explorer`, and `\x01`/`\x05` are exactly those two control characters.
+
+## Ghostty — `home/.config/ghostty/config`
+
+```
+shell-integration = none
+# left option = alt (opt+backspace deletes a word)
+# right option stays free for composing accented characters
+macos-option-as-alt = left
+
+# The title bar stays, but it has to disappear into the window. Ghostty's
+# default background is #282c34 while herdr paints catppuccin base, and a
+# transparent titlebar takes Ghostty's colour — which is why the bar read as a
+# lighter grey strip above everything.
+background = #1e1e2e
+
+# No folder proxy icon; herdr already says where it is.
+macos-titlebar-proxy-icon = hidden
+
+# Both zero. The top was 20 back when the title bar was hidden and content sat
+# flush against the top edge; with the bar visible that padding was only an
+# empty band. The second value is the bottom, and 20 there just left an empty
+# strip under herdr's status bar.
+window-padding-y = 0,0
+
+# Cmd+W is Ghostty's close_surface again, and the surface it closes is the one
+# herdr is running in. `true` decides whether to prompt from what shell
+# integration reports about a running process, and shell-integration is none
+# here, so it may not prompt at all. `always` prompts regardless. Closing it is
+# survivable — herdr is a server, `herdr` reattaches and the panes kept
+# running — but the prompt is cheaper than the reattach.
+confirm-close-surface = always
+
+# Ghostty's cmd+k is clear_screen, which clears Ghostty's own grid and scrollback
+# — and inside herdr that is a frame buffer herdr repaints a moment later. The
+# scrollback that matters lives in herdr's pane, which Ghostty cannot reach. So
+# send F14 and let the shell do the clearing: herdr's emulator honours ESC[3J, so
+# the scrollback goes with the screen. See the widget in .zshrc. Cost: in a pane
+# that is not a shell — an agent, Fresh — cmd+k does nothing, as it did before.
+keybind = cmd+k=csi:26~
+
+# Ghostty sends \x01 and \x05 for cmd+left/right — the readline line-start/end
+# convention — and Fresh's vscode keymap spends ctrl+a on select_all and ctrl+e
+# on focus_file_explorer. So cmd+left selected the buffer and cmd+right threw
+# focus into the file tree, neither of which moves a cursor. Home/End are what
+# Fresh wants: it binds Home to smart_home, End to move_line_end, and the shifted
+# pair to select_line_start/end. The shell needs bindkey lines for them, in .zshrc.
+keybind = cmd+left=csi:H
+keybind = cmd+right=csi:F
+keybind = cmd+shift+left=csi:1;2H
+keybind = cmd+shift+right=csi:1;2F
+
+# herdr's direct layer lives on cmd+alt, because Fresh drops the super modifier
+# in CSI-u and so can never collide with it. Ghostty's own cmd+alt defaults are
+# few and none are load-bearing here; only the inspector sits on a chord herdr
+# wants (focus_pane_up). The others — cmd+alt+w, cmd+alt+shift+w/j and
+# cmd+alt+arrows — are left alone, since herdr claims none of them.
+keybind = cmd+alt+i=unbind
+```
+
+## herdr TUI — `home/.config/herdr/config.toml`
+
+```toml
 onboarding = false
 
 [update]
@@ -171,3 +250,4 @@ command = "herdr plugin action invoke toggle --plugin persiyanov.reviewr"
 key = "cmd+alt+o"
 type = "shell"
 command = "pr-open"
+```

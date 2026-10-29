@@ -27,40 +27,15 @@ else
   fi
 fi
 
-# ─── herdr plugins ───────────────────────────────────────────────────────────
-# Pinned to the commits this setup was built against, so a new machine gets the
-# same plugin code rather than whatever shipped since. Bump a ref deliberately:
-#   herdr plugin install <owner/repo> --ref <sha> --yes
-# then record the new sha here.
-ANNOTATE_REF=7c8f5a177b8285dc56efc471ef04f7ab44a2b4b6
-RENAME_REF=081489b4d961d0d9c0c8b6a02d472e5cfe125ad5
-REVIEWR_REF=dca1fb88a56c0d6246a2e9004ecbe27fd11a4436
-
-# ─── herdr annotate plugin ───────────────────────────────────────────────────
-# herdr comes from the Brewfile but its plugins install at runtime, so a fresh
-# machine has to fetch this one again. The manifest is pinned to a commit, so
-# the install is deterministic.
-if command -v herdr &>/dev/null; then
-  if herdr plugin list 2>/dev/null | grep -q annotate; then
-    echo "herdr annotate plugin already installed."
-  else
-    echo "Installing herdr annotate plugin..."
-    herdr plugin install plannotator/herdr-annotate --ref "$ANNOTATE_REF" -y || echo "annotate install failed — run 'herdr plugin install plannotator/herdr-annotate' manually."
-  fi
-  if herdr plugin list 2>/dev/null | grep -q herdr-automatic-rename; then
-    echo "herdr automatic-rename plugin already installed."
-  else
-    echo "Installing herdr automatic-rename plugin..."
-    herdr plugin install qu8n/herdr-automatic-rename --ref "$RENAME_REF" --yes || echo "automatic-rename install failed — run 'herdr plugin install qu8n/herdr-automatic-rename --yes' manually."
-  fi
-  if herdr plugin list 2>/dev/null | grep -q persiyanov.reviewr; then
-    echo "herdr reviewr plugin already installed."
-  else
-    echo "Installing herdr reviewr plugin..."
-    herdr plugin install persiyanov/herdr-reviewr --ref "$REVIEWR_REF" --yes || echo "reviewr install failed — run 'herdr plugin install persiyanov/herdr-reviewr --yes' manually."
-  fi
+# ─── herdr.app ───────────────────────────────────────────────────────────────
+# herdr.app has no Homebrew cask, so nothing here can install it: it ships as a
+# DMG from https://herdr.dev/download/ and updates itself in place afterwards.
+# Its config (keys.json, settings.json) is symlinked from this repo like the
+# rest, which only works once the app has created the folder.
+if [[ -d /Applications/herdr.app ]]; then
+  echo "herdr.app installed."
 else
-  echo "herdr not available yet — install the Brewfile first, then run 'herdr plugin install plannotator/herdr-annotate' and 'herdr plugin install qu8n/herdr-automatic-rename'."
+  echo "herdr.app missing — download it from https://herdr.dev/download/, launch it once, then re-run 03-symlinks.sh."
 fi
 
 # ─── Global npm packages ─────────────────────────────────────────────────────
@@ -102,26 +77,16 @@ fi
 # refreshes a workspace's PR status on focus so the sidebar is current when you
 # look at it. A newly linked plugin does not receive events until the server
 # reloads, which is easy to miss — the link alone looks like it worked.
-if command -v herdr &>/dev/null; then
-  if herdr plugin list 2>/dev/null | grep -q pr-refresh; then
-    echo "pr-refresh plugin already linked."
-  else
-    echo "Linking pr-refresh plugin..."
-    herdr plugin link "$DOTFILES_DIR/herdr-plugins/agent-labels" >/dev/null 2>&1 || true
-    herdr plugin link "$DOTFILES_DIR/herdr-plugins/pr-refresh" >/dev/null \
-      && herdr server reload-config >/dev/null \
-      && echo "pr-refresh linked." \
-      || echo "pr-refresh link failed — run 'herdr plugin link $DOTFILES_DIR/herdr-plugins/pr-refresh' manually."
-  fi
-fi
-
 # ─── pr-watch LaunchAgent ────────────────────────────────────────────────────
 # Polls each herdr workspace's PR into the sidebar and notifies on changes.
 # launchd needs absolute paths and does not expand ~, so this is generated from
 # a template rather than symlinked like the rest of the config.
 template="$DOTFILES_DIR/scripts/pr-watch.plist.template"
 agent="$HOME/Library/LaunchAgents/com.fmontes.pr-watch.plist"
-if [[ -f "$template" ]]; then
+# Gated on the herdr TUI CLI, which pr-watch reports through. herdr.app has no
+# `herdr workspace report-metadata`, so with the TUI gone this would schedule a
+# job that fails every five minutes.
+if [[ -f "$template" ]] && command -v herdr &>/dev/null; then
   mkdir -p "$HOME/Library/LaunchAgents" "$HOME/.local/state/pr-watch"
   sed "s|__HOME__|$HOME|g" "$template" > "$agent"
   launchctl unload "$agent" 2>/dev/null
