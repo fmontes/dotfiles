@@ -18,7 +18,7 @@
 	<true/>
 	<key>boundAppBundleIDs</key>
 	<array>
-		<string>com.mitchellh.ghostty</string>
+		<string>dev.herdr.app</string>
 	</array>
 	<key>boundCustomCommandIDs</key>
 	<array/>
@@ -76,8 +76,8 @@
 	</data>
 	<key>extensionsEnabled</key>
 	<true/>
-	<key>hotkey.app.com.mitchellh.ghostty</key>
-	<string>{"combo":{"_0":{"carbonModifiers":4096,"carbonKeyCode":42}}}</string>
+	<key>hotkey.app.dev.herdr.app</key>
+	<string>{"combo":{"_0":{"carbonKeyCode":42,"carbonModifiers":4096}}}</string>
 	<key>hotkey.command:search-emoji</key>
 	<string>{"combo":{"_0":{"carbonKeyCode":14,"carbonModifiers":768}}}</string>
 	<key>hotkey.command:search-snippets</key>
@@ -88,13 +88,11 @@
 	<true/>
 	<key>hyperKeyKeyboardMappings</key>
 	<data>
-	eyJrZXlib2FyZHMiOnsiNDI5NDk3MTM2MSI6eyJvcmlnaW5hbCI6W10sImluc3RhbGxl
-	ZCI6eyJzb3VyY2UiOjMwMDY0NzcxMTI5LCJkZXN0aW5hdGlvbiI6MzAwNjQ3NzExODF9
-	fSwiNDI5NzkyNTEyMiI6eyJvcmlnaW5hbCI6W10sImluc3RhbGxlZCI6eyJzb3VyY2Ui
-	OjMwMDY0NzcxMTI5LCJkZXN0aW5hdGlvbiI6MzAwNjQ3NzExODF9fSwiNDI5NzkyNzEw
-	NCI6eyJvcmlnaW5hbCI6W10sImluc3RhbGxlZCI6eyJzb3VyY2UiOjMwMDY0NzcxMTI5
-	LCJkZXN0aW5hdGlvbiI6MzAwNjQ3NzExODF9fX0sImJvb3RTZXNzaW9uSUQiOiIxNDFD
-	N0I1NS0xQzQzLTQzMUQtOEJCRi1EOUY5NjgwMzVBNDgifQ==
+	eyJrZXlib2FyZHMiOnsiNDI5NzkyNTEyMiI6eyJpbnN0YWxsZWQiOnsiZGVzdGluYXRp
+	b24iOjMwMDY0NzcxMTgxLCJzb3VyY2UiOjMwMDY0NzcxMTI5fSwib3JpZ2luYWwiOltd
+	fSwiNDI5NDk3MTM2MSI6eyJpbnN0YWxsZWQiOnsiZGVzdGluYXRpb24iOjMwMDY0Nzcx
+	MTgxLCJzb3VyY2UiOjMwMDY0NzcxMTI5fSwib3JpZ2luYWwiOltdfX0sImJvb3RTZXNz
+	aW9uSUQiOiIxNDFDN0I1NS0xQzQzLTQzMUQtOEJCRi1EOUY5NjgwMzVBNDgifQ==
 	</data>
 	<key>hyperKeyPhysicalKey</key>
 	<string>capsLock</string>
