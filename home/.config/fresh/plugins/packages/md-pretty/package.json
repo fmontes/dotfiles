@@ -1,0 +1,9 @@
+{
+  "name": "md-pretty",
+  "version": "1.0.0",
+  "description": "Renders markdown files as a beautiful read-only preview panel in Fresh editor",
+  "type": "plugin",
+  "fresh": {
+    "entry": "md_pretty.ts"
+  }
+}

@@ -432,6 +432,8 @@ From Fresh's own **Show Keyboard Shortcuts** (`Ctrl+P`, then run it) with this k
 
 `⌥1`–`⌥9` (bookmarks) and `⌥[` / `⌥]` (splits) work. herdr keeps tab and workspace switching on the prefix and on `cmd+alt`, so nothing takes those chords first.
 
+[md-pretty](https://github.com/sunnypdater/fresh-md-pretty) renders Markdown as a read-only preview panel. It is vendored into [`home/.config/fresh/plugins/packages/md-pretty/`](home/.config/fresh/plugins/packages/md-pretty/) rather than installed, because it does not run against Fresh 0.4.3 as published — it needs seven changes, five of them plugin-API drift and two packaging. [`docs/fresh-md-pretty/`](docs/fresh-md-pretty/) lists them and keeps the upstream originals so the diff survives the next release. Being under `home/` means `03-symlinks.sh` installs it with everything else.
+
 Fresh runs as a **persistent daemon per workspace**, not a process per window, so closing a tab reattaches to the same process rather than starting a new one — a config or plugin change does not take effect until that daemon dies. They show up in `ps` as plain `fresh <path>` and can outlive a reboot-free week. `fresh --cmd daemon kill <name>` prints the name and then hangs rather than returning, so `pkill fresh` is the way to restart them.
 
 ## Terminal
@@ -505,21 +507,11 @@ The app's defaults sent `\u0001` and `\u0005` for `cmd+←/→` — the readline
 
 ### What the herdr TUI took with it
 
-The TUI had a plugin API and a CLI (`herdr pane`, `herdr workspace report-metadata`, `herdr notification show`). herdr.app has neither, so everything built on them is **dead code, still tracked**:
+The TUI had a plugin API and a CLI (`herdr pane`, `herdr workspace report-metadata`, `herdr notification show`). herdr.app has neither, so six tools and two plugins built on them were deleted rather than left as dead code: `editor` and `annotate` (toggled a Fresh or plannotator tab), `pr-open`, `herdr-pane`, `label-agents` (summarised each agent's task into a sidebar label), `pr-watch` with its LaunchAgent template, and the `herdr-plugins/` directory holding `pr-refresh` and `agent-labels`.
 
-| Orphaned | Was |
-|---|---|
-| [`home/.local/bin/editor`](home/.local/bin/editor) | Toggled a Fresh tab at the git root |
-| [`home/.local/bin/annotate`](home/.local/bin/annotate) | Toggled a plannotator-tui tab |
-| [`home/.local/bin/pr-open`](home/.local/bin/pr-open) | Opened the focused workspace's PR |
-| [`home/.local/bin/herdr-pane`](home/.local/bin/herdr-pane) | Reported the focused pane's workspace and cwd |
-| [`home/.local/bin/label-agents`](home/.local/bin/label-agents) | Summarised each agent's task into a sidebar label |
-| [`home/.local/bin/pr-watch`](home/.local/bin/pr-watch) | Polled each workspace's PR into the sidebar |
-| [`herdr-plugins/`](herdr-plugins/) | `pr-refresh` and `agent-labels`, TUI plugins |
+[`docs/herdr-tui-archive.md`](docs/herdr-tui-archive.md) has the config they worked against, and git has the tools themselves. Rebuilding any of them against herdr.app means writing a **mod** or calling `herdr-app do <command>` from a script — `terminal.open {argv, folder, place, name}` covers most of what `editor` and `annotate` did, and the sidebar labelling would now be a mod rather than reported metadata.
 
-The pr-watch LaunchAgent is unloaded and `07-post-install.sh` no longer installs it, so nothing runs on a timer and fails. The plugins that came from other people — annotate, reviewr, automatic-rename — are not installed any more either; herdr.app has its own mods, which are a different thing entirely.
-
-Porting any of these means writing a herdr.app **mod**, or calling `herdr-app do <command>` from a script. `terminal.open {argv, folder, place, name}` covers most of what `editor` and `annotate` did.
+The plugins that came from other people — annotate, reviewr, automatic-rename — are not installed any more either. herdr.app has its own mods, which are a different thing entirely.
 
 ## Warp
 

@@ -78,26 +78,6 @@ fi
 # refreshes a workspace's PR status on focus so the sidebar is current when you
 # look at it. A newly linked plugin does not receive events until the server
 # reloads, which is easy to miss — the link alone looks like it worked.
-# ─── pr-watch LaunchAgent ────────────────────────────────────────────────────
-# Polls each herdr workspace's PR into the sidebar and notifies on changes.
-# launchd needs absolute paths and does not expand ~, so this is generated from
-# a template rather than symlinked like the rest of the config.
-template="$DOTFILES_DIR/scripts/pr-watch.plist.template"
-agent="$HOME/Library/LaunchAgents/com.fmontes.pr-watch.plist"
-# Gated on the herdr TUI CLI, which pr-watch reports through. herdr.app has no
-# `herdr workspace report-metadata`, so with the TUI gone this would schedule a
-# job that fails every five minutes.
-if [[ -f "$template" ]] && command -v herdr &>/dev/null; then
-  mkdir -p "$HOME/Library/LaunchAgents" "$HOME/.local/state/pr-watch"
-  sed "s|__HOME__|$HOME|g" "$template" > "$agent"
-  launchctl unload "$agent" 2>/dev/null
-  if launchctl load "$agent" 2>/dev/null; then
-    echo "pr-watch LaunchAgent loaded."
-  else
-    echo "pr-watch LaunchAgent failed to load — run 'launchctl load $agent' manually."
-  fi
-fi
-
 # ─── Fix .netrc permissions ──────────────────────────────────────────────────
 if [[ -f "$HOME/.netrc" ]]; then
   chmod 600 "$HOME/.netrc"
