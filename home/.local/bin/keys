@@ -70,7 +70,7 @@ One program, not two    herdr.app is the terminal. There is no emulator under it
 
 @launcher  Launcher  Tinycast. Hotkeys are exported to the repo by the pre-commit hook
 ⌥Space               Open the launcher palette
-⌃\                   Toggle herdr.app — rebind in Tinycast, it still points at Ghostty
+⌃\                   Toggle herdr.app
 ⌘⇧E                  Emoji search
 ⌃⇧⌘\                 Snippet search
 Caps Lock            Hyper — Tinycast remaps it to F18 at the HID layer and expands that to ⌃⌥⇧⌘
