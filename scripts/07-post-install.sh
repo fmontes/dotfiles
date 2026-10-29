@@ -28,14 +28,15 @@ else
 fi
 
 # ─── herdr.app ───────────────────────────────────────────────────────────────
-# herdr.app has no Homebrew cask, so nothing here can install it: it ships as a
-# DMG from https://herdr.dev/download/ and updates itself in place afterwards.
+# herdr.app has no Homebrew cask, so nothing here can install it. Its own
+# installer puts it in ~/Applications; dragging the DMG puts it in
+# /Applications. Both are real, so check both. It updates itself after that.
 # Its config (keys.json, settings.json) is symlinked from this repo like the
 # rest, which only works once the app has created the folder.
-if [[ -d /Applications/herdr.app ]]; then
+if [[ -d /Applications/herdr.app || -d /Applications/Herdr.app || -d "$HOME/Applications/Herdr.app" ]]; then
   echo "herdr.app installed."
 else
-  echo "herdr.app missing — download it from https://herdr.dev/download/, launch it once, then re-run 03-symlinks.sh."
+  echo "herdr.app missing — install with 'curl -fsSL https://releases.herdr.dev/app/install.sh | sh', launch it once, then re-run 03-symlinks.sh."
 fi
 
 # ─── Global npm packages ─────────────────────────────────────────────────────

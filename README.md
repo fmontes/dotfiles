@@ -46,6 +46,7 @@ The script will:
 
 These steps require human interaction and can't be automated:
 
+- Install **herdr.app**: `curl -fsSL https://releases.herdr.dev/app/install.sh | sh`. It has no Homebrew cask, so the Brewfile cannot carry it. The script installs to `~/Applications`, checksums the download, and leaves an existing `herdr-core` alone; the app self-updates afterwards. Launch it once so it creates `~/.config/herdr-app/`, then re-run `scripts/03-symlinks.sh` to link `keys.json` and `settings.json`
 - Install **1Password** and sign in first
 - Generate SSH key: `ssh-keygen -t ed25519 -C "your@email.com"` and add to GitHub
 - Write `~/.gitconfig.local` with your name, email, and the two signing paths. The tracked `home/.gitconfig` turns SSH commit signing on for everyone but deliberately holds no absolute path, so `commit.gpgsign = true` fails every commit until this file exists:
