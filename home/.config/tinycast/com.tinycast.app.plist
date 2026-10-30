@@ -88,11 +88,11 @@
 	<true/>
 	<key>hyperKeyKeyboardMappings</key>
 	<data>
-	eyJrZXlib2FyZHMiOnsiNDI5NzkyNTEyMiI6eyJpbnN0YWxsZWQiOnsiZGVzdGluYXRp
-	b24iOjMwMDY0NzcxMTgxLCJzb3VyY2UiOjMwMDY0NzcxMTI5fSwib3JpZ2luYWwiOltd
-	fSwiNDI5NDk3MTM2MSI6eyJpbnN0YWxsZWQiOnsiZGVzdGluYXRpb24iOjMwMDY0Nzcx
-	MTgxLCJzb3VyY2UiOjMwMDY0NzcxMTI5fSwib3JpZ2luYWwiOltdfX0sImJvb3RTZXNz
-	aW9uSUQiOiIxNDFDN0I1NS0xQzQzLTQzMUQtOEJCRi1EOUY5NjgwMzVBNDgifQ==
+	eyJib290U2Vzc2lvbklEIjoiMTQxQzdCNTUtMUM0My00MzFELThCQkYtRDlGOTY4MDM1
+	QTQ4Iiwia2V5Ym9hcmRzIjp7IjQyOTc5MjUxMjIiOnsiaW5zdGFsbGVkIjp7ImRlc3Rp
+	bmF0aW9uIjozMDA2NDc3MTE4MSwic291cmNlIjozMDA2NDc3MTEyOX0sIm9yaWdpbmFs
+	IjpbXX0sIjQyOTQ5NzEzNjEiOnsiaW5zdGFsbGVkIjp7ImRlc3RpbmF0aW9uIjozMDA2
+	NDc3MTE4MSwic291cmNlIjozMDA2NDc3MTEyOX0sIm9yaWdpbmFsIjpbXX19fQ==
 	</data>
 	<key>hyperKeyPhysicalKey</key>
 	<string>capsLock</string>
@@ -100,8 +100,6 @@
 	<dict>
 		<key>com.microsoft.VSCode</key>
 		<string>code</string>
-		<key>com.mitchellh.ghostty</key>
-		<string>orca</string>
 		<key>command:fix-grammar</key>
 		<string>fix</string>
 		<key>dev.kdrag0n.MacVirt</key>
