@@ -1,4 +1,5 @@
 tap "abue-ammar/tinycast"
+tap "anomalyco/tap"
 tap "charliesbot/tap"
 tap "nikitabobko/tap"
 tap "tobi/try", "https://github.com/tobi/try"
@@ -38,6 +39,7 @@ brew "zsh-syntax-highlighting"
 
 # ─── Casks ──────────────────────────────────────────────────────────────────
 cask "1password-cli"
+cask "anomalyco/tap/hex"
 cask "codex"
 # herdr.app is the terminal, and it has no Homebrew cask: it ships as a DMG
 # from https://herdr.dev/download/ and updates itself in place. Nothing in
