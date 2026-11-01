@@ -57,6 +57,7 @@ One program, not two    herdr.app is the terminal. There is no emulator under it
 ⌃⇧B                  Back to the workspace you came from
 
 # Layout
+⌃⇧G                  Group with the window to the left — two in one column
 ⌃⇧J                  Flip the container: side-by-side or stacked
 ⌃⇧- / ⌃⇧=            Shrink / grow along the container's axis
 ⌃⇧/                  Collapse the workspace to an accordion, and back

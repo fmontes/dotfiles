@@ -181,6 +181,8 @@ Gaps are 6px, uniform inside and out. AeroSpace has no animations, so there is n
 
 `Ctrl+Shift` + `/` collapses a workspace into an `accordion` stack and back, for when three windows tiled is two too many. Floating is the exception rather than the default: granted per app in the window rules, or per window with `Ctrl+Shift` + `t`.
 
+`Ctrl+Shift` + `g` is how you get a column holding two windows instead of three equal ones. Three windows tile flat as `A | B | C`; focus `C`, press it, and `join-with left` wraps `B` and `C` in a nested container, which the opposite-orientation rule forces onto the other axis — so the horizontal row becomes `A` beside `B` over `C`. Only `left` is bound of the four directions, because it is the one that builds the layout; `Ctrl+Shift` + `\` flattens it back, and `Ctrl+Shift` + `j` flips the pair's axis if the two should sit side by side after all.
+
 **There is no focus indicator**, and that is a reluctant choice. AeroSpace draws nothing around the focused window. Its author left borders out on purpose.
 
 Moving the cursor to each newly focused window (`on-focus-changed = ['move-mouse window-lazy-center']`) was tried and removed. It reacts to *every* focus change, including ones you did not ask for: a transient window that appears, takes focus and vanishes (an unarchiving progress dialog, say) drags the cursor across the screen and abandons it there. Worse than no indicator.
@@ -216,6 +218,7 @@ Nothing binds a plain `Ctrl`+letter. Plain `Ctrl` is used *only* with arrows and
 | `Ctrl+Shift` + `b` | Former workspace (back and forth) |
 | `Ctrl+Shift` + `f` | Fullscreen the focused window, and back |
 | `Ctrl+Shift` + `t` | Pop the focused window out of tiling into floating, and back |
+| `Ctrl+Shift` + `g` | Group the focused window with the one to its left, into one column |
 | `Ctrl+Shift` + `j` | Flip the container between side-by-side and stacked |
 | `Ctrl+Shift` + `-` / `=` | Shrink / grow the focused window along its container's axis |
 | `Ctrl+Shift` + `/` | Collapse the workspace into an accordion stack, and back |

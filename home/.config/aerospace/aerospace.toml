@@ -21,6 +21,7 @@
 #   Ctrl+Shift + , / .     send to prev / next workspace
 #   Ctrl+Shift + b         former workspace
 #   Ctrl+Shift + - / =     resize        Ctrl+Shift + j       split orientation
+#   Ctrl+Shift + g  group with left window
 #   Ctrl+Shift + f  fullscreen           Ctrl+Shift + t  float toggle
 #   Ctrl+Shift + /  accordion stack
 #
@@ -278,6 +279,18 @@ ctrl-shift-t = 'layout floating tiling'
 # Flip the focused window's container between side-by-side and stacked — the
 # equivalent of Hyprland's togglesplit.
 ctrl-shift-j = 'layout horizontal vertical'
+
+# Group the focused window with the one to its left, which is how you get a
+# column holding two windows instead of three equal columns. With three windows
+# tiled flat as A | B | C, focusing C and pressing this gives A | B-over-C:
+# join-with wraps the pair in a nested container, and the
+# opposite-orientation normalization above forces that container to the other
+# axis, so a horizontal row yields a vertical stack.
+#
+# Only left is bound. The other three directions exist, but this is the one
+# that builds the layout — ctrl-shift-backslash flattens it back, and
+# ctrl-shift-j flips the pair's axis if the stack should be side by side.
+ctrl-shift-g = 'join-with left'
 
 # 'smart' resizes along whichever axis the focused window's container runs, so
 # one pair of keys covers both directions. Needs at least two tiled windows in
