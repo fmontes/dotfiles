@@ -250,7 +250,7 @@ Plain `Option` was the modifier first, and it cost `Option`+←/→ word navigat
 
 ### Window rules
 
-Only windows that need behaviour they cannot get on their own have a rule. Nothing routes to a workspace, and there is no catch-all.
+Newly auto-floated windows receive focus so dialogs come forward when they appear. App rules then adjust layouts where needed. Nothing routes to a workspace.
 
 | App | Rule | Why |
 |---|---|---|
@@ -263,9 +263,9 @@ Only windows that need behaviour they cannot get on their own have a rule. Nothi
 
 The Slack rule deliberately does not match on the title. Slack sets the `Huddle:` title a moment *after* the window appears, so a `~= "^Huddle:"` pattern never matches at detection time. It works only when re-run afterwards, which is a good way to be fooled into thinking a rule is correct. Tiling every Slack window sidesteps the race.
 
-**Dialogs are exempt without needing a rule.** macOS reports a file picker or alert as a panel and AeroSpace floats it, so a "Save as…" sheet never wedges itself into the tiling. When testing a rule, `open -a TextEdit` with no argument opens TextEdit's *Open* dialog, which floats, while `open -a TextEdit somefile.txt` opens a document window, which tiles.
+**Dialogs float and come forward.** [AeroSpace recognizes dialogs](https://nikitabobko.github.io/AeroSpace/guide#dialog-heuristics) through macOS accessibility information and its own heuristics. Floating alone does not activate the app, so the first rule focuses newly auto-floated windows before continuing to the app rules. This also brings auto-floated utility panels forward. When testing a rule, `open -a TextEdit` with no argument opens TextEdit's *Open* dialog, which floats, while `open -a TextEdit somefile.txt` opens a document window, which tiles.
 
-`Ctrl+Shift` + `r` re-applies these rules to every open window. Since no rule moves anything between workspaces any more, its only job is picking up an app that was already running before its float rule existed.
+`Ctrl+Shift` + `r` re-applies these rules to every open window. It picks up apps that were already running before their rules existed, and also brings floating windows forward, potentially switching workspaces.
 
 ### Restoring the layout
 

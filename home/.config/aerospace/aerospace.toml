@@ -9,9 +9,9 @@
 # disappears when you close the last window on it — which also means the
 # cycling keys visit only workspaces that actually have something in them.
 #
-# Routing rules exist only for windows that need behaviour they cannot get on
-# their own: four utilities that should float, plus Slack and MacWhisper, whose
-# windows macOS mislabels as panels. No rule moves a window to a workspace.
+# Dialogs receive focus when they appear. App rules float four utilities and
+# tile Slack and MacWhisper, whose windows macOS mislabels as panels.
+# No rule moves a window to a workspace.
 #
 # Ctrl is the modifier. Option, Cmd and Ctrl+letter are deliberately left
 # alone — see the Keys section at the bottom.
@@ -87,13 +87,19 @@ automatically-unhide-macos-hidden-apps = false
 key-mapping.preset = 'qwerty'
 
 # ─── Window rules ────────────────────────────────────────────────────────────
-# Only windows needing special behaviour appear here. Everything else gets the
-# default — open on the focused workspace, join its tiling tree — which is the
-# whole point of generic workspaces. There is no catch-all rule and no rule
-# that moves a window to a workspace.
+# Dialogs come forward when they appear; app rules below adjust the layout.
+# Everything else opens on the focused workspace and joins its tiling tree.
+# No rule moves a window to a workspace.
 #
-# Matched by bundle ID, first match wins (check-further-callbacks defaults to
-# false).
+# App rules match by bundle ID; first match wins unless check-further-callbacks
+# is true.
+
+# Floating a dialog does not activate its app, so it can stay behind a tiled
+# window. Focus newly auto-floated windows, then allow app rules to run.
+[[on-window-detected]]
+if = 'test %{window-layout} = floating'
+check-further-callbacks = true
+run = ['exec-and-forget aerospace focus --window-id "$AEROSPACE_WINDOW_ID"']
 
 # macOS reports a Slack huddle as a utility panel, which AeroSpace auto-floats.
 # `layout tiling` hands it back to the normal tiling rules so a huddle sits
