@@ -19,16 +19,30 @@ dock_app() {
   local app="$1"
   printf '<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>file://%s/</string><key>_CFURLStringType</key><integer>15</integer></dict></dict></dict>' "$app"
 }
-defaults delete com.apple.dock persistent-apps 2>/dev/null
-defaults delete com.apple.dock persistent-others 2>/dev/null
-for app in \
-  "/System/Applications/Apps.app" \
-  "/System/Applications/Launchpad.app" \
-  "/System/Applications/iPhone Mirroring.app"; do
-  if [[ -e "$app" ]]; then
-    defaults write com.apple.dock persistent-apps -array-add "$(dock_app "$app")"
-  fi
+#
+# Only on a factory Dock, so re-running on a machine already in use never
+# throws away what was pinned since. A factory Dock is recognised by Apple's
+# stock apps: two or more of them still pinned means nobody has cleaned it yet.
+dock_now="$(defaults read com.apple.dock persistent-apps 2>/dev/null)"
+stock=0
+for app in Mail Messages Maps Photos FaceTime Music Notes Freeform; do
+  [[ "$dock_now" == *"/$app.app/"* ]] && (( stock++ ))
 done
+if (( stock >= 2 )); then
+  echo "  resetting the factory Dock..."
+  defaults delete com.apple.dock persistent-apps 2>/dev/null
+  defaults delete com.apple.dock persistent-others 2>/dev/null
+  for app in \
+    "/System/Applications/Apps.app" \
+    "/System/Applications/Launchpad.app" \
+    "/System/Applications/iPhone Mirroring.app"; do
+    if [[ -e "$app" ]]; then
+      defaults write com.apple.dock persistent-apps -array-add "$(dock_app "$app")"
+    fi
+  done
+else
+  echo "  Dock already customised, leaving its apps alone."
+fi
 
 # Finder
 defaults write com.apple.finder ShowPathbar -bool true

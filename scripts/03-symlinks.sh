@@ -7,8 +7,13 @@ create_symlink() {
 
   mkdir -p "$(dirname "$dest")"
 
-  if [[ -L "$dest" ]]; then
+  # Compare resolved paths: ~/.dotfiles/home/x and <clone>/home/x are the same file.
+  if [[ -L "$dest" && -e "$dest" && "${dest:A}" == "${src:A}" ]]; then
     echo "  [skip]    $dest"
+  elif [[ -L "$dest" ]]; then
+    # A link left by an older clone location, or a dangling one: repoint it.
+    ln -sfn "$src" "$dest"
+    echo "  [relink]  $dest"
   elif [[ -f "$dest" ]]; then
     echo "  [backup]  $dest -> ${dest}.bak"
     mv "$dest" "${dest}.bak"

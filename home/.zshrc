@@ -33,7 +33,7 @@ export PUPPETEER_EXECUTABLE_PATH="/Applications/Google Chrome.app/Contents/MacOS
 
 export PNPM_HOME="$HOME/Library/pnpm"
 export BUN_INSTALL="$HOME/.bun"
-export DOCKER_HOST=unix:///var/run/docker.sock
+export DOCKER_HOST="unix://$HOME/.orbstack/run/docker.sock"
 
 # ─── Keys ───────────────────────────────────────────────────────────────────
 # Clear the screen and drop the scrollback with it. zsh's own clear-screen sends

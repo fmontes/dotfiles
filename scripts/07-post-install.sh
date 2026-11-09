@@ -41,8 +41,17 @@ fi
 
 # ─── Global npm packages ─────────────────────────────────────────────────────
 if command -v npm &>/dev/null; then
-  echo "Installing global npm packages..."
-  npm install -g @angular/cli @fmontes/md2clip dev-browser yarn
+  # Only the missing ones, so a re-run on a set-up machine is a no-op.
+  missing=()
+  for pkg in @angular/cli @fmontes/md2clip dev-browser yarn; do
+    npm ls -g --depth=0 "$pkg" &>/dev/null || missing+=("$pkg")
+  done
+  if (( ${#missing} )); then
+    echo "Installing global npm packages: ${missing[*]}"
+    npm install -g "${missing[@]}"
+  else
+    echo "Global npm packages already installed."
+  fi
 else
   echo "npm not available yet — skipping global packages. Run manually after mise sets up Node."
 fi
@@ -86,7 +95,9 @@ fi
 
 # ─── VS Code CLI symlink ─────────────────────────────────────────────────────
 code_bin="/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"
-if [[ -f "$code_bin" ]]; then
+if [[ -f "$code_bin" && "$(readlink /usr/local/bin/code 2>/dev/null)" == "$code_bin" ]]; then
+  echo "VS Code CLI already linked."
+elif [[ -f "$code_bin" ]]; then
   echo "Setting up VS Code CLI symlink..."
   sudo mkdir -p /usr/local/bin
   if sudo ln -sf "$code_bin" /usr/local/bin/code; then

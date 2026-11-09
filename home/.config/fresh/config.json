@@ -4,6 +4,13 @@
     "menu_bar_mnemonics": false
   },
   "active_keybinding_map": "vscode",
+  "keybindings": [
+    {
+      "key": "f",
+      "modifiers": ["alt"],
+      "action": "move_word_right"
+    }
+  ],
   "file_browser": {
     "show_hidden": true
   },

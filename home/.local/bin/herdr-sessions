@@ -1,0 +1,300 @@
+#!/usr/bin/env python3
+#
+# herdr-sessions — resume the Claude Code / Codex sessions herdr had open before a reboot.
+"""Bring Herdr agent sessions back after a reboot.
+
+Herdr already restores spaces, tabs and panes after a reboot, but each lost
+terminal comes back as a plain shell in its last folder. This script records
+which agent (Claude Code / Codex) and which session ran in every terminal, and
+after a reboot types the resume command into the recovered shell.
+
+  herdr-sessions tick       # what launchd runs: restore if needed, then snapshot
+  herdr-sessions snapshot   # record the agents running now
+  herdr-sessions restore [--dry-run] [--from snapshot]
+  herdr-sessions status     # show the saved snapshot / pending restore
+
+Runs every 60s from launchd (launchd/com.fmontes.herdr-sessions.plist,
+installed by scripts/08-launchd.sh). Log: ~/.local/state/herdr-sessions/log.txt
+"""
+import glob
+import json
+import os
+import shlex
+import subprocess
+import sys
+import time
+
+STATE = os.path.expanduser("~/.local/state/herdr-sessions")
+SNAPSHOT = os.path.join(STATE, "snapshot.json")
+PENDING = os.path.join(STATE, "pending.json")
+LOG = os.path.join(STATE, "log.txt")
+SHELLS = {"zsh", "bash", "fish", "sh", "nu"}
+GIVE_UP_AFTER = 15 * 60  # seconds after a pending restore is first tried
+
+
+def log(msg):
+    os.makedirs(STATE, exist_ok=True)
+    with open(LOG, "a") as f:
+        f.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} {msg}\n")
+
+
+def hc(*args):
+    r = subprocess.run(["hc", *args], capture_output=True, text=True)
+    if r.returncode != 0:
+        return None
+    try:
+        return json.loads(r.stdout)
+    except json.JSONDecodeError:
+        return r.stdout
+
+
+def core_running():
+    # Never start the core ourselves: only act when Herdr already started it.
+    # The core is a herdr-core process that isn't a terminal holder or a client.
+    out = subprocess.run(["ps", "-axo", "args="], capture_output=True, text=True).stdout
+    for line in out.splitlines():
+        parts = line.split()
+        if not parts or os.path.basename(parts[0]) != "herdr-core":
+            continue
+        if (parts[1:2] or [""])[0] not in ("hold", "connect"):
+            return True
+    return False
+
+
+def boot_time():
+    out = subprocess.run(["sysctl", "-n", "kern.boottime"], capture_output=True, text=True).stdout
+    return int(out.split("sec =")[1].split(",")[0])
+
+
+def read_json(path, default=None):
+    try:
+        with open(path) as f:
+            return json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return default
+
+
+def write_json(path, data):
+    os.makedirs(STATE, exist_ok=True)
+    tmp = path + ".tmp"
+    with open(tmp, "w") as f:
+        json.dump(data, f, indent=2)
+    os.replace(tmp, path)
+
+
+# ---------- session lookup ----------
+
+def claude_session(pid):
+    d = read_json(os.path.expanduser(f"~/.claude/sessions/{pid}.json"))
+    if d and d.get("sessionId"):
+        return d["sessionId"], d.get("cwd")
+    return None, None
+
+
+def rollout_meta(path):
+    try:
+        with open(path) as f:
+            p = json.loads(f.readline())["payload"]
+        return {"id": p["id"], "cwd": p.get("cwd"), "mtime": os.path.getmtime(path)}
+    except Exception:
+        return None
+
+
+def codex_rollouts():
+    """Rollout files currently held open by any codex process (newest first)."""
+    out = subprocess.run(["lsof", "-c", "codex", "-Fn"], capture_output=True, text=True).stdout
+    paths = {l[1:] for l in out.splitlines() if l.startswith("n") and "/rollout-" in l and l.endswith(".jsonl")}
+    metas = [m for m in map(rollout_meta, paths) if m]
+    return sorted(metas, key=lambda m: -m["mtime"])
+
+
+def codex_session(cwd, open_rollouts):
+    for m in open_rollouts:
+        if m["cwd"] == cwd:
+            return m["id"]
+    # Fallback: newest recorded session in that folder.
+    files = sorted(glob.glob(os.path.expanduser("~/.codex/sessions/*/*/*/rollout-*.jsonl")),
+                   key=os.path.getmtime, reverse=True)[:300]
+    for path in files:
+        m = rollout_meta(path)
+        if m and m["cwd"] == cwd:
+            return m["id"]
+    return None
+
+
+# ---------- resume commands ----------
+
+# Flags whose next argument is their value (kept as-is).
+VALUE_FLAGS = {
+    "claude-code": {"--model", "--fallback-model", "--permission-mode", "--add-dir", "--agent",
+                    "--agents", "--settings", "--setting-sources", "--mcp-config", "--effort",
+                    "--append-system-prompt", "--system-prompt", "--allowedTools", "--allowed-tools",
+                    "--disallowedTools", "--disallowed-tools", "--name", "--plugin-dir"},
+    "codex": {"-m", "--model", "-c", "--config", "-p", "--profile", "-s", "--sandbox",
+              "-a", "--ask-for-approval", "-C", "--cd", "--add-dir", "--enable", "--disable"},
+}
+# Flags to drop: they would start a different session or a one-shot run.
+DROP_FLAGS = {
+    "claude-code": {"--resume", "-r", "--session-id", "--continue", "-c", "--print", "-p", "--fork-session"},
+    "codex": set(),
+}
+DROP_WITH_OPTIONAL_VALUE = {"--resume", "-r", "--session-id"}
+
+
+def keep_flags(app, args):
+    """Keep options (with their values); drop resume flags and any prompt text."""
+    out, i = [], 0
+    while i < len(args):
+        a = args[i]
+        name = a.split("=", 1)[0]
+        nxt = args[i + 1] if i + 1 < len(args) else None
+        if name in DROP_FLAGS[app]:
+            i += 2 if (name in DROP_WITH_OPTIONAL_VALUE and "=" not in a
+                       and nxt is not None and not nxt.startswith("-")) else 1
+            continue
+        if name in VALUE_FLAGS[app] and "=" not in a and nxt is not None:
+            out += [a, nxt]
+            i += 2
+            continue
+        if a.startswith("-"):
+            out.append(a)
+        i += 1  # bare positional = launch prompt or subcommand: dropped
+    return out
+
+
+def resume_argv(app, argv, session_id):
+    exe, rest = argv[0], keep_flags(app, argv[1:])
+    if app == "claude-code":
+        return [exe, *rest, "--resume", session_id]
+    if app == "codex":
+        return [exe, "resume", *rest, session_id]
+    return None
+
+
+# ---------- commands ----------
+
+def snapshot():
+    listing = hc("ls", "--json")
+    if not isinstance(listing, dict):
+        return None
+    rollouts = None
+    agents = []
+    for t in listing.get("terminals", []):
+        app = t.get("agent")
+        if app not in ("claude-code", "codex") or t.get("state") != "live":
+            continue
+        info = hc("get", t["address"], "--json")
+        if not isinstance(info, dict):
+            continue
+        fg = info.get("foreground") or {}
+        argv, pid, cwd = fg.get("argv") or [], fg.get("pid"), fg.get("cwd") or info.get("cwd")
+        if not argv:
+            continue
+        sid = None
+        if app == "claude-code":
+            sid, scwd = claude_session(pid)
+            cwd = scwd or cwd
+        else:
+            if rollouts is None:
+                rollouts = codex_rollouts()
+            sid = codex_session(cwd, rollouts)
+        if not sid:
+            continue
+        agents.append({"address": t["address"], "where": t.get("where"), "app": app,
+                       "argv": argv, "cwd": cwd, "session": sid,
+                       "command": resume_argv(app, argv, sid)})
+    data = {"boot": boot_time(), "taken": int(time.time()), "agents": agents}
+    write_json(SNAPSHOT, data)
+    return data
+
+
+def is_shell(info):
+    fg = info.get("foreground") or {}
+    argv = fg.get("argv") or info.get("argv") or []
+    return bool(argv) and os.path.basename(argv[0]).lstrip("-") in SHELLS
+
+
+def restore(source, dry_run=False):
+    data = read_json(source)
+    if not data:
+        print("nothing to restore")
+        return True
+    data.setdefault("first_try", int(time.time()))
+    left = []
+    for a in data["agents"]:
+        info = hc("get", a["address"], "--json")
+        if not isinstance(info, dict) or info.get("state") != "live":
+            if info is None:
+                log(f"skip {a['address']} ({a['where']}): terminal is gone")
+            else:
+                left.append(a)  # not recovered yet; try next tick
+            continue
+        if not is_shell(info):
+            log(f"skip {a['address']} ({a['where']}): already running something")
+            continue
+        line = f"cd {shlex.quote(a['cwd'])} && {shlex.join(a['command'])}"
+        if dry_run:
+            print(f"{a['address']:>5}  {a['where']}\n       {line}")
+            continue
+        r = subprocess.run(["hc", "send", a["address"], line], capture_output=True, text=True)
+        if r.returncode == 0:
+            log(f"resumed {a['address']} ({a['where']}): {line}")
+        else:
+            log(f"send failed {a['address']}: {r.stderr.strip()}")
+            left.append(a)
+    if dry_run:
+        return True
+    expired = time.time() - data["first_try"] > GIVE_UP_AFTER
+    if left and not expired:
+        data["agents"] = left
+        write_json(source, data)
+        return False
+    if left:
+        log(f"gave up on {[a['address'] for a in left]}")
+    if source == PENDING:
+        os.remove(PENDING)
+    return True
+
+
+def tick():
+    if not core_running():
+        return
+    snap = read_json(SNAPSHOT)
+    if snap and snap.get("boot") != boot_time() and not os.path.exists(PENDING):
+        os.replace(SNAPSHOT, PENDING)
+        log(f"reboot detected: {len(snap['agents'])} agent(s) to resume")
+    if os.path.exists(PENDING):
+        restore(PENDING)
+    snapshot()
+
+
+def status():
+    for label, path in (("pending restore", PENDING), ("snapshot", SNAPSHOT)):
+        d = read_json(path)
+        if not d:
+            continue
+        print(f"{label} ({time.strftime('%Y-%m-%d %H:%M', time.localtime(d['taken']))}):")
+        for a in d["agents"]:
+            print(f"  {a['address']:>5}  {a['app']:<11} {a['where']}")
+
+
+def main():
+    cmd = sys.argv[1] if len(sys.argv) > 1 else "status"
+    if cmd in ("-h", "--help", "help"):
+        print(__doc__.strip())
+    elif cmd == "tick":
+        tick()
+    elif cmd == "snapshot":
+        d = snapshot()
+        print(f"saved {len(d['agents'])} agent(s)" if d else "core not reachable")
+    elif cmd == "restore":
+        src = SNAPSHOT if "--from" in sys.argv and "snapshot" in sys.argv else PENDING
+        restore(src if os.path.exists(src) else SNAPSHOT, dry_run="--dry-run" in sys.argv)
+    elif cmd == "status":
+        status()
+    else:
+        print(__doc__)
+
+
+if __name__ == "__main__":
+    main()

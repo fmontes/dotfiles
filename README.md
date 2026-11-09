@@ -41,6 +41,20 @@ The script will:
 6. Apply macOS defaults
 7. Install gh-dash and the herdr annotate plugin, global npm packages, restore Tinycast settings, fix permissions, set up the VS Code CLI
 8. Sync AI agent config to every platform with `chai`
+9. Install the launch agents in [`launchd/`](launchd/), currently just [`herdr-sessions`](#agent-sessions-survive-a-reboot)
+
+## Updating a machine
+
+Run the same one-liner again, or `cd ~/.dotfiles && ./install.sh`. Every step is idempotent, so on a machine that is already set up a re-run only applies what changed in the repo:
+
+- `bootstrap.sh` pulls (`--ff-only`) instead of cloning when `~/.dotfiles` exists
+- Homebrew, Oh My Zsh and the Command Line Tools are skipped when present, and `brew bundle` installs only what the `Brewfile` added
+- Symlinks already pointing at the repo are skipped. Links left by an older clone location, or dangling ones, are repointed. A real file in the way is moved to `<name>.bak` once
+- The Dock is reset only while it still looks like the factory Dock (two or more of Apple's stock apps pinned), so apps pinned since are kept. The other macOS defaults are plain writes and safe to repeat
+- Global npm packages install only when missing, and the VS Code CLI link asks for `sudo` only when it is not already in place
+- Launch agents are rewritten and reloaded only when their template changed, and loaded if they are not running
+
+Tinycast settings are the one deliberate overwrite: `07-post-install.sh` imports the repo's plist on every run, so the repo is the source of truth. Export from the machine whose settings you want to keep (the pre-commit hook does this) before updating the others.
 
 ## After running install.sh
 
@@ -376,7 +390,7 @@ That one structural fact — Fresh cannot see a `Cmd` chord — is what the rest
 
 herdr.app keeps five rewrites for Fresh's benefit, in the `terminal` section of [`home/.config/herdr-app/keys.json`](home/.config/herdr-app/keys.json). `Cmd+←/→` and `Cmd+⇧←/→` become Home/End and their shifted pair, because the `\u0001`/`\u0005` it sends by default are `⌃A` and `⌃E`, which the vscode map spends on `select_all` and `focus_file_explorer` — so `Cmd+←` used to select the whole buffer and `Cmd+→` threw focus into the file tree. `Cmd+K` becomes F14 so the shell can clear its own scrollback. Everything else Fresh gets raw.
 
-`editor.menu_bar_mnemonics: false` in [`home/.config/fresh/config.json`](home/.config/fresh/config.json) is what makes `⌥←/→` word motion work. herdr.app sends `esc b`/`esc f` for opt+arrows, which Fresh decodes as `alt+b`/`alt+f` — and `alt+f` is bound **twice** in the vscode map, to `menu_open` and to `move_word_right`. The mnemonic won, so `⌥→` opened the File menu. Turning mnemonics off leaves the motion. The menu bar is still there and still clickable; only the Alt-letter shortcuts into it are gone. This replaced four custom `alt+arrow` overrides, and the config now carries no keybindings of its own at all.
+herdr.app sends `esc b`/`esc f` for `⌥←/→`, which Fresh decodes as `alt+b`/`alt+f`. [`home/.config/fresh/config.json`](home/.config/fresh/config.json) disables menu mnemonics so `Alt+F` cannot open the File menu. In Fresh 0.5.8, disabling mnemonics alone leaves `Alt+F` without word motion in the vscode map, so one explicit binding maps it to `move_word_right`. `Alt+B` already moves left by a word. The menu bar remains clickable.
 
 `Cmd+C` is herdr.app's `terminal.copy`. Selecting already copies, so dragging a selection lands it on the clipboard either way.
 
@@ -506,7 +520,29 @@ The app's shipped keymap is kept as it is, with two exceptions below. `⌘⇧P` 
 
 The app's defaults sent `\u0001` and `\u0005` for `cmd+←/→` — the readline line-start/end convention, and byte-for-byte `⌃A` and `⌃E`, which Fresh's vscode keymap spends on `select_all` and `focus_file_explorer`. So `⌘←` selected the whole buffer and `⌘→` threw focus into the file tree. Home/End are what Fresh wants: it binds Home to `smart_home`, End to `move_line_end`, and the shifted pair to `select_line_start`/`end`. `⌘K` becomes F14 because only the shell can clear its own scrollback — see the widget in [`.zshrc`](home/.zshrc), which needs `bindkey` lines for all of these.
 
-`⌥←/→` and `⌥⌫` are left as the app ships them, sending `esc b` / `esc f` / `⌃W`. Fresh reads the first two as `alt+b`/`alt+f`, and `menu_bar_mnemonics: false` is what stops `alt+f` opening the File menu instead of moving a word.
+`⌥←/→` and `⌥⌫` are left as the app ships them, sending `esc b` / `esc f` / `⌃W`. Fresh reads the first two as `alt+b`/`alt+f`; its config disables menu mnemonics and explicitly binds `alt+f` to `move_word_right` so both directions move by a word.
+
+### Agent sessions survive a reboot
+
+herdr.app already brings the layout back after a reboot: spaces, tabs and panes return, and each lost terminal comes back at the same address as a shell in its last folder. What it never does is re-run the original command, so every Claude Code and Codex session is gone. [`herdr-sessions`](home/.local/bin/herdr-sessions) fills that gap.
+
+A launch agent ([`launchd/com.fmontes.herdr-sessions.plist`](launchd/com.fmontes.herdr-sessions.plist)) runs `herdr-sessions tick` every 60 seconds. Each tick records every live agent terminal: its address, launch command, folder and session ID. Claude Code's session comes from `~/.claude/sessions/<pid>.json`, Codex's from the rollout file a `codex` process holds open for that folder.
+
+The snapshot is stamped with the machine's boot time. When a tick finds one from an earlier boot, it sets it aside as pending, and once herdr is open again it types `cd <folder> && claude --resume <id>` (or `codex resume <id>`) into each recovered shell. Agents come back in their own panes within a minute of opening herdr.
+
+- It never starts herdr-core itself. With herdr closed a tick does nothing
+- It only types into a terminal that is still a plain shell. A terminal already running something is skipped, a closed one is dropped, and one that has not come back after 15 minutes is given up on
+- Launch flags such as `--model` are kept. A worker's original brief is dropped, so a resumed worker is not handed its task a second time
+- Two Codex sessions in the same folder cannot be told apart, so both resume the most recent one
+- A logout without a reboot is not detected. Run `herdr-sessions restore --from snapshot` by hand
+
+```
+herdr-sessions status              what is saved, and anything pending
+herdr-sessions restore --dry-run   print the commands a restore would type
+herdr-sessions snapshot            save now instead of waiting for the next tick
+```
+
+It logs to `~/.local/state/herdr-sessions/log.txt`. The plist is a template with `__HOME__` in place of the user's path, so [`scripts/08-launchd.sh`](scripts/08-launchd.sh) renders it into `~/Library/LaunchAgents` instead of symlinking it.
 
 ### What the herdr TUI took with it
 
@@ -617,7 +653,8 @@ dotfiles/
 ├── Brewfile                  # Homebrew packages and casks
 ├── bootstrap.sh              # Remote entry point (curl | bash)
 ├── install.sh                # Local installer
-├── scripts/                  # Individual setup steps
+├── scripts/                  # Individual setup steps, each safe to re-run
+├── launchd/                  # Launch agent templates, rendered by 08-launchd.sh
 ├── docs/                     # Reference notes, including the keybinding archive
 ├── .githooks/                # pre-commit: re-exports Tinycast settings
 ├── ai/                       # AI tooling
@@ -628,6 +665,7 @@ dotfiles/
     ├── .gitconfig
     ├── chai.toml             # AI config sync manifest (~/chai.toml)
     ├── .local/bin/          # Standalone commands, run `tools` to list them
+    │   ├── herdr-sessions    # Resume herdr's agent sessions after a reboot
     │   ├── keys              # Keyboard cheatsheet across all four layers
     │   ├── new-tool          # Scaffold a new one
     │   ├── restore-layout    # Reset apps onto workspaces 1-5

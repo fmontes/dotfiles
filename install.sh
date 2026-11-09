@@ -38,5 +38,6 @@ command -v mise >/dev/null 2>&1 && eval "$(mise activate zsh)"
 
 run_script 06-macos.sh
 run_script 07-post-install.sh
+run_script 08-launchd.sh
 
 info "Done. Restart your terminal."
