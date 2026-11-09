@@ -86,14 +86,6 @@
 	<string>{"combo":{"_0":{"carbonModifiers":2048,"carbonKeyCode":49}}}</string>
 	<key>hyperKeyIncludesShift</key>
 	<true/>
-	<key>hyperKeyKeyboardMappings</key>
-	<data>
-	eyJib290U2Vzc2lvbklEIjoiMjhBNEJENTAtNjJBQi00Mzg1LUJEQTAtRUI0RDgxNTUx
-	RjQzIiwia2V5Ym9hcmRzIjp7IjQyOTUwMjYwNTgiOnsiaW5zdGFsbGVkIjp7ImRlc3Rp
-	bmF0aW9uIjozMDA2NDc3MTE4MSwic291cmNlIjozMDA2NDc3MTEyOX0sIm9yaWdpbmFs
-	IjpbXX0sIjQyOTQ5NzEzNTEiOnsiaW5zdGFsbGVkIjp7ImRlc3RpbmF0aW9uIjozMDA2
-	NDc3MTE4MSwic291cmNlIjozMDA2NDc3MTEyOX0sIm9yaWdpbmFsIjpbXX19fQ==
-	</data>
 	<key>hyperKeyPhysicalKey</key>
 	<string>capsLock</string>
 	<key>launcherAliases</key>

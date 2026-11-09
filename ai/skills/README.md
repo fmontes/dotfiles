@@ -42,6 +42,12 @@ Each skill lives in its own folder with a `SKILL.md` describing what it does and
   npx skills add https://github.com/fmontes/dotfiles/tree/main/ai --skill check-review
   ```
 
+- **[herdr-app](./herdr-app/SKILL.md)** — Drive Herdr spaces, tabs, panes, agents and worktrees through `herdr-app` and `hc`, loading their built-in manuals first and using Herdr's worktree layout instead of the harness's own.
+
+  ```bash
+  npx skills add https://github.com/fmontes/dotfiles/tree/main/ai --skill herdr-app
+  ```
+
 ## License
 
 MIT
