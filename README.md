@@ -376,7 +376,7 @@ That one structural fact — Fresh cannot see a `Cmd` chord — is what the rest
 
 herdr.app keeps five rewrites for Fresh's benefit, in the `terminal` section of [`home/.config/herdr-app/keys.json`](home/.config/herdr-app/keys.json). `Cmd+←/→` and `Cmd+⇧←/→` become Home/End and their shifted pair, because the `\u0001`/`\u0005` it sends by default are `⌃A` and `⌃E`, which the vscode map spends on `select_all` and `focus_file_explorer` — so `Cmd+←` used to select the whole buffer and `Cmd+→` threw focus into the file tree. `Cmd+K` becomes F14 so the shell can clear its own scrollback. Everything else Fresh gets raw.
 
-`editor.menu_bar_mnemonics: false` in [`home/.config/fresh/config.json`](home/.config/fresh/config.json) is what makes `⌥←/→` word motion work. herdr.app sends `esc b`/`esc f` for opt+arrows, which Fresh decodes as `alt+b`/`alt+f` — and `alt+f` is bound **twice** in the vscode map, to `menu_open` and to `move_word_right`. The mnemonic won, so `⌥→` opened the File menu. Turning mnemonics off leaves the motion. The menu bar is still there and still clickable; only the Alt-letter shortcuts into it are gone. This replaced four custom `alt+arrow` overrides, and the config now carries no keybindings of its own at all.
+herdr.app sends `esc b`/`esc f` for `⌥←/→`, which Fresh decodes as `alt+b`/`alt+f`. [`home/.config/fresh/config.json`](home/.config/fresh/config.json) disables menu mnemonics so `Alt+F` cannot open the File menu. In Fresh 0.5.8, disabling mnemonics alone leaves `Alt+F` without word motion in the vscode map, so one explicit binding maps it to `move_word_right`. `Alt+B` already moves left by a word. The menu bar remains clickable.
 
 `Cmd+C` is herdr.app's `terminal.copy`. Selecting already copies, so dragging a selection lands it on the clipboard either way.
 
@@ -506,7 +506,7 @@ The app's shipped keymap is kept as it is, with two exceptions below. `⌘⇧P` 
 
 The app's defaults sent `\u0001` and `\u0005` for `cmd+←/→` — the readline line-start/end convention, and byte-for-byte `⌃A` and `⌃E`, which Fresh's vscode keymap spends on `select_all` and `focus_file_explorer`. So `⌘←` selected the whole buffer and `⌘→` threw focus into the file tree. Home/End are what Fresh wants: it binds Home to `smart_home`, End to `move_line_end`, and the shifted pair to `select_line_start`/`end`. `⌘K` becomes F14 because only the shell can clear its own scrollback — see the widget in [`.zshrc`](home/.zshrc), which needs `bindkey` lines for all of these.
 
-`⌥←/→` and `⌥⌫` are left as the app ships them, sending `esc b` / `esc f` / `⌃W`. Fresh reads the first two as `alt+b`/`alt+f`, and `menu_bar_mnemonics: false` is what stops `alt+f` opening the File menu instead of moving a word.
+`⌥←/→` and `⌥⌫` are left as the app ships them, sending `esc b` / `esc f` / `⌃W`. Fresh reads the first two as `alt+b`/`alt+f`; its config disables menu mnemonics and explicitly binds `alt+f` to `move_word_right` so both directions move by a word.
 
 ### What the herdr TUI took with it
 
