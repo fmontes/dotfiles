@@ -8,13 +8,33 @@
 	<array>
 		<string>en</string>
 	</array>
+	<key>NSSplitView Subview Frames AIChatSplitView</key>
+	<array>
+		<string>0.000000, 0.000000, 248.000000, 936.000000, NO, NO</string>
+		<string>248.000000, 0.000000, 499.000000, 936.000000, NO, NO</string>
+	</array>
 	<key>NSStatusItem VisibleCC Item-0</key>
 	<false/>
+	<key>NSWindow Frame AIChatWindow</key>
+	<string>759 7 747 936 0 0 1512 949 </string>
 	<key>aiDefaultModel</key>
 	<data>
-	eyJhcHBsZUludGVsbGlnZW5jZSI6e319
+	eyJjb2RleCI6eyJtb2RlbCI6ImdwdC02LjEtdGVycmEiLCJlZmZvcnQiOiJsb3cifX0=
 	</data>
 	<key>aiEnabled</key>
+	<true/>
+	<key>aiInstalledProviders</key>
+	<data>
+	WyJjb2RleCJd
+	</data>
+	<key>aiShownModels</key>
+	<dict>
+		<key>codex</key>
+		<array>
+			<string>gpt-6.1-terra</string>
+		</array>
+	</dict>
+	<key>aiWebSearch</key>
 	<true/>
 	<key>boundAppBundleIDs</key>
 	<array>
@@ -78,6 +98,8 @@
 	<true/>
 	<key>hotkey.app.dev.herdr.app</key>
 	<string>{"combo":{"_0":{"carbonKeyCode":42,"carbonModifiers":4096}}}</string>
+	<key>hotkey.command:ai-chat</key>
+	<string>{"combo":{"_0":{"carbonModifiers":4864,"carbonKeyCode":34}}}</string>
 	<key>hotkey.command:search-emoji</key>
 	<string>{"combo":{"_0":{"carbonKeyCode":14,"carbonModifiers":768}}}</string>
 	<key>hotkey.command:search-snippets</key>
@@ -86,6 +108,16 @@
 	<string>{"combo":{"_0":{"carbonModifiers":2048,"carbonKeyCode":49}}}</string>
 	<key>hyperKeyIncludesShift</key>
 	<true/>
+	<key>hyperKeyKeyboardMappings</key>
+	<data>
+	eyJib290U2Vzc2lvbklEIjoiRDAxQjA2RUYtMjc1Qi00MTc5LTgwOEQtODExMENGODg0
+	RjZDIiwia2V5Ym9hcmRzIjp7IjQyOTQ5OTQzMTAiOnsib3JpZ2luYWwiOltdLCJpbnN0
+	YWxsZWQiOnsiZGVzdGluYXRpb24iOjMwMDY0NzcxMTgxLCJzb3VyY2UiOjMwMDY0Nzcx
+	MTI5fX0sIjQyOTQ5NzY1NjEiOnsib3JpZ2luYWwiOltdLCJpbnN0YWxsZWQiOnsiZGVz
+	dGluYXRpb24iOjMwMDY0NzcxMTgxLCJzb3VyY2UiOjMwMDY0NzcxMTI5fX0sIjQyOTQ5
+	NzEzNDgiOnsib3JpZ2luYWwiOltdLCJpbnN0YWxsZWQiOnsiZGVzdGluYXRpb24iOjMw
+	MDY0NzcxMTgxLCJzb3VyY2UiOjMwMDY0NzcxMTI5fX19fQ==
+	</data>
 	<key>hyperKeyPhysicalKey</key>
 	<string>capsLock</string>
 	<key>launcherAliases</key>

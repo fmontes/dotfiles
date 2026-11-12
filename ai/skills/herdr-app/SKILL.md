@@ -24,11 +24,20 @@ For layouts, keys, settings, themes or writing mods, read `~/.config/herdr-app/A
 
 ## 2. Worktrees: use Herdr's, not the harness's
 
-Inside Herdr, never use a harness's built-in worktree tool (e.g. Claude Code's `EnterWorktree`, `.claude/worktrees/`). Herdr's sidebar only nests worktrees it can recognise. Follow the shipped `worktree` mod (`~/.config/herdr-app/mods/worktree/main.js`):
+Inside Herdr, never use a harness's built-in worktree tool (e.g. Claude Code's `EnterWorktree`, `.claude/worktrees/`) and never run `git worktree add` by hand. Herdr's sidebar only nests worktrees it can recognise. `hc` has no worktree command, so any "create a worktree" request runs the script in this skill's folder, from anywhere inside the repo:
+
+```sh
+bash <this skill's folder>/scripts/worktree.sh <branch>              # worktree + space
+bash <this skill's folder>/scripts/worktree.sh --no-space <branch>   # worktree only
+```
+
+It runs `git worktree add`, then opens the space with `hc run` (a shell in the worktree, labelled with a new space ID). It prints the worktree path on its last line. It reuses the branch if it exists (local or on origin) and otherwise creates it from HEAD. Use `--no-space` for orchestrated workers: the first worker creates the space (section 5, rule 5).
+
+What the script does, following the shipped `worktree` mod (`~/.config/herdr-app/mods/worktree/main.js`), for when it can't be used (e.g. a remote machine):
 
 1. Checkout path: `~/.herdr/worktrees/<repo-name>/<branch with / replaced by ->`.
 2. Branch exists: `git -C <repo> worktree add <path> <branch>`. New branch: `git -C <repo> worktree add -b <branch> <path> HEAD`.
-3. Open a space on it and leave the space unnamed (no `--name`), so it nests under its repo and shows branch, ahead/behind and changes: `herdr-app do space.new --folder <path> --tab "<short task name>"`. That always opens a shell tab, so for orchestrated workers skip this step: the first worker creates the space (section 5, rule 5).
+3. Open a space on it and leave the space unnamed (no `--name`), so it nests under its repo and shows branch, ahead/behind and changes: `herdr-app do space.new --folder <path> --tab "<short task name>"`. That always opens a shell tab.
 
 Remove: `herdr-app do space.close --id <id> --confirmed true`, then `git -C <repo> worktree remove <path>` (check `git status` there first and ask before discarding uncommitted work).
 
