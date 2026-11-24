@@ -1,0 +1,113 @@
+{
+  "version": 1,
+  "theme": "high-contrast-dark",
+  "appearance": {
+    "icons": "nerd-font",
+    "scrollbarGlyphs": "blocks",
+    "pointerShapes": true,
+    "highlightActiveGroupBorder": true
+  },
+  "editor": {
+    "autoClosing": {
+      "brackets": false,
+      "quotes": false,
+      "skipClosing": true,
+      "deletePairs": true,
+      "inStrings": false,
+      "plainText": false
+    },
+    "autoSurround": {
+      "enabled": true
+    },
+    "tabSize": 4,
+    "insertSpaces": true,
+    "wordWrap": false,
+    "wordWrapColumn": 0,
+    "wordWrapBreak": "word",
+    "indentGuides": false,
+    "scrollLines": 0,
+    "languageOverrides": {
+      "markdown": {
+        "wordWrap": true
+      }
+    },
+    "diffMode": "split",
+    "diffContext": "changes",
+    "diffWordWrap": false,
+    "diffHighContrast": false,
+    "diffEmphasizeCollapsedRows": false,
+    "diffSigns": false,
+    "diffSignsColor": true,
+    "diffGutterHighlight": true,
+    "diffColorGutterNumbers": false,
+    "diffScrollbarGitMarks": false,
+    "lineNumbers": true,
+    "selectionStyle": "background",
+    "formatOnSave": false,
+    "insertFinalNewline": true,
+    "trimTrailingWhitespace": false,
+    "focusOnOpen": false,
+    "tabBarStyle": "extended",
+    "gutterStyle": "compact",
+    "borderStyle": "rounded",
+    "bracketPairColorization": false,
+    "transparentBackground": false,
+    "saveAllOnQuit": false,
+    "saveAllOnQuitExceptUnnamed": false,
+    "restoreTabs": true
+  },
+  "keyboard": {
+    "modifierKey": "control"
+  },
+  "quickOpen": {
+    "showHidden": false,
+    "showGitIgnored": false
+  },
+  "search": {
+    "debounce": 350
+  },
+  "explorer": {
+    "showHidden": true,
+    "showGitIgnored": true,
+    "gitStatusColors": true,
+    "dimStagedGitColors": false,
+    "autoReveal": false,
+    "compactFolders": true,
+    "useTrash": true
+  },
+  "sidebar": {
+    "tabStyle": "label"
+  },
+  "git": {
+    "fileView": "list"
+  },
+  "terminal": {
+    "scrollback": 1000,
+    "selectionStyle": "background",
+    "ctrlVPastes": true,
+    "forwardShortcuts": false,
+    "padding_x": 1,
+    "shellIntegration": true
+  },
+  "lsp": {
+    "saveOnRename": false,
+    "hoverDelay": 500
+  },
+  "autocomplete": {
+    "enabled": true,
+    "autoSuggest": true,
+    "pathCompletion": true,
+    "absolutePathCompletion": false,
+    "debounce": 150,
+    "signatureHelp": true
+  },
+  "markdown": {
+    "wrapWidth": 80
+  },
+  "image": {
+    "protocol": "auto"
+  },
+  "plugins": {
+    "selectionStyle": "invert"
+  }
+}

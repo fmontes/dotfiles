@@ -1,6 +1,7 @@
 tap "abue-ammar/tinycast"
 tap "anomalyco/tap"
 tap "charliesbot/tap"
+tap "eugenioenko/ttt"
 tap "nikitabobko/tap"
 tap "tobi/try", "https://github.com/tobi/try"
 
@@ -14,6 +15,7 @@ brew "fd"
 brew "git-delta"
 brew "direnv"
 brew "eza"
+brew "eugenioenko/ttt/ttt"
 brew "ffmpeg"
 # Force-linked over ffmpeg 8 — /opt/homebrew/bin/ffmpeg resolves to this one.
 # ffmpeg@7 is keg-only, so without link: true a new machine gets 8 on PATH.
