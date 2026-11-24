@@ -19,6 +19,7 @@ This clones the repo to `~/.dotfiles` and runs the installer.
 - **mise** for managing Node, Python, and Java versions
 - **[AeroSpace](https://nikitabobko.github.io/AeroSpace/)** for an Omarchy-style tiling desktop with generic workspaces
 - **[Fresh](https://getfresh.dev/)** for terminal code editing and browsing
+- **[TTT](https://tttedit.dev/)** for terminal editing with familiar shortcuts and per-folder tab restoration
 - **[herdr.app](https://herdr.dev/)** as the terminal: spaces, tabs, panes and coding agents in one native window
 - **[AI](ai/)** skills and instructions for agentic coding harnesses
 - **macOS defaults** for Dock, Finder, keyboard
@@ -163,6 +164,7 @@ Only things that have to live in the shell. Standalone commands are [CLI tools](
 | `railway` | Railway CLI, deploys and service management |
 | `ripgrep` | Fast grep replacement |
 | `starship` | Cross-shell prompt |
+| `ttt` | [TTT](https://tttedit.dev/), terminal editor with per-folder tab restoration |
 | `zoxide` | Smart `cd` replacement |
 
 ### Apps (Casks)
@@ -380,9 +382,27 @@ The second form is the way to check a rule against a live window; it forwards th
 
 AeroSpace needs Accessibility access (System Settings → Privacy & Security → Accessibility) before it can move any windows.
 
+## TTT
+
+Launch `ttt .` from a project. [`keybindings.json`](home/.config/ttt/keybindings.json) adapts Herdr's terminal sequences to TTT, and [`settings.json`](home/.config/ttt/settings.json) enables per-folder restoration of open files, cursors, and split layouts. The normal symlink installer installs both files; runtime state and saved sessions stay local.
+
+| Shortcut | Action |
+|---|---|
+| `Option+←/→` | Move by word |
+| `Option+Shift+←/→` | Select by word |
+| `Cmd+Option+↑/↓` | Add a cursor above/below |
+| `Cmd+Backspace` | Delete the whole line |
+| `Option+Backspace` | Delete the previous word |
+| `Ctrl+Space` | Autocomplete |
+| `Ctrl+K`, then `W` | Close the file tab |
+
+Herdr sends `Cmd+Option+↑/↓` as TTT's existing `Alt+Shift+↑/↓` shortcuts while a terminal has focus, replacing vertical pane focus there. It sends `Cmd+Backspace` as `Ctrl+U` and `Option+Backspace` as `Ctrl+W`; TTT maps those to line and word deletion, with autocomplete and file-tab closing moved to the shortcuts above. The File menu stays on `F10`, leaving `Alt+F` available for word movement. Sidebar resizing has no keyboard binding, leaving `Option+Shift+←/→` available for word selection.
+
+Restart TTT after changing keybindings. After editing settings manually, run **Reload Settings** from `Ctrl+P` before making further settings changes or closing the editor. Reopen the same folder with `ttt .` to restore its saved tabs. TTT 1.13.0 clears selections when moving multiple cursors with Shift+arrows; that behavior needs an upstream code fix.
+
 ## Fresh
 
-[Fresh](https://getfresh.dev/) is the terminal editor used for code editing and browsing. Launch with `fresh .` from any project.
+[Fresh](https://getfresh.dev/) remains available as an alternative terminal editor for code editing and browsing. Launch with `fresh .` from any project.
 
 fresh ships a macOS keymap built on `Cmd`, but it drops the super modifier when decoding CSI-u, so none of those bindings can fire inside a terminal. The keymap is therefore `vscode`, not `macos`. The `macos` map is where all 38 of those dead `Cmd` bindings live, while `vscode` is built on `Ctrl` and works in full: `⌃D` add cursor at next match, `⌃⌥↑/↓` add cursor above/below, `⌃⇧K` delete line, `⌃L` select line, `⌥↑/↓` move line.
 
@@ -487,7 +507,7 @@ Everything else in that folder is the app's: `layouts/`, `mods/`, `themes/`, `ic
 
 ### Keys
 
-The app's shipped keymap is kept as it is, with two exceptions below. `⌘⇧P` opens the command palette, which lists every command with its key, so the full list never needs writing down.
+The app's shipped keymap is kept as it is, with the terminal adjustments below. `⌘⇧P` opens the command palette, which lists every command with its key, so the full list never needs writing down.
 
 | Key | Does |
 |---|---|
@@ -498,7 +518,7 @@ The app's shipped keymap is kept as it is, with two exceptions below. `⌘⇧P` 
 | `⌘⌥[` / `⌘⌥]` | Previous / next space |
 | `⌘D` / `⌘⇧D` | Split right / down |
 | `⌘⇧W` / `⌘⇧⏎` | Close / zoom pane |
-| `⌘⌥` + arrows | Focus pane |
+| `⌘⌥` + arrows | Focus pane; ↑/↓ add cursors while a terminal has focus |
 | `⌘⌥⇧` + arrows | Swap pane |
 | `⌘[` / `⌘]` | Previous / next agent |
 | `⌘B` / `⌘P` / `⌘⇧P` | Sidebar, picker, command palette |
@@ -506,7 +526,7 @@ The app's shipped keymap is kept as it is, with two exceptions below. `⌘⇧P` 
 
 **`ctrl-1`…`ctrl-9` were removed.** The app ships them as `space.select:1`…`9`, but AeroSpace registers `Ctrl`+digits as system hotkeys and wins before herdr sees the key, so they were bindings that could never fire. Spaces are reachable on `⌘⌥[` / `⌘⌥]` and through the picker.
 
-**Five `terminal` bindings send escape sequences** instead of running a command, which is the same job Ghostty's `keybind = cmd+left=csi:H` used to do:
+**Five Fresh-related `terminal` bindings send escape sequences** instead of running a command, which is the same job Ghostty's `keybind = cmd+left=csi:H` used to do. TTT's additional cursor bindings are described [above](#ttt):
 
 ```json
 "terminal": {
