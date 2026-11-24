@@ -18,7 +18,6 @@ This clones the repo to `~/.dotfiles` and runs the installer.
 - **Git** with delta for diffs, gh-dash for PR reviews
 - **mise** for managing Node, Python, and Java versions
 - **[AeroSpace](https://nikitabobko.github.io/AeroSpace/)** for an Omarchy-style tiling desktop with generic workspaces
-- **[Fresh](https://getfresh.dev/)** for terminal code editing and browsing
 - **[TTT](https://tttedit.dev/)** for terminal editing with familiar shortcuts and per-folder tab restoration
 - **[herdr.app](https://herdr.dev/)** as the terminal: spaces, tabs, panes and coding agents in one native window
 - **[AI](ai/)** skills and instructions for agentic coding harnesses
@@ -148,7 +147,6 @@ Only things that have to live in the shell. Standalone commands are [CLI tools](
 | `fd` | Faster `find` |
 | `ffmpeg` | Audio/video processing |
 | `ffmpeg@7` | ffmpeg 7, force-linked over 8. `ffmpeg` on `PATH` is this one |
-| `fresh-editor` | [Fresh](https://getfresh.dev/), terminal editor for code editing and browsing |
 | `fzf` | Fuzzy finder (used by proj, atuin, zsh history) |
 | `gh` | GitHub CLI |
 | `herdr` | [herdr](https://herdr.dev), agent multiplexer that owns terminal tabs, panes, and workspaces |
@@ -384,7 +382,7 @@ AeroSpace needs Accessibility access (System Settings → Privacy & Security →
 
 ## TTT
 
-Launch `ttt .` from a project. [`keybindings.json`](home/.config/ttt/keybindings.json) adapts Herdr's terminal sequences to TTT, and [`settings.json`](home/.config/ttt/settings.json) enables per-folder restoration of open files, cursors, and split layouts. The normal symlink installer installs both files; runtime state and saved sessions stay local.
+Launch `ttt .` from a project. `EDITOR` and `VISUAL` use `ttt --new-window` so Git and other terminal tools wait until editing finishes. [`keybindings.json`](home/.config/ttt/keybindings.json) adapts Herdr's terminal sequences to TTT, and [`settings.json`](home/.config/ttt/settings.json) enables per-folder restoration of open files, cursors, and split layouts. The normal symlink installer installs both files; runtime state and saved sessions stay local.
 
 | Shortcut | Action |
 |---|---|
@@ -400,78 +398,9 @@ Herdr sends `Cmd+Option+↑/↓` as TTT's existing `Alt+Shift+↑/↓` shortcuts
 
 Restart TTT after changing keybindings. After editing settings manually, run **Reload Settings** from `Ctrl+P` before making further settings changes or closing the editor. Reopen the same folder with `ttt .` to restore its saved tabs. TTT 1.13.0 clears selections when moving multiple cursors with Shift+arrows; that behavior needs an upstream code fix.
 
-## Fresh
+## Previous terminal editor
 
-[Fresh](https://getfresh.dev/) remains available as an alternative terminal editor for code editing and browsing. Launch with `fresh .` from any project.
-
-fresh ships a macOS keymap built on `Cmd`, but it drops the super modifier when decoding CSI-u, so none of those bindings can fire inside a terminal. The keymap is therefore `vscode`, not `macos`. The `macos` map is where all 38 of those dead `Cmd` bindings live, while `vscode` is built on `Ctrl` and works in full: `⌃D` add cursor at next match, `⌃⌥↑/↓` add cursor above/below, `⌃⇧K` delete line, `⌃L` select line, `⌥↑/↓` move line.
-
-That one structural fact — Fresh cannot see a `Cmd` chord — is what the rest of the keyboard setup is built around. It leaves the whole of `cmd+*` to herdr.app, permanently, no matter what either program adds in a later release. [Terminal](#terminal) has the whole layer map.
-
-herdr.app keeps five rewrites for Fresh's benefit, in the `terminal` section of [`home/.config/herdr-app/keys.json`](home/.config/herdr-app/keys.json). `Cmd+←/→` and `Cmd+⇧←/→` become Home/End and their shifted pair, because the `\u0001`/`\u0005` it sends by default are `⌃A` and `⌃E`, which the vscode map spends on `select_all` and `focus_file_explorer` — so `Cmd+←` used to select the whole buffer and `Cmd+→` threw focus into the file tree. `Cmd+K` becomes F14 so the shell can clear its own scrollback. Everything else Fresh gets raw.
-
-herdr.app sends `esc b`/`esc f` for `⌥←/→`, which Fresh decodes as `alt+b`/`alt+f`. [`home/.config/fresh/config.json`](home/.config/fresh/config.json) disables menu mnemonics so `Alt+F` cannot open the File menu. In Fresh 0.5.8, disabling mnemonics alone leaves `Alt+F` without word motion in the vscode map, so one explicit binding maps it to `move_word_right`. `Alt+B` already moves left by a word. The menu bar remains clickable.
-
-`Cmd+C` is herdr.app's `terminal.copy`. Selecting already copies, so dragging a selection lands it on the clipboard either way.
-
-### Keys
-
-From Fresh's own **Show Keyboard Shortcuts** (`Ctrl+P`, then run it) with this keymap.
-
-| Editing | |
-|---|---|
-| `⌃C` `⌃X` `⌃V` `⌃Z` `⌃Y` | Copy, cut, paste, undo, redo |
-| `⌃A` `⌃L` | Select all, select line |
-| `⌃⇧K` / `⌃K` | Delete line / to end of line |
-| `⌥↑` `⌥↓` | Move line up / down |
-| `⌥U` `⌥L` | Upper / lowercase |
-
-| Multi-cursor | |
-|---|---|
-| `⌃D` | Add cursor at next match |
-| `⌃⌥↑` `⌃⌥↓` | Add cursor above / below |
-| `⌥⇧I` | Cursors to line ends |
-| `⌥⇧↑` `⌥⇧↓` | Block select |
-| `Esc` | Drop secondary cursors |
-
-| Moving | |
-|---|---|
-| `⌥←→` `⌃←→` | Word motion, either modifier |
-| `Home` `End` | Line start / end. `Cmd+←/→` arrives as these |
-| `⌃Home` `⌃End` | Document start / end |
-| `⌃G` | Go to line |
-
-| Finding | |
-|---|---|
-| `⌥/` | Live grep across files |
-| `⌥R` | Resume live grep |
-| `⌃F` `⌃R` | Find, replace in buffer |
-| `F3` `⇧F3` | Next / previous match |
-| `⌃⌥R` | Interactive replace, y/n/!/q per match |
-
-| LSP | |
-|---|---|
-| `F12` `⇧F12` `⌃F12` | Definition, references, implementation |
-| `F2` | Rename symbol |
-| `⌥.` `⌥K` | Code actions, hover docs |
-| `⌃Space` | Completion |
-| `F8` `⇧F8` | Next / previous diagnostic |
-
-| Files and panes | |
-|---|---|
-| `⌃O` `⌃S` `⌃N` `⌃Q` | Open, save, new, quit |
-| `⌃P` | Command palette and file picker |
-| `⌃E` | Focus file explorer |
-| `⌃PgUp` `⌃PgDn` | Previous / next buffer |
-| `⌥W` | Close tab |
-| `⌥\`` | Terminal in the utility dock |
-| `⌥\|` | Run a shell command on the buffer or selection |
-
-`⌥1`–`⌥9` (bookmarks) and `⌥[` / `⌥]` (splits) work. herdr keeps tab and workspace switching on the prefix and on `cmd+alt`, so nothing takes those chords first.
-
-[md-pretty](https://github.com/sunnypdater/fresh-md-pretty) renders Markdown as a read-only preview panel. It is vendored into [`home/.config/fresh/plugins/packages/md-pretty/`](home/.config/fresh/plugins/packages/md-pretty/) rather than installed, because it does not run against Fresh 0.4.3 as published — it needs seven changes, five of them plugin-API drift and two packaging. [`docs/fresh-md-pretty/`](docs/fresh-md-pretty/) lists them and keeps the upstream originals so the diff survives the next release. Being under `home/` means `03-symlinks.sh` installs it with everything else.
-
-Fresh runs as a **persistent daemon per workspace**, not a process per window, so closing a tab reattaches to the same process rather than starting a new one — a config or plugin change does not take effect until that daemon dies. They show up in `ps` as plain `fresh <path>` and can outlive a reboot-free week. `fresh --cmd daemon kill <name>` prints the name and then hangs rather than returning, so `pkill fresh` is the way to restart them.
+The former Fresh setup is documented in [the archive](docs/fresh-editor-archive.md).
 
 ## Terminal
 
@@ -484,11 +413,11 @@ Collapsing to one program also collapsed the keyboard problem. Four programs use
 | Layer | Owns |
 |---|---|
 | AeroSpace | `ctrl+arrows`, `ctrl+digits`, `ctrl+shift+*` |
-| Fresh | `ctrl+letter`, `alt+letter`, `ctrl+alt+*` |
+| TTT | `ctrl+letter`, `alt+letter`, `alt+shift+*` |
 | herdr.app | all of `cmd+*`, including `cmd+alt+*` |
 | Tinycast | Caps Lock, as a `⌃⌥⇧⌘` hyper key |
 
-That holds by construction, not by vigilance. Fresh drops the super modifier when decoding CSI-u, so it cannot receive a `cmd` chord **at all** — which means nothing herdr puts on `cmd` can ever shadow a Fresh binding, whatever Fresh adds later. With Ghostty gone there is no longer a second program competing for `cmd`, so herdr.app takes the whole modifier rather than the `cmd+alt` corner of it.
+TTT uses its Control-based keymap for editing. Herdr owns Command shortcuts and translates selected terminal chords into sequences TTT understands, including word navigation, line deletion, and adding cursors. Those translations are documented in [TTT](#ttt) and tracked in the two programs’ keybinding files.
 
 `keys` prints this map and every chord under it at any prompt. `keys herdr` narrows to one layer; `keys cmd+alt` searches all of them.
 
@@ -526,7 +455,7 @@ The app's shipped keymap is kept as it is, with the terminal adjustments below. 
 
 **`ctrl-1`…`ctrl-9` were removed.** The app ships them as `space.select:1`…`9`, but AeroSpace registers `Ctrl`+digits as system hotkeys and wins before herdr sees the key, so they were bindings that could never fire. Spaces are reachable on `⌘⌥[` / `⌘⌥]` and through the picker.
 
-**Five Fresh-related `terminal` bindings send escape sequences** instead of running a command, which is the same job Ghostty's `keybind = cmd+left=csi:H` used to do. TTT's additional cursor bindings are described [above](#ttt):
+**Five navigation and scrollback `terminal` bindings send escape sequences** instead of running a command, which is the same job Ghostty's `keybind = cmd+left=csi:H` used to do. TTT's additional cursor bindings are described [above](#ttt):
 
 ```json
 "terminal": {
@@ -538,9 +467,9 @@ The app's shipped keymap is kept as it is, with the terminal adjustments below. 
 }
 ```
 
-The app's defaults sent `\u0001` and `\u0005` for `cmd+←/→` — the readline line-start/end convention, and byte-for-byte `⌃A` and `⌃E`, which Fresh's vscode keymap spends on `select_all` and `focus_file_explorer`. So `⌘←` selected the whole buffer and `⌘→` threw focus into the file tree. Home/End are what Fresh wants: it binds Home to `smart_home`, End to `move_line_end`, and the shifted pair to `select_line_start`/`end`. `⌘K` becomes F14 because only the shell can clear its own scrollback — see the widget in [`.zshrc`](home/.zshrc), which needs `bindkey` lines for all of these.
+`⌘←/→` become Home/End, and `⌘⇧←/→` become their shifted variants, so terminal editors receive navigation keys rather than Control-letter commands. `⌘K` becomes F14 because the shell handles clearing its own scrollback; [`.zshrc`](home/.zshrc) binds F14 and Home/End accordingly.
 
-`⌥←/→` and `⌥⌫` are left as the app ships them, sending `esc b` / `esc f` / `⌃W`. Fresh reads the first two as `alt+b`/`alt+f`; its config disables menu mnemonics and explicitly binds `alt+f` to `move_word_right` so both directions move by a word.
+`⌥←/→` and `⌥⌫` use the app’s default `esc b` / `esc f` / `⌃W` sequences. TTT maps those to word movement and word deletion; `⌘⌫` arrives as `⌃U` and deletes the whole line.
 
 ### Agent sessions survive a reboot
 
@@ -645,7 +574,7 @@ I author the config once and let [**chai**](https://github.com/charliesbot/chai)
 
 ```bash
 # 1. Edit the source of truth
-$EDITOR ai/instructions/AGENTS.md      # or add a skill under ai/
+ttt ai/instructions/AGENTS.md          # or add a skill under ai/
 
 # 2. Distribute to every platform listed in chai.toml
 chai update   # clone/pull any external deps first (skills from other repos, etc.)
@@ -696,8 +625,10 @@ dotfiles/
     └── .config/
         ├── aerospace/
         │   └── aerospace.toml # Tiling, window rules, keys
-        ├── fresh/
-        │   └── config.json   # Editor keybindings
+        ├── fresh/           # Legacy Fresh configuration
+        ├── ttt/
+        │   ├── keybindings.json
+        │   └── settings.json
         ├── herdr-app/
         │   ├── keys.json     # What every key does
         │   └── settings.json # Zoom and sounds

@@ -3,11 +3,11 @@
 # keys — show the keyboard cheatsheet for this machine.
 #
 # Four programs share the keyboard here — AeroSpace, Tinycast, herdr.app and
-# Fresh — and each one can only show you its own half. This is the cross-layer
+# TTT — and each one can only show you its own half. This is the cross-layer
 # view: what owns which modifier, and the chords worth remembering from each.
 #
 # It is curated, not generated. Every program here can already print its own
-# complete list (`herdr-app commands`, Fresh's Show Keyboard Shortcuts), and
+# complete list (`herdr-app commands`, TTT's Keyboard Shortcuts editor), and
 # those lists are long and full of actions nobody reaches for. Each section
 # says where its full list lives.
 #
@@ -30,15 +30,15 @@ SHEET = r"""
 @map  Layers  who owns which modifier
 ⌃ + arrows/digits    AeroSpace — focus a window, switch workspace
 ⌃⇧ + anything        AeroSpace — move, resize, retile
-⌃ + letter           Fresh — editor commands
-⌥ + letter           Fresh — editor commands
-⌃⌥ + anything        Fresh — multi-cursor, interactive replace
+⌃ + letter           TTT — editor commands
+⌥ + arrows           TTT — word navigation and selection
+⌘⌥↑ / ⌘⌥↓            Herdr forwards these to TTT for multiple cursors
 ⌘ + anything         herdr.app — tabs, panes, spaces, agents
 ⌘⌥ + anything        herdr.app — panes and spaces
 Caps Lock            Tinycast — hyper key (⌃⌥⇧⌘)
 
 # Why it splits this way
-Fresh cannot see ⌘      It drops super when decoding CSI-u, so all of ⌘ is herdr's for good
+TTT uses Control       Herdr handles Command and translates selected keys for the editor
 ⌃ has no letters        AeroSpace stays on arrows and digits, so the shell keeps ⌃A ⌃C ⌃D ⌃R ⌃W
 One program, not two    herdr.app is the terminal. There is no emulator under it to share keys with
 
@@ -90,7 +90,7 @@ F2 / ⇧F2             Rename tab / space
 ⌘D / ⌘⇧D             Split right / down
 ⌘⇧W                  Close pane
 ⌘⇧⏎                  Zoom pane
-⌘⌥ + arrows          Focus pane
+⌘⌥← / ⌘⌥→            Focus pane while a terminal has focus
 ⌘⌥⇧ + arrows         Swap pane
 
 # Agents
@@ -98,7 +98,7 @@ F2 / ⇧F2             Rename tab / space
 
 # The window
 ⌘B                   Toggle the sidebar
-⌘P                   Picker
+⌘P                   Go-to picker
 ⌘⇧P                  Command palette — every command, with its key
 ⌘⇧L                  Switch layout
 ⌘, / ⌘/              Settings / help
@@ -112,55 +112,56 @@ F2 / ⇧F2             Rename tab / space
 ⌘K                   Clear screen and scrollback — sent as F14, zsh does the clearing
 ⌘← / ⌘→              Line start / end — sent as Home/End
 ⌘⇧← / ⌘⇧→            Select to line start / end
-⌘⌫                   Delete to line start
+⌘⌫                   TTT: delete whole line; shell: delete to line start
 ⌥← / ⌥→              Word motion
 ⌥⌫                   Delete the word before the cursor
 
-@editor  Editor  Fresh, vscode keymap. Full list: ⌃P then Show Keyboard Shortcuts
+@editor  Editor  TTT. Full list: Ctrl+P, then Preferences: Open Keyboard Shortcuts
 # Editing
 ⌃C ⌃X ⌃V ⌃Z ⌃Y       Copy, cut, paste, undo, redo
-⌃A / ⌃L              Select all / select line
-⌃⇧K / ⌃K             Delete line / delete to end of line
+⌃A                   Select all
+⌘⌫                   Delete the whole line
+⌥⌫                   Delete the previous word
 ⌥↑ / ⌥↓              Move the line up / down
-⌥U / ⌥L              Upper / lowercase
 
 # Multi-cursor
-⌃D                   Add a cursor at the next match
-⌃⌥↑ / ⌃⌥↓            Add a cursor above / below
-⌥⇧I                  A cursor at the end of every selected line
-⌥⇧↑ / ⌥⇧↓            Block select
+⌃D                   Select the next occurrence
+⌃K then L            Select all occurrences
+⌘⌥↑ / ⌘⌥↓            Add a cursor above / below
 Esc                  Drop the secondary cursors
+⇧← / ⇧→              TTT 1.13.0 limitation: these do not select at every cursor
 
-# Moving
-⌥← → / ⌃← →          Word motion, either modifier
-Home / End           Line start / end — ⌘←/→ arrives as these
+# Moving and selecting
+⌥← / ⌥→              Move by word
+⌥⇧← / ⌥⇧→            Select by word
+⌘← / ⌘→              Line start / end, via Home/End
+⌘⇧← / ⌘⇧→            Select to line start / end
 ⌃Home / ⌃End         Document start / end
 ⌃G                   Go to line
 
 # Finding
-⌥/                   Live grep across files
-⌥R                   Resume the last live grep
 ⌃F / ⌃R              Find / replace in this buffer
 F3 / ⇧F3             Next / previous match
-⌃⌥R                  Interactive replace, y/n/!/q per match
+⌃K then F            Search across files
+⌃K then R            Search and replace across files
 
 # Language server
-F12 / ⇧F12 / ⌃F12    Definition / references / implementation
-F2                   Rename symbol
-⌥. / ⌥K              Code actions / hover docs
+F12 / ⇧F12           Definition / implementation
+⌃K then I            Hover information
 ⌃Space               Completion
-F8 / ⇧F8             Next / previous diagnostic
+⌃L then F            Format document with the language server
+⌃P                   Find rename, references, and other commands in the palette
 
-# Files and panes
-⌃P                   Command palette and file picker
-⌃O ⌃S ⌃N ⌃Q          Open, save, new, quit
-⌃E                   Focus the file explorer
-⌃PgUp / ⌃PgDn        Previous / next buffer
-⌥W                   Close tab
-⌥1…9                 Bookmarks
-⌥[ / ⌥]              Splits
-⌥`                   Terminal in the utility dock
-⌥|                   Run a shell command on the buffer or selection
+# Files and panels
+⌃P                   Command palette
+⌃K then P            Quick open file
+⌃O                   Open folder or workspace
+⌃S / ⌃N / ⌃Q         Save / new file / quit
+⌃K then W            Close the file tab
+⌃K then E            Show the file explorer
+⌃B                   Toggle the sidebar
+⌃T                   Toggle the integrated terminal
+F10                  File menu
 
 @shell  Shell  zsh. Config: ~/.zshrc
 ⌘K / ⌃K              Clear screen and scrollback. ⌃K costs zsh its kill-line

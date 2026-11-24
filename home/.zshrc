@@ -20,8 +20,8 @@ source $ZSH/oh-my-zsh.sh
 zstyle ':completion:*' remote-access yes
 
 # ─── Editor ─────────────────────────────────────────────────────────────────
-export EDITOR="nano"
-export VISUAL="nano"
+export EDITOR="ttt --new-window"
+export VISUAL="ttt --new-window"
 
 # ─── Environment ────────────────────────────────────────────────────────────
 # The chromium cask was disabled on 2026-09-01 for failing the macOS Gatekeeper
@@ -45,7 +45,7 @@ export DOCKER_HOST="unix://$HOME/.orbstack/run/docker.sock"
 # in keys.json), and ctrl+k directly. cmd+k has to be rewritten rather than left
 # alone because only the shell can clear its own scrollback. ctrl+k is bound here
 # in zsh rather than in herdr.app on purpose: herdr would take it from every pane,
-# and Fresh spends ⌃K on delete-to-line-end. The cost is zsh's kill-line.
+# and TTT uses ⌃K to start shortcut chords. The cost is zsh's kill-line.
 clear-screen-and-scrollback() {
   printf '\033[H\033[2J\033[3J'
   zle .reset-prompt
@@ -53,9 +53,8 @@ clear-screen-and-scrollback() {
 zle -N clear-screen-and-scrollback
 bindkey '^[[26~' clear-screen-and-scrollback
 
-# cmd+left/right are rewritten to Home/End in herdr.app's keys.json, because the
-# \x01 and \x05 they send by default are ctrl+a and ctrl+e, which Fresh spends on
-# select_all and focus_file_explorer. zsh knows ^A and ^E, but not these.
+# cmd+left/right arrive as Home/End so terminal editors get navigation keys.
+# Bind those same sequences for shell prompts.
 bindkey '^[[H' beginning-of-line
 bindkey '^[[F' end-of-line
 bindkey '^K' clear-screen-and-scrollback
