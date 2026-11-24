@@ -1,0 +1,31 @@
+{
+  "editor.moveWordLeft": [
+    "ctrl+left",
+    "alt+b"
+  ],
+  "editor.moveWordRight": [
+    "ctrl+right",
+    "alt+f"
+  ],
+  "menu.file": "f10",
+  "editor.selectWordLeft": [
+    "ctrl+shift+left",
+    "alt+shift+left"
+  ],
+  "editor.selectWordRight": [
+    "ctrl+shift+right",
+    "alt+shift+right"
+  ],
+  "sidebar.narrower": "",
+  "sidebar.wider": "",
+  "editor.deleteLine": [
+    "ctrl+k k",
+    "ctrl+u"
+  ],
+  "editor.deleteWordLeft": [
+    "alt+backspace",
+    "ctrl+w"
+  ],
+  "editor.autocomplete": "ctrl+space",
+  "tab.close": "ctrl+k w"
+}
