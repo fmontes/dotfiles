@@ -135,3 +135,10 @@ source "$HOME/.railway/env" 2>/dev/null || true
 
 # Load Angular CLI autocompletion.
 source <(ng completion script)
+
+# Turso
+export PATH="$PATH:/Users/fmontes/.turso"
+
+
+# Added by Antigravity CLI installer
+export PATH="/Users/fmontes/.local/bin:$PATH"
