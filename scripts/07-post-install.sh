@@ -10,8 +10,8 @@ fi
 # Use the official native installer rather than the npm package — the npm
 # global install can skip the platform-native binary (--ignore-scripts /
 # --omit=optional), leaving a `claude` on PATH that exists but won't run.
-# The installer drops the binary in ~/.local/bin, which this script's PATH
-# may not include yet — add it so the run-check and verification work here.
+# Native installers use ~/.local/bin, which this script's PATH may not include
+# yet — add it so the Claude Code and Antigravity checks work here.
 export PATH="$HOME/.local/bin:$PATH"
 # Test that it actually runs, not just that it's present, so a broken npm
 # install gets replaced.
@@ -24,6 +24,19 @@ else
     echo "Claude Code ready."
   else
     echo "Claude Code still not runnable — check ~/.local/bin/claude manually."
+  fi
+fi
+
+# ─── Antigravity CLI (native installer) ──────────────────────────────────────
+if agy --version &>/dev/null; then
+  echo "Antigravity CLI already installed."
+else
+  echo "Installing Antigravity CLI..."
+  (set -o pipefail; curl -fsSL https://antigravity.google/cli/install.sh | bash) || echo "Antigravity CLI install failed — run 'curl -fsSL https://antigravity.google/cli/install.sh | bash' manually."
+  if agy --version &>/dev/null; then
+    echo "Antigravity CLI ready."
+  else
+    echo "Antigravity CLI still not runnable — check ~/.local/bin/agy manually."
   fi
 fi
 

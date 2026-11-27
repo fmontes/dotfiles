@@ -21,6 +21,7 @@ This clones the repo to `~/.dotfiles` and runs the installer.
 - **[TTT](https://tttedit.dev/)** for terminal editing with familiar shortcuts and per-folder tab restoration
 - **[herdr.app](https://herdr.dev/)** as the terminal: spaces, tabs, panes and coding agents in one native window
 - **[AI](ai/)** skills and instructions for agentic coding harnesses
+- **[Antigravity CLI](https://antigravity.google/cli/)** (`agy`) via its official native installer
 - **macOS defaults** for Dock, Finder, keyboard
 
 ## Manual install
@@ -39,7 +40,7 @@ The script will:
 4. Install Oh My Zsh
 5. Set up mise and install Node and Python
 6. Apply macOS defaults
-7. Install gh-dash and the herdr annotate plugin, global npm packages, restore Tinycast settings, fix permissions, set up the VS Code CLI
+7. Install gh-dash, Claude Code and Antigravity CLI, global npm packages, restore Tinycast settings, fix permissions, set up the VS Code CLI
 8. Sync AI agent config to every platform with `chai`
 9. Install the launch agents in [`launchd/`](launchd/), currently just [`herdr-sessions`](#agent-sessions-survive-a-reboot)
 
@@ -51,7 +52,7 @@ Run the same one-liner again, or `cd ~/.dotfiles && ./install.sh`. Every step is
 - Homebrew, Oh My Zsh and the Command Line Tools are skipped when present, and `brew bundle` installs only what the `Brewfile` added
 - Symlinks already pointing at the repo are skipped. Links left by an older clone location, or dangling ones, are repointed. A real file in the way is moved to `<name>.bak` once
 - The Dock is reset only while it still looks like the factory Dock (two or more of Apple's stock apps pinned), so apps pinned since are kept. The other macOS defaults are plain writes and safe to repeat
-- Global npm packages install only when missing, and the VS Code CLI link asks for `sudo` only when it is not already in place
+- Claude Code and Antigravity CLI install through their official native installers when their version checks fail; both use `~/.local/bin`, already on the shell PATH. Global npm packages install only when missing, and the VS Code CLI link asks for `sudo` only when it is not already in place
 - Launch agents are rewritten and reloaded only when their template changed, and loaded if they are not running
 
 Tinycast settings are the one deliberate overwrite: `07-post-install.sh` imports the repo's plist on every run, so the repo is the source of truth. Export from the machine whose settings you want to keep (the pre-commit hook does this) before updating the others.
@@ -139,6 +140,7 @@ Only things that have to live in the shell. Standalone commands are [CLI tools](
 | Tool | Description |
 |---|---|
 | `atuin` | Shell history with search and optional sync |
+| `agy` | Antigravity CLI, installed by `07-post-install.sh` using the official installer |
 | `bat` | `cat` with syntax highlighting |
 | `btop` | Resource monitor (CPU, memory, processes) |
 | `chai` | Sync AI agent config across platforms. `charliesbot/tap`, not the unrelated `chai` cask |
